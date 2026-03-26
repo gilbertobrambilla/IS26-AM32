@@ -3,7 +3,6 @@ package it.polimi.ingsw.am32;
 import it.polimi.ingsw.am32.cards.Card;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,10 +11,6 @@ public class Deck {
 
     public Deck() {
         this.cards = new ArrayList<>();
-    }
-
-    public void shuffle() {
-        Collections.shuffle(this.cards);
     }
 
     public Card draw() {
