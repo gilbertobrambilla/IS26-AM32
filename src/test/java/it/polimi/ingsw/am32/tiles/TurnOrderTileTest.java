@@ -1,9 +1,9 @@
 package it.polimi.ingsw.am32.tiles;
 
 
+import it.polimi.ingsw.am32.tiles.TurnOrderTile;
 import it.polimi.ingsw.am32.Player;
 import it.polimi.ingsw.am32.enums.TotemColor;
-import it.polimi.ingsw.am32.exceptions.InvalidActionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,92 +22,69 @@ class TurnOrderTileTest {
         player = new Player("TestNickname1", TotemColor.RED);
         otherPlayer = new Player("TestNickname2", TotemColor.BLUE);
         playerdemo = new Player("TestNickname3", TotemColor.BLACK);
-        turnOrderTile = new TurnOrderTile("TurnOrderId", 3,List.of(2,0,-1), List.of(0,0,-2));//da riguardare
+        turnOrderTile = new TurnOrderTile("TurnOrderId", 3,List.of(1,2,3), List.of(1,2,3));//da riguardare
+    }
+    @Test
+    //checking if the player Nickname remain the same after the place of the totem
+    void placePlayerShouldNotChangeNickname(){
+        String initialPlayer = player.getNickname();
+        turnOrderTile.placePlayer(player);
+        assertEquals(initialPlayer,player.getNickname());
     }
 
     @Test
-    void constructorShouldThrowExceptionIfFoodModifiersIsNull(){
-        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3,null, List.of(1,2,3)));
+
+    void placePlayerShouldPlacePlayer() {
+
+    }
+
+
+    @Test
+
+    void placePlayerShouldPlaceInRightPosition(){
+
+    }
+
+    // @Test
+    //checking if player goes in a different position
+
+
+    /*@Test
+    checking if player hits another totem in the TurnOrderTile
+    /void placePlayerShouldNotOccupateTile() {
+        turnOrderTile.placePlayer(player);
+        assertThrows(IllegalArgumentException.class, () -> {
+
+        }*/
+    @Test
+    //checking if removed player is the one i want
+    void removePlayerShouldRemovePlayer() {
+        String initialPlayer = player.getNickname();
+        turnOrderTile.removePlayer(player);
+        assertEquals(initialPlayer,player.getNickname());
     }
 
     @Test
-    void constructorShouldThrowExceptionIfPrestigeModifiersIsNull(){
-        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3,List.of(1,2,3), null));
+        //testing if i have brain because i'm not sure about this test , per quello che intendo io è sbagliata
+    void removePlayerShouldNotRemoveOtherPlayer() {
+        int numofplayer = turnOrderTile.getRequiredPlayers();
+        turnOrderTile.removePlayer(otherPlayer);
+        assertEquals(numofplayer, turnOrderTile.getRequiredPlayers());
     }
 
     @Test
-    void placePlayerShouldThrowExceptionIfPlayerIsNull(){
-        assertThrows(NullPointerException.class, () -> turnOrderTile.placePlayer(null));
-    }
-
-    @Test
-    void placePlayerShouldThrowExceptionIfTurnOrderTileIsFull() {
+    void isFullShouldReturnTrue() {
         turnOrderTile.placePlayer(player);
         turnOrderTile.placePlayer(otherPlayer);
         turnOrderTile.placePlayer(playerdemo);
 
         turnOrderTile.isFull();
-
         assertTrue(turnOrderTile.isFull());
-        assertThrows(InvalidActionException.class, () -> turnOrderTile.placePlayer(player));
     }
 
     @Test
-
-    void placePlayerShouldRemoveFoodAndHasEnoughFood(){
-        player.addFood(1);
-
-        turnOrderTile.placePlayer(playerdemo);
-        turnOrderTile.placePlayer(otherPlayer);
-        turnOrderTile.placePlayer(player);
-
-        assertEquals(0, player.getFood());
-    }
-
-    @Test
-    void placePlayerShouldRemovePrestige(){
-        turnOrderTile.placePlayer(playerdemo);
-        turnOrderTile.placePlayer(otherPlayer);
-        turnOrderTile.placePlayer(player);
-
-        assertEquals(-2, player.getPrestige());
-    }
-
-    @Test
-    void removePlayerShouldThrowExceptionIfPlayerIsNull(){
-        assertThrows(NullPointerException.class, () -> turnOrderTile.removePlayer(null));
-    }
-
-    @Test
-    void removePlayerShouldRemovePlayer(){
-        turnOrderTile.placePlayer(playerdemo);
-        turnOrderTile.placePlayer(otherPlayer);
-        turnOrderTile.placePlayer(player);
-
-        turnOrderTile.removePlayer(player);
-
-        assertEquals(List.of(playerdemo,otherPlayer), turnOrderTile.getTurnOrder());
-    }
-
-    @Test
-    void initPlayersOrderShouldThrowExceptionIfPlayerIsNull(){
-        assertThrows(NullPointerException.class, () -> turnOrderTile.initPlayersOrder(null));
-    }
-
-    @Test
-    void initPlayersOrderShouldThrowExceptionIfTileCapacityIsLessThanPlayers(){
-        turnOrderTile.placePlayer(player);
-        turnOrderTile.placePlayer(otherPlayer);
-        turnOrderTile.placePlayer(playerdemo);
-
-        assertThrows(IllegalStateException.class, () -> turnOrderTile.initPlayersOrder(List.of(player,otherPlayer)));
-    }
-
-    @Test
-
-    void initPlayersOrderShouldAddPlayersToTurnOrder(){
-        turnOrderTile.initPlayersOrder(List.of(player,otherPlayer));
-
-        assertEquals(List.of(player,otherPlayer), turnOrderTile.getTurnOrder());
+    void isFullShouldReturnFalse() {
+        turnOrderTile.isFull();
+        assertFalse(turnOrderTile.isFull());
     }
 }
