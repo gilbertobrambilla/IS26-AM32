@@ -81,7 +81,7 @@ class SustenanceEventTest {
         assertEquals(-3, pCharlie.getPrestige());
     }
 
-    // --- NUOVI TEST PER LE ECCEZIONI INTRODOTTE ---
+    //testing the exceptions
 
     @Test
     void testResolveEvent_NullGameState() {
