@@ -41,7 +41,7 @@ public class CavePaintingsEvent extends EventCard {
         for (Player player : gameState.getPlayers()) {
             int artists = player.getArtistCount();
 
-            if (artists <= this.bonusThreshold) {
+            if (artists < this.bonusThreshold) {
                 player.removePrestige(this.prestigePenalty);
             } else {
                 player.addPrestige(artists * this.prestigeBonus);
