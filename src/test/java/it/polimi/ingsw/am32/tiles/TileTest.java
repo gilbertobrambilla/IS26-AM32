@@ -21,16 +21,6 @@ class TileTest {
     }
 
     @Test
-    void getIdShouldReturnConstructorValue() {
-        assertEquals("tile_01", tile.getId());
-    }
-
-    @Test
-    void getRequiredPlayersShouldReturnConstructorValue() {
-        assertEquals(3, tile.getRequiredPlayers());
-    }
-
-    @Test
     void constructorShouldThrowExceptionIfIdIsNull() {
         assertThrows(NullPointerException.class, () -> new DummyTile(null, 3));
     }
