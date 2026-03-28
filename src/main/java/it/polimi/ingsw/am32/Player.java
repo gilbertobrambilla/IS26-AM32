@@ -8,8 +8,8 @@ import it.polimi.ingsw.am32.tiles.OfferTile;
 import java.util.*;
 
 public class Player {
-    private String nickname;
-    private TotemColor totem;
+    private final String nickname;
+    private final TotemColor totem;
     private int food;
     private int prestige;
     private int artistCount;
