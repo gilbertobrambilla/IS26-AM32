@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am32.tiles;
 
-
 import it.polimi.ingsw.am32.Player;
 import it.polimi.ingsw.am32.enums.TotemColor;
 import it.polimi.ingsw.am32.exceptions.InvalidActionException;
@@ -22,17 +21,17 @@ class TurnOrderTileTest {
         player = new Player("TestNickname1", TotemColor.RED);
         otherPlayer = new Player("TestNickname2", TotemColor.BLUE);
         playerdemo = new Player("TestNickname3", TotemColor.BLACK);
-        turnOrderTile = new TurnOrderTile("TurnOrderId", 3,List.of(2,0,-1), List.of(0,0,-2));//da riguardare
+        turnOrderTile = new TurnOrderTile("TurnOrderId", 3, List.of(2, 0, -1), List.of(0, 0, -2));
     }
 
     @Test
     void constructorShouldThrowExceptionIfFoodModifiersIsNull(){
-        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3,null, List.of(1,2,3)));
+        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3, null, List.of(1,2,3)));
     }
 
     @Test
     void constructorShouldThrowExceptionIfPrestigeModifiersIsNull(){
-        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3,List.of(1,2,3), null));
+        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3, List.of(1,2,3), null));
     }
 
     @Test
@@ -46,19 +45,26 @@ class TurnOrderTileTest {
         turnOrderTile.placePlayer(otherPlayer);
         turnOrderTile.placePlayer(playerdemo);
 
-        turnOrderTile.isFull();
-
         assertTrue(turnOrderTile.isFull());
         assertThrows(InvalidActionException.class, () -> turnOrderTile.placePlayer(player));
     }
 
     @Test
+    void placePlayerShouldAddFoodIfModifierIsPositive() {
+        int initialFood = player.getFood();
 
+        turnOrderTile.placePlayer(player);
+
+        assertEquals(initialFood + 2, player.getFood());
+    }
+
+    @Test
     void placePlayerShouldRemoveFoodAndHasEnoughFood(){
         player.addFood(1);
 
         turnOrderTile.placePlayer(playerdemo);
         turnOrderTile.placePlayer(otherPlayer);
+
         turnOrderTile.placePlayer(player);
 
         assertEquals(0, player.getFood());
@@ -68,6 +74,7 @@ class TurnOrderTileTest {
     void placePlayerShouldRemovePrestige(){
         turnOrderTile.placePlayer(playerdemo);
         turnOrderTile.placePlayer(otherPlayer);
+
         turnOrderTile.placePlayer(player);
 
         assertEquals(-2, player.getPrestige());
@@ -86,28 +93,35 @@ class TurnOrderTileTest {
 
         turnOrderTile.removePlayer(player);
 
-        assertEquals(List.of(playerdemo,otherPlayer), turnOrderTile.getTurnOrder());
+        assertEquals(List.of(playerdemo, otherPlayer), turnOrderTile.getTurnOrder());
     }
 
     @Test
-    void initPlayersOrderShouldThrowExceptionIfPlayerIsNull(){
+    void initPlayersOrderShouldThrowExceptionIfPlayerListIsNull(){
         assertThrows(NullPointerException.class, () -> turnOrderTile.initPlayersOrder(null));
     }
 
     @Test
-    void initPlayersOrderShouldThrowExceptionIfTileCapacityIsLessThanPlayers(){
+    void initPlayersOrderShouldThrowExceptionIfExceedsCapacityWithExistingPlayers(){
         turnOrderTile.placePlayer(player);
         turnOrderTile.placePlayer(otherPlayer);
-        turnOrderTile.placePlayer(playerdemo);
 
-        assertThrows(IllegalStateException.class, () -> turnOrderTile.initPlayersOrder(List.of(player,otherPlayer)));
+        assertThrows(IllegalStateException.class, () -> turnOrderTile.initPlayersOrder(List.of(playerdemo, player)));
     }
 
     @Test
+    void initPlayersOrderShouldThrowExceptionIfListExceedsCapacity(){
+        Player extraPlayer = new Player("TestNickname4", TotemColor.WHITE);
 
-    void initPlayersOrderShouldAddPlayersToTurnOrder(){
-        turnOrderTile.initPlayersOrder(List.of(player,otherPlayer));
-
-        assertEquals(List.of(player,otherPlayer), turnOrderTile.getTurnOrder());
+        assertThrows(IllegalStateException.class, () -> turnOrderTile.initPlayersOrder(List.of(player, otherPlayer, playerdemo, extraPlayer))
+        );
     }
+
+    @Test
+    void initPlayersOrderShouldAddPlayersToTurnOrder(){
+        turnOrderTile.initPlayersOrder(List.of(player, otherPlayer));
+
+        assertEquals(List.of(player, otherPlayer), turnOrderTile.getTurnOrder());
+    }
+
 }
