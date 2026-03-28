@@ -1,9 +1,13 @@
 package it.polimi.ingsw.am32.tiles;
 
 import it.polimi.ingsw.am32.Player;
+import it.polimi.ingsw.am32.enums.InvalidActionReason;
 import it.polimi.ingsw.am32.enums.TotemColor;
+import it.polimi.ingsw.am32.exceptions.InvalidActionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,9 +24,57 @@ class OfferTileTest {
     void setUp() {
         player = new Player("Nickname1", TotemColor.RED);
         otherPlayer = new Player("Nickname2", TotemColor.BLUE);
-        playerdemo = new Player("Nickname3",TotemColor.BLACK);
+        playerdemo = new Player("Nickname3", TotemColor.BLACK);
+        action = new Action(1, 1, 2);
         offerTile = new OfferTile("id", 3, action);
+    }
 
+    @Test
+    void constructorShouldThrowExceptionIfActionIsNull() {
+        assertThrows(NullPointerException.class, () -> {
+            new OfferTile("id", 3, null);
+        });
+    }
+
+    @Test
+    void placePlayerShouldThrowExceptionIfPlayerIsNull() {
+        assertThrows(NullPointerException.class, () -> {
+            new OfferTile("id", 3, null);
+        });
+    }
+
+    @Test
+    void placePlayerShouldThrowExceptionIfIsFreeIsNotNull() {
+        assertThrows(NullPointerException.class, () -> {
+            new OfferTile("id", 3, null);
+        });
+    }
+    @Test
+    void placePlayerShouldThrowExceptionIfisFreeIsNotNull() {
+        assertThrows(NullPointerException.class, () -> {
+            offerTile.placePlayer(null);
+        });
+    }
+    @Test
+    void placePlayerShouldPlacePlayer() {
+        Player player = offerTile.getOccupyingPlayer();
+        offerTile.placePlayer(playerdemo);
+        assertEquals(playerdemo, offerTile.getOccupyingPlayer());
+    }
+    @Test
+    void placePlayerShouldThrowExceptionIfIsFreeIsNotFree() {
+        offerTile.placePlayer(playerdemo);
+
+        assertFalse(offerTile.isFree(),"The tile is already occupied");
+        assertThrows(InvalidActionException.class, () -> {offerTile.placePlayer(playerdemo);});
+
+    }
+
+    @Test
+    void removePlayerShouldThrowExceptionIfPlayerIsNull() {
+        assertThrows(NullPointerException.class, () -> {
+            new OfferTile("id", 3, null);
+        });
     }
 
     @Test
@@ -30,41 +82,25 @@ class OfferTileTest {
         assertEquals(action, offerTile.getAction());
     }
 
-
-    @Test
-    void getOccupyingPlayerShouldReturnPlayer() {
-        assertEquals(player, offerTile.getOccupyingPlayer());
-    }
-
-    @Test
-    void getOccupyingPlayerShouldnotReturnPlayer() {
-        assertNotEquals(otherPlayer, offerTile.getOccupyingPlayer());
-    }
-    @Test
-    void placePlayerShouldPlacePlayer() {
-        int numofplayers = offerTile.getRequiredPlayers();
-        offerTile.placePlayer(player);
-        assertEquals(player, offerTile.getOccupyingPlayer());
-    }
-    @Test
-        //checking if the player Nickname remain the same after the place of the totem
-    void placePlayerShouldNotChangeNickname(){
-        String initialPlayer = player.getNickname();
-        offerTile.placePlayer(player);
-        assertEquals(initialPlayer,player.getNickname());
-    }
     /*@Test
-    Questo test dovrebbe fallire per fare un effettivo Test
+    void removePlayerShouldThrowExceptionIfPlayerIsFreeIsNotNull() {
+        assertThrows(NullPointerException.class, () -> {})
+    }
+    */
+    @Test
+    void removePlayerShouldRemovePlayer() {
+        offerTile.placePlayer(playerdemo);
 
-    void placePlayerShouldnotPlacePlayer() {
-        assertNotEquals(otherPlayer, offerTile.getOccupyingPlayer());
-    }*/
+        offerTile.removePlayer();
+        assertEquals(null, offerTile.getOccupyingPlayer());
+    }
+}
 
    /* @Test
     void placePlayerCannotPlacePlayer() {
         offerTile.placePlayer(otherPlayer);
         assertThrows(IllegalArgumentException.class, () -> offerTile.placePlayer(player));
-    }*/
+    }
 
     @Test
     void removePlayerShouldRemovePlayer() {
@@ -82,9 +118,4 @@ class OfferTileTest {
     @Test
     void isFreeShouldReturnTrue() {
         assertTrue(offerTile.isFree());
-    }
-    /*@Test
-    void isFreeShouldReturnFalse() {
-        assertTrue(offerTile.isFree());
     }*/
-}

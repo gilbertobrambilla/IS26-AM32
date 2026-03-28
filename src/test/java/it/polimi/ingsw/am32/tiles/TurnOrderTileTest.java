@@ -22,21 +22,21 @@ class TurnOrderTileTest {
         player = new Player("TestNickname1", TotemColor.RED);
         otherPlayer = new Player("TestNickname2", TotemColor.BLUE);
         playerdemo = new Player("TestNickname3", TotemColor.BLACK);
-        turnOrderTile = new TurnOrderTile("TurnOrderId", 3,List.of(2,0,-1), List.of(0,0,-2));//da riguardare
+        turnOrderTile = new TurnOrderTile("TurnOrderId", 3, List.of(2, 0, -1), List.of(0, 0, -2));//da riguardare
     }
 
     @Test
-    void constructorShouldThrowExceptionIfFoodModifiersIsNull(){
-        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3,null, List.of(1,2,3)));
+    void constructorShouldThrowExceptionIfFoodModifiersIsNull() {
+        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3, null, List.of(1, 2, 3)));
     }
 
     @Test
-    void constructorShouldThrowExceptionIfPrestigeModifiersIsNull(){
-        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3,List.of(1,2,3), null));
+    void constructorShouldThrowExceptionIfPrestigeModifiersIsNull() {
+        assertThrows(NullPointerException.class, () -> new TurnOrderTile("TurnOrderId", 3, List.of(1, 2, 3), null));
     }
 
     @Test
-    void placePlayerShouldThrowExceptionIfPlayerIsNull(){
+    void placePlayerShouldThrowExceptionIfPlayerIsNull() {
         assertThrows(NullPointerException.class, () -> turnOrderTile.placePlayer(null));
     }
 
@@ -48,13 +48,12 @@ class TurnOrderTileTest {
 
         turnOrderTile.isFull();
 
-        assertTrue(turnOrderTile.isFull());
+        assertTrue(turnOrderTile.isFull(),"TurnOrderTile should be full");
         assertThrows(InvalidActionException.class, () -> turnOrderTile.placePlayer(player));
     }
 
     @Test
-
-    void placePlayerShouldRemoveFoodAndHasEnoughFood(){
+    void placePlayerShouldRemoveFoodAndHasEnoughFood() {
         player.addFood(1);
 
         turnOrderTile.placePlayer(playerdemo);
@@ -65,7 +64,7 @@ class TurnOrderTileTest {
     }
 
     @Test
-    void placePlayerShouldRemovePrestige(){
+    void placePlayerShouldRemovePrestige() {
         turnOrderTile.placePlayer(playerdemo);
         turnOrderTile.placePlayer(otherPlayer);
         turnOrderTile.placePlayer(player);
@@ -74,19 +73,19 @@ class TurnOrderTileTest {
     }
 
     @Test
-    void removePlayerShouldThrowExceptionIfPlayerIsNull(){
+    void removePlayerShouldThrowExceptionIfPlayerIsNull() {
         assertThrows(NullPointerException.class, () -> turnOrderTile.removePlayer(null));
     }
 
     @Test
-    void removePlayerShouldRemovePlayer(){
+    void removePlayerShouldRemovePlayer() {
         turnOrderTile.placePlayer(playerdemo);
         turnOrderTile.placePlayer(otherPlayer);
         turnOrderTile.placePlayer(player);
 
         turnOrderTile.removePlayer(player);
 
-        assertEquals(List.of(playerdemo,otherPlayer), turnOrderTile.getTurnOrder());
+        assertEquals(List.of(playerdemo, otherPlayer), turnOrderTile.getTurnOrder());
     }
 
     @Test
