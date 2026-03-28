@@ -1,6 +1,6 @@
 package it.polimi.ingsw.am32.tiles;
 
-public class Action {
+public class Action  {
     private final int drawsFromUpperRow;
     private final int drawsFromLowerRow;
     private final int foodBonus;
