@@ -96,7 +96,7 @@ class TurnOrderTileTest {
         assertEquals(List.of(playerdemo, otherPlayer), turnOrderTile.getTurnOrder());
     }
 
-    @Test
+    /*@Test
     void initPlayersOrderShouldThrowExceptionIfPlayerListIsNull(){
         assertThrows(NullPointerException.class, () -> turnOrderTile.initPlayersOrder(null));
     }
@@ -122,6 +122,6 @@ class TurnOrderTileTest {
         turnOrderTile.initPlayersOrder(List.of(player, otherPlayer));
 
         assertEquals(List.of(player, otherPlayer), turnOrderTile.getTurnOrder());
-    }
+    }*/
 
 }

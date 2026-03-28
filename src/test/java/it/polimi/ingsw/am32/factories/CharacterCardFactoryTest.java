@@ -81,4 +81,20 @@ class CharacterCardFactoryTest {
 
         assertThrows(RuntimeException.class, () -> factory.createCards(dtoList));
     }
+
+    @Test
+    void createCardsShouldThrowExceptionIfRequiredStringIsMissing() {
+        List<CharacterCardDTO> dtoList = new ArrayList<>();
+        dtoList.add(new CharacterCardDTO("Inventor_Broken", 3, 5, 2, "INVENTOR", "{\"wrong_key\": \"POTTERY\"}"));
+
+        assertThrows(IllegalStateException.class, () -> factory.createCards(dtoList));
+    }
+
+    @Test
+    void createCardsShouldThrowExceptionIfRequiredBooleanIsMissing() {
+        List<CharacterCardDTO> dtoList = new ArrayList<>();
+        dtoList.add(new CharacterCardDTO("Hunter_Broken", 1, 0, 3, "HUNTER", "{\"wrong_key\": true}"));
+
+        assertThrows(IllegalStateException.class, () -> factory.createCards(dtoList));
+    }
 }
