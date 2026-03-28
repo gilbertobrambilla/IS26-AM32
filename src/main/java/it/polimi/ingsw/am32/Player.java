@@ -3,6 +3,7 @@ package it.polimi.ingsw.am32;
 import it.polimi.ingsw.am32.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.cards.acquirable.characters.CharacterCard;
 import it.polimi.ingsw.am32.enums.*;
+import it.polimi.ingsw.am32.tiles.OfferTile;
 
 import java.util.*;
 
@@ -18,13 +19,13 @@ public class Player {
     private int sustenanceDiscount;
     private int hunterCount;
     private int inventorCount;
-    private Set<InventionType> inventions;
+    private final Set<InventionType> inventions;
     private int shamanCount;
     private int shamanStars;
     private boolean shamanicImmunity;
     private boolean doubleShamanicBonus;
-    private List<CharacterCard> characterList;
-    private List<BuildingCard> buildingList;
+    private final List<CharacterCard> characterList;
+    private final List<BuildingCard> buildingList;
     private boolean isConnected;
 
     public Player(String nickname, TotemColor totem) {
@@ -234,9 +235,9 @@ public class Player {
         return total;
     }
 
-    public List<CharacterCard> getCharacterList() {
-        return new ArrayList<>(characterList);
-    }
+//    public List<CharacterCard> getCharacterList() {
+//        return new ArrayList<>(characterList);
+//    }
 
     public void addCharacter(CharacterCard card) {
         Objects.requireNonNull(card, "card cannot be null");
@@ -247,9 +248,36 @@ public class Player {
         return characterList.size();
     }
 
-    public List<BuildingCard> getBuildingList() {
-        return new ArrayList<>(buildingList);
+//    public List<BuildingCard> getBuildingList() {
+//        return new ArrayList<>(buildingList);
+//    }
+
+    public void triggerBuildingEffectsOnTotemPlaced(OfferTile targetTile, GameState gameState) {
+        Objects.requireNonNull(targetTile, "targetTile cannot be null");
+        Objects.requireNonNull(gameState, "gameState cannot be null");
+
+        for (BuildingCard building : this.buildingList) {
+            building.getEffect().onTotemPlaced(targetTile, this, gameState);
+        }
     }
+
+    public void triggerBuildingEffectsOnRoundEnd(GameState gameState) {
+        Objects.requireNonNull(gameState, "gameState cannot be null");
+
+        for (BuildingCard building : this.buildingList) {
+            building.getEffect().onRoundEnd(this, gameState);
+        }
+    }
+
+    public void triggerBuildingEffectsOnGameEnd(GameState gameState) {
+        Objects.requireNonNull(gameState, "gameState cannot be null");
+
+        for (BuildingCard building : this.buildingList) {
+            building.getEffect().onGameEnd(this, gameState);
+        }
+    }
+
+
 
     public void addBuilding(BuildingCard card) {
         Objects.requireNonNull(card, "card cannot be null");

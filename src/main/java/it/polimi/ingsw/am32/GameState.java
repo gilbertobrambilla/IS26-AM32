@@ -3,6 +3,8 @@ package it.polimi.ingsw.am32;
 import it.polimi.ingsw.am32.cards.Card;
 import it.polimi.ingsw.am32.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.cards.acquirable.characters.CharacterCard;
+import it.polimi.ingsw.am32.cards.events.EventCard;
+import it.polimi.ingsw.am32.enums.EventType;
 import it.polimi.ingsw.am32.enums.GamePhase;
 import it.polimi.ingsw.am32.enums.InvalidActionReason;
 import it.polimi.ingsw.am32.exceptions.InvalidActionException;
@@ -25,8 +27,8 @@ public class GameState implements GameObservable {
     private final List<Card> lowerTribeRow;
     private final List<BuildingCard> upperBuildingRow;
     private final List<BuildingCard> lowerBuildingRow;
-    private final Deck tribeDeck;
-    private final Map<Integer, Deck> buildingDecks;
+    private final Deck<Card> tribeDeck;
+    private final Map<Integer, Deck<BuildingCard>> buildingDecks;
     private int currentRound;
     private int currentEra;
     private GamePhase currentPhase;
@@ -37,8 +39,8 @@ public class GameState implements GameObservable {
                      int targetPlayers,
                      List<OfferTile> offerTrack,
                      TurnOrderTile turnOrderTile,
-                     Deck tribeDeck,
-                     Map<Integer,Deck> buildingDecks) {
+                     Deck<Card> tribeDeck,
+                     Map<Integer,Deck<BuildingCard>> buildingDecks) {
         if (gameId < 1) {
             throw new IllegalArgumentException("gameId must be greater than 0");
         }
@@ -74,14 +76,20 @@ public class GameState implements GameObservable {
         // players are shuffled to determine initial turn order
         Collections.shuffle(this.players);
 
+        // players are placed on the turn order tile for the first round
+        this.turnOrderTile.initPlayersOrder(this.players);
+
         // initial food is distributed based on turn order
         for (int i = 0; i < this.players.size(); i++) {
             Player player = this.players.get(i);
             if (i == 0) {
+                // two food tokens are given to the first player
                 player.addFood(2);
             } else if (i == 1 || i == 2) {
+                // three food tokens are given to the second and third players
                 player.addFood(3);
             } else {
+                // four food tokens are given to the fourth and fifth players
                 player.addFood(4);
             }
         }
@@ -89,7 +97,7 @@ public class GameState implements GameObservable {
         int targetLower = this.targetPlayers + 1;
         int targetUpper = this.targetPlayers + 4;
 
-        // lower tribe row is filled and events are moved to upper tribe row
+        // lower tribe row is filled and events are moved to the upper tribe row
         while (this.lowerTribeRow.size() < targetLower && !this.tribeDeck.isEmpty()) {
             Card drawn = this.tribeDeck.draw();
 
@@ -105,61 +113,31 @@ public class GameState implements GameObservable {
             this.upperTribeRow.add(this.tribeDeck.draw());
         }
 
-        // era 1 buildings are added to upper building row
-        Deck era1Buildings = this.buildingDecks.get(1);
+        // era 1 buildings are added to the upper building row
+        Deck<BuildingCard> era1Buildings = this.buildingDecks.get(1);
         if (era1Buildings != null) {
             while (!era1Buildings.isEmpty()) {
-                // cast is safe because building decks only contain building cards
-                this.upperBuildingRow.add((BuildingCard) era1Buildings.draw());
+                // building deck cast is performed safely
+                this.upperBuildingRow.add(era1Buildings.draw());
             }
         }
 
-        // initial state is set
+        // initial game state is set
         this.currentRound = 1;
         this.currentEra = 1;
         this.currentPhase = GamePhase.PLACE_TOTEMS;
-        this.currentPlayer = this.players.getFirst();
-    }
 
-    public void saveSnapshot() {
-        // game state is serialized and saved to disk
-    }
-
-    public Map<Player, int[]> calculateFinalScores() {
-        Map<Player, int[]> finalScores = new HashMap<>();
-
-        for (Player player : this.players) {
-            // endgame effects from buildings are triggered
-            for (BuildingCard building : player.getBuildingList()) {
-                building.getEffect().onGameEnd(player, this);
-            }
-
-            // prestige from builders is calculated
-            int builderPoints = player.getBuildersTotalPrestige();
-
-            // prestige from artists is calculated (10 pp for every 2 artists)
-            int artistPoints = (player.getArtistCount() / 2) * 10;
-
-            // prestige from inventors is calculated (inventors count * different inventions)
-            int inventorPoints = player.getInventorCount() * player.getInventionCount();
-
-            // total prestige is updated with character bonuses
-            int totalBonus = builderPoints + artistPoints + inventorPoints;
-            if (totalBonus > 0) {
-                player.addPrestige(totalBonus);
-            }
-
-            // final score and food amount are saved in an array (index 0: prestige, index 1: food)
-            int[] scoreData = new int[]{player.getPrestige(), player.getFood()};
-            finalScores.put(player, scoreData);
-        }
-
-        return finalScores;
+        // current player is set from turn order tile
+        this.currentPlayer = this.turnOrderTile.getTurnOrder().getFirst();
     }
 
     public void placeTotem(Player player, String selectedOfferTileId) {
         Objects.requireNonNull(player, "player cannot be null");
         Objects.requireNonNull(selectedOfferTileId, "selectedOfferTileId cannot be null");
+
+        if (this.currentPhase != GamePhase.PLACE_TOTEMS) {
+            throw new IllegalStateException("cannot place totem: current phase is " + this.currentPhase);
+        }
 
         OfferTile targetTile = null;
         for (OfferTile tile : offerTrack) {
@@ -179,10 +157,8 @@ public class GameState implements GameObservable {
 
         targetTile.placePlayer(player);
 
-        // totem placement effects are triggered for the player
-         for (BuildingCard building : player.getBuildingList()) {
-             building.getEffect().onTotemPlaced(targetTile, player, this);
-         }
+        // totem placement effects are triggered for the player's buildings
+        player.triggerBuildingEffectsOnTotemPlaced(targetTile, this);
 
         // completion of the placement phase is evaluated
         int occupiedCount = 0;
@@ -209,6 +185,10 @@ public class GameState implements GameObservable {
         Objects.requireNonNull(chosenCharacterCardsIds, "chosenCharacterCardsIds cannot be null");
         Objects.requireNonNull(chosenBuildingCardsIds, "chosenBuildingCardsIds cannot be null");
 
+        if (this.currentPhase != GamePhase.RESOLVE_ACTIONS && this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
+            throw new IllegalStateException("cannot resolve action: current phase is " + this.currentPhase);
+        }
+
         OfferTile targetTile = null;
 
         // player's occupied tile is identified
@@ -219,6 +199,7 @@ public class GameState implements GameObservable {
             }
         }
 
+        // target tile existence is verified
         if (targetTile == null) {
             throw new InvalidActionException(
                     InvalidActionReason.PLAYER_NOT_ON_TILE,
@@ -330,12 +311,11 @@ public class GameState implements GameObservable {
             );
         }
 
-        // transaction is executed: cards are removed from board
+        // transaction is executed: cards are removed from the board
         for (Card c : foundCharacters) {
             if (!this.upperTribeRow.remove(c)) {
                 this.lowerTribeRow.remove(c);
             }
-            // cast is safe because events are already filtered out
             player.addCharacter((CharacterCard) c);
         }
 
@@ -351,12 +331,83 @@ public class GameState implements GameObservable {
             player.removeFood(totalCost);
         }
 
-        // player is moved to turn order tile and end-of-turn effects are applied
+        // player is moved to the turn order tile and end-of-turn effects are applied
         targetTile.removePlayer();
         this.turnOrderTile.placePlayer(player);
+
+        // next player is determined by checking the offer track from left to right
+        Player nextPlayer = null;
+        for (OfferTile tile : this.offerTrack) {
+            if (!tile.isFree()) {
+                nextPlayer = tile.getOccupyingPlayer();
+                break;
+            }
+        }
+
+        if (nextPlayer != null) {
+            // the turn is passed to the next player on the offer track
+            this.currentPlayer = nextPlayer;
+            return;
+        }
+        // RESOLVE_ACTIONS phase is complete
+        // building effects for the end of the action phase are triggered
+        for (Player p : this.players) {
+            p.triggerBuildingEffectsOnRoundEnd(this);
+        }
+
+        // if no building effect altered the phase to EXTRA_ACQUISITION, proceed to RESOLVE_EVENTS
+        if (this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
+            this.currentPhase = GamePhase.RESOLVE_EVENTS;
+            // current player is set to null
+            this.currentPlayer = null;
+        }
+    }
+
+    public void resolveEvents() {
+        List<EventCard> eventsToResolve = new ArrayList<>();
+
+        if (this.currentPhase != GamePhase.RESOLVE_EVENTS) {
+            throw new IllegalStateException("cannot resolve events: current phase is " + this.currentPhase);
+        }
+
+        // events are extracted from the lower tribe row
+        for (Card card : this.lowerTribeRow) {
+            if (card.isEvent()) {
+                // safe cast is performed because the card is verified as an event
+                eventsToResolve.add((EventCard) card);
+            }
+        }
+
+        // events are sorted
+        eventsToResolve.sort((e1, e2) -> {
+            boolean isE1Sustenance = e1.getEventType() == EventType.SUSTENANCE;
+            boolean isE2Sustenance = e2.getEventType() == EventType.SUSTENANCE;
+
+            // sustenance event is pushed to the last position
+            if (isE1Sustenance && !isE2Sustenance) {
+                return 1;
+            } else if (!isE1Sustenance && isE2Sustenance) {
+                return -1;
+            } else {
+                // remaining events are sorted by era in ascending order
+                return Integer.compare(e1.getEra(), e2.getEra());
+            }
+        });
+
+        // events are resolved sequentially
+        for (EventCard event : eventsToResolve) {
+            event.resolveEvent(this);
+        }
+
+        // game phase is updated to end round
+        this.currentPhase = GamePhase.END_ROUND;
     }
 
     public void endRound() {
+        if (this.currentPhase != GamePhase.END_ROUND) {
+            throw new IllegalStateException("cannot end round: current phase is " + this.currentPhase);
+        }
+
         this.currentRound++;
 
         // character and event cards in the lower tribe row are discarded
@@ -406,13 +457,77 @@ public class GameState implements GameObservable {
         this.upperBuildingRow.clear();
 
         // new era buildings are added to the upper building row
-        Deck newEraBuildings = this.buildingDecks.get(era);
+        Deck<BuildingCard> newEraBuildings = this.buildingDecks.get(era);
         if (newEraBuildings != null) {
             while (!newEraBuildings.isEmpty()) {
-                // cast is safe because building decks only contain building cards
-                this.upperBuildingRow.add((BuildingCard) newEraBuildings.draw());
+                this.upperBuildingRow.add(newEraBuildings.draw());
             }
         }
+    }
+
+    public GameResult calculateResults() {
+        Map<Player, int[]> finalScores = new HashMap<>();
+
+        // final points are calculated for each player
+        for (Player player : this.players) {
+            // endgame effects from buildings are triggered
+            player.triggerBuildingEffectsOnGameEnd(this);
+
+            // prestige from builders is calculated
+            int builderPoints = player.getBuildersTotalPrestige();
+
+            // prestige from artists is calculated (10 pp for every 2 artists)
+            int artistPoints = (player.getArtistCount() / 2) * 10;
+
+            // prestige from inventors is calculated (inventors count * different inventions)
+            int inventorPoints = player.getInventorCount() * player.getInventionCount();
+
+            // total prestige is updated with character bonuses
+            int totalBonus = builderPoints + artistPoints + inventorPoints;
+            if (totalBonus > 0) {
+                player.addPrestige(totalBonus);
+            }
+
+            // final score and food amount are saved in an array (index 0: prestige, index 1: food)
+            int[] scoreData = new int[]{player.getPrestige(), player.getFood()};
+            finalScores.put(player, scoreData);
+        }
+
+        // maximum prestige is determined
+        int maxPrestige = Integer.MIN_VALUE;
+        for (int[] score : finalScores.values()) {
+            if (score[0] > maxPrestige) {
+                maxPrestige = score[0];
+            }
+        }
+
+        // players with the maximum prestige are isolated
+        List<Player> prestigeTiedPlayers = new ArrayList<>();
+        for (Map.Entry<Player, int[]> entry : finalScores.entrySet()) {
+            if (entry.getValue()[0] == maxPrestige) {
+                prestigeTiedPlayers.add(entry.getKey());
+            }
+        }
+
+        // tie-breaker based on food is applied
+        int maxFood = Integer.MIN_VALUE;
+        for (Player p : prestigeTiedPlayers) {
+            int playerFood = finalScores.get(p)[1];
+            if (playerFood > maxFood) {
+                maxFood = playerFood;
+            }
+        }
+
+        // final winners are determined
+        List<Player> winners = new ArrayList<>();
+        for (Player p : prestigeTiedPlayers) {
+            if (finalScores.get(p)[1] == maxFood) {
+                winners.add(p);
+            }
+        }
+
+        // game result dto is created and returned
+        return new GameResult(winners, finalScores);
     }
 
     @Override
@@ -434,13 +549,13 @@ public class GameState implements GameObservable {
         Objects.requireNonNull(event, "event cannot be null");
 
         // observers are notified with the latest game event
-        for (GameObserver observer : observers) {
+        for (GameObserver observer : this.observers) {
             observer.update(event);
         }
     }
 
     public List<Player> getPlayers() {
-        return players;
+        return List.copyOf(this.players);
     }
 
     public void addPlayer(Player player) {
@@ -459,47 +574,56 @@ public class GameState implements GameObservable {
     }
 
     public int getGameId() {
-        return gameId;
+        return this.gameId;
     }
 
     public int getTargetPlayers() {
-        return targetPlayers;
+        return this.targetPlayers;
     }
 
     public List<OfferTile> getOfferTrack() {
-        return offerTrack;
+        return List.copyOf(this.offerTrack);
     }
 
-    public TurnOrderTile getTurnOrderTile() {
-        return turnOrderTile;
+    /**
+     * // an immutable list representing the current turn order is returned
+     *
+     * @return the list of players in turn order
+     */
+    public List<Player> getTurnOrder() {
+        return List.copyOf(this.turnOrderTile.getTurnOrder());
     }
 
     public List<Card> getUpperTribeRow() {
-        return upperTribeRow;
+        return List.copyOf(this.upperTribeRow);
     }
 
     public List<Card> getLowerTribeRow() {
-        return lowerTribeRow;
+        return List.copyOf(this.lowerTribeRow);
     }
 
     public List<BuildingCard> getUpperBuildingRow() {
-        return upperBuildingRow;
+        return List.copyOf(this.upperBuildingRow);
     }
 
     public List<BuildingCard> getLowerBuildingRow() {
-        return lowerBuildingRow;
+        return List.copyOf(this.lowerBuildingRow);
     }
 
-    public Deck getTribeDeck() {
-        return tribeDeck;
+    public int getTribeDeckSize() {
+        return this.tribeDeck.getSize();
     }
 
-    public Map<Integer, Deck> getBuildingDecks() {
-        return buildingDecks;
+    public int getTribeDeckFirstCardEra() {
+        return this.tribeDeck.getFirstCardEra();
+    }
+
+    public Map<Integer, Deck<BuildingCard>> getBuildingDecks() {
+        return Map.copyOf(this.buildingDecks);
     }
 
     public int getCurrentRound() {
-        return currentRound;
+        return this.currentRound;
     }
 
     public void incrementCurrentRound() {
@@ -507,7 +631,7 @@ public class GameState implements GameObservable {
     }
 
     public GamePhase getCurrentPhase() {
-        return currentPhase;
+        return this.currentPhase;
     }
 
     public void setCurrentPhase(GamePhase currentPhase) {
@@ -517,9 +641,15 @@ public class GameState implements GameObservable {
     }
 
     public Player getCurrentPlayer() {
-        return currentPlayer;
+        return this.currentPlayer;
     }
 
+    /**
+     * // the current player is updated
+     * // null is permitted to indicate no active player
+     *
+     * @param currentPlayer the new current player, or null
+     */
     public void setCurrentPlayer(Player currentPlayer) {
         this.currentPlayer = currentPlayer;
     }

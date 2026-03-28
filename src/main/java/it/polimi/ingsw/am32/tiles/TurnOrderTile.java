@@ -24,6 +24,18 @@ public class TurnOrderTile extends Tile{
         this.prestigeModifiers = prestigeModifiers;
     }
 
+    public void initPlayersOrder(List<Player> playerList) {
+        Objects.requireNonNull(playerList, "initialPlayers cannot be null");
+
+        // players are added to the turn order without applying modifiers
+        // intended only for the initial setup phase
+        if (this.turnOrder.size() + playerList.size() > this.getRequiredPlayers()) {
+            throw new IllegalStateException("turn order tile capacity exceeded during setup");
+        }
+
+        this.turnOrder.addAll(playerList);
+    }
+
     public void placePlayer(Player player) {
         Objects.requireNonNull(player, "player cannot be null");
 

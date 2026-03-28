@@ -32,8 +32,8 @@ public class GameCreator {
         }
 
         // decks are generated
-        Deck tribeDeck = generateTribeDeck(numOfPlayers);
-        Map<Integer, Deck> buildingDecks = generateBuildingDecks(numOfPlayers);
+        Deck<Card> tribeDeck = generateTribeDeck(numOfPlayers);
+        Map<Integer, Deck<BuildingCard>> buildingDecks = generateBuildingDecks(numOfPlayers);
 
         // tiles are generated
         List<OfferTile> offerTrack = generateOfferTrack(numOfPlayers);
@@ -44,7 +44,7 @@ public class GameCreator {
         return gameState;
     }
 
-    private Deck generateTribeDeck(int numOfPlayers) {
+    private Deck<Card> generateTribeDeck(int numOfPlayers) {
         CharacterCardDAO charDao = new CharacterCardDAO(connection);
         EventCardDAO eventDao = new EventCardDAO(connection);
 
@@ -81,7 +81,7 @@ public class GameCreator {
         Collections.shuffle(era3);
 
         // final deck is built knowing .draw() fetches from end of list
-        Deck tribeDeck = new Deck();
+        Deck<Card> tribeDeck = new Deck<>();
         finalEvents.forEach(tribeDeck::addCard);
         era3.forEach(tribeDeck::addCard);
         era2.forEach(tribeDeck::addCard);
@@ -90,7 +90,7 @@ public class GameCreator {
         return tribeDeck;
     }
 
-    private Map<Integer, Deck> generateBuildingDecks(int numOfPlayers) {
+    private Map<Integer, Deck<BuildingCard>> generateBuildingDecks(int numOfPlayers) {
         BuildingCardDAO bldDao = new BuildingCardDAO(connection);
         List<BuildingCard> allBuildings = new BuildingCardFactory().createCards(bldDao.fetchAll());
 
@@ -117,7 +117,7 @@ public class GameCreator {
             case 5 -> { era1Count = 3; era2Count = 2; era3Count = 5; }
         }
 
-        Map<Integer, Deck> buildingDecks = new HashMap<>();
+        Map<Integer, Deck<BuildingCard>> buildingDecks = new HashMap<>();
         buildingDecks.put(1, createDeckFromSubList(era1, era1Count));
         buildingDecks.put(2, createDeckFromSubList(era2, era2Count));
         buildingDecks.put(3, createDeckFromSubList(era3, era3Count));
@@ -125,8 +125,8 @@ public class GameCreator {
         return buildingDecks;
     }
 
-    private Deck createDeckFromSubList(List<BuildingCard> cards, int count) {
-        Deck deck = new Deck();
+    private Deck<BuildingCard> createDeckFromSubList(List<BuildingCard> cards, int count) {
+        Deck<BuildingCard> deck = new Deck<>();
         List<BuildingCard> subList = cards.subList(0, count);
         subList.forEach(deck::addCard);
         return deck;
