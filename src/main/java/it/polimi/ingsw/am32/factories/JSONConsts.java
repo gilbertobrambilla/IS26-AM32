@@ -15,7 +15,7 @@ public class JSONConsts {
 
     // character cards
     public static final String CHAR_ART_PRESTIGE = "art_prestige_per_pair";
-    public static final String CHAR_BLD_DISCOUNT = "BUILD_building_discount";
+    public static final String CHAR_BLD_DISCOUNT = "bld_building_discount";
     public static final String CHAR_GAT_DISCOUNT = "gat_sustenance_discount";
     public static final String CHAR_HNT_HAS_MEAT = "hnt_has_meat";
     public static final String CHAR_INV_TYPE = "inv_invention_type";
