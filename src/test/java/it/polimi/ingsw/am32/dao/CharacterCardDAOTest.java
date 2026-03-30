@@ -20,10 +20,10 @@ class CharacterCardDAOTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        // create connection to in-memory H2 database
+        // create H2 in-memory database connection
         testConnection = DriverManager.getConnection("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
 
-        // setup table and data in DB
+        // set up the table and mock data for the test
         try (Statement stmt = testConnection.createStatement()) {
             stmt.execute("CREATE TABLE character_cards (" +
                     "id VARCHAR(255) PRIMARY KEY, " +
@@ -33,19 +33,19 @@ class CharacterCardDAOTest {
                     "character_type VARCHAR(255), " +
                     "character_params VARCHAR(255))");
 
-            // insert cards with different parameters
+            // insert a couple of dummy character cards
             stmt.execute("INSERT INTO character_cards VALUES ('char_01', 1, 0, 2, 'SHAMAN', '{}')");
             stmt.execute("INSERT INTO character_cards VALUES ('char_02', 2, 2, 4, 'BUILDER', '{}')");
             stmt.execute("INSERT INTO character_cards VALUES ('char_03', 1, 1, 3, 'HUNTER', '{}')");
         }
 
-        // initialize DAO
+        // initialize the DAO with the test connection
         dao = new CharacterCardDAO(testConnection);
     }
 
     @AfterEach
     void tearDown() throws SQLException {
-        // clean up DB after each test
+        // clean up the DB: destroy the table at the end of each test
         try (Statement stmt = testConnection.createStatement()) {
             stmt.execute("DROP TABLE IF EXISTS character_cards");
         }
@@ -84,15 +84,14 @@ class CharacterCardDAOTest {
     void executeFetchShouldThrowRuntimeExceptionOnDatabaseError() throws SQLException {
         // covers 'catch (SQLException e)' block in executeFetch()
 
-        // error simulation: delete the table
+        // simulate a catastrophic database failure by dropping the table
         try (Statement stmt = testConnection.createStatement()) {
             stmt.execute("DROP TABLE character_cards");
         }
 
-        // crash SQL query execution
+        // now the fetchAll() SQL query will crash
         RuntimeException exception = assertThrows(RuntimeException.class, () -> dao.fetchAll());
 
-        // testing the exception message
         assertTrue(exception.getMessage().contains("error: the database cannot be read"));
         assertNotNull(exception.getCause());
     }
