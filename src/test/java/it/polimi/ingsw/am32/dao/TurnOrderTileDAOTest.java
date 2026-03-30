@@ -51,39 +51,50 @@ class TurnOrderTileDAOTest {
 
     @Test
     void fetchAllShouldReturnAllTiles() {
-        // execute the query to get all tiles
+        // covers the fetchAll() method
         List<TurnOrderTileDTO> tiles = dao.fetchAll();
         assertEquals(2, tiles.size());
     }
 
     @Test
     void fetchShouldReturnSpecificTile() {
+        // covers the fetch(int) method and its mapping
         TurnOrderTileDTO tile = dao.fetch(2);
 
         assertNotNull(tile);
         assertEquals("tile_2p", tile.getId());
-        assertEquals(2, tile.getRequiredPlayers(), "Required players should match");
+        assertEquals(2, tile.getRequiredPlayers());
         assertEquals("[1,0]", tile.getFoodModifiers());
         assertEquals("[0,0]", tile.getPrestigeModifiers());
     }
 
     @Test
     void fetchWithInvalidPlayersShouldThrowException() {
+        // covers the branches of the 'if (numOfPlayers < 2 || numOfPlayers > 5)' block
         assertThrows(IllegalArgumentException.class, () -> dao.fetch(1));
         assertThrows(IllegalArgumentException.class, () -> dao.fetch(6));
     }
 
     @Test
     void fetchShouldThrowExceptionIfTileNotFound() {
+        // covers the scenario where getFirst() throws NoSuchElementException if the list is empty
         assertThrows(java.util.NoSuchElementException.class, () -> dao.fetch(4));
     }
 
     @Test
     void executeFetchShouldThrowRuntimeExceptionOnDatabaseError() throws SQLException {
+        // covers 'catch (SQLException e)' block in executeFetch()
+
+        // simulate a catastrophic database failure by dropping the table
         try (Statement stmt = testConnection.createStatement()) {
             stmt.execute("DROP TABLE turn_order_tiles");
         }
 
-        assertThrows(RuntimeException.class, () -> dao.fetchAll());
+        // now the fetchAll() SQL query will crash
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> dao.fetchAll());
+
+        assertTrue(exception.getMessage().contains("error: the database cannot be read"));
+        assertNotNull(exception.getCause());
     }
+
 }
