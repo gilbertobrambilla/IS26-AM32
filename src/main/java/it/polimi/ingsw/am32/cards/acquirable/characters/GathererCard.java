@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.cards.acquirable.characters;
 
 import it.polimi.ingsw.am32.Player;
+import it.polimi.ingsw.am32.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.enums.CharacterType;
 
 import java.util.Objects;
@@ -29,5 +30,11 @@ public class GathererCard extends CharacterCard {
 
         player.addGatherer();
         player.addSustenanceDiscount(this.sustenanceDiscount);
+    }
+
+    @Override
+    public void notifyBuilding(BuildingCard building, Player player) {
+        // specific building effect method is invoked
+        building.onGathererAdded(player);
     }
 }

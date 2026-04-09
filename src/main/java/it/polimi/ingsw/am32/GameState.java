@@ -4,14 +4,15 @@ import it.polimi.ingsw.am32.cards.Card;
 import it.polimi.ingsw.am32.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.cards.acquirable.characters.CharacterCard;
 import it.polimi.ingsw.am32.cards.events.EventCard;
-import it.polimi.ingsw.am32.enums.EventType;
+import it.polimi.ingsw.am32.cards.visitors.AcquisitionValidatorVisitor;
+import it.polimi.ingsw.am32.cards.visitors.EventCollectorVisitor;
+import it.polimi.ingsw.am32.cards.visitors.RowDistributionVisitor;
 import it.polimi.ingsw.am32.enums.GamePhase;
 import it.polimi.ingsw.am32.enums.InvalidActionReason;
 import it.polimi.ingsw.am32.exceptions.InvalidActionException;
 import it.polimi.ingsw.am32.observers.GameEvent;
 import it.polimi.ingsw.am32.observers.GameObservable;
 import it.polimi.ingsw.am32.observers.GameObserver;
-import it.polimi.ingsw.am32.tiles.Action;
 import it.polimi.ingsw.am32.tiles.OfferTile;
 import it.polimi.ingsw.am32.tiles.TurnOrderTile;
 
@@ -97,16 +98,18 @@ public class GameState implements GameObservable {
         int targetLower = this.targetPlayers + 1;
         int targetUpper = this.targetPlayers + 4;
 
-        // lower tribe row is filled and events are moved to the upper tribe row
-        while (this.lowerTribeRow.size() < targetLower && !this.tribeDeck.isEmpty()) {
-            Card drawn = this.tribeDeck.draw();
+        // row distribution visitor is created to categorize drawn cards
+        RowDistributionVisitor distributionVisitor = new RowDistributionVisitor();
 
-            if (drawn.isEvent()) {
-                this.upperTribeRow.add(drawn);
-            } else {
-                this.lowerTribeRow.add(drawn);
-            }
+        // cards are drawn until the required number of characters is reached for the lower row
+        while (distributionVisitor.getCharacterCount() < targetLower && !this.tribeDeck.isEmpty()) {
+            Card drawn = this.tribeDeck.draw();
+            drawn.accept(distributionVisitor);
         }
+
+        // categorized cards are assigned to the respective rows
+        this.lowerTribeRow.addAll(distributionVisitor.getCharacters());
+        this.upperTribeRow.addAll(distributionVisitor.getEvents());
 
         // remaining upper tribe row is filled
         while (this.upperTribeRow.size() < targetUpper && !this.tribeDeck.isEmpty()) {
@@ -117,7 +120,6 @@ public class GameState implements GameObservable {
         Deck<BuildingCard> era1Buildings = this.buildingDecks.get(1);
         if (era1Buildings != null) {
             while (!era1Buildings.isEmpty()) {
-                // building deck cast is performed safely
                 this.upperBuildingRow.add(era1Buildings.draw());
             }
         }
@@ -131,9 +133,17 @@ public class GameState implements GameObservable {
         this.currentPlayer = this.turnOrderTile.getTurnOrder().getFirst();
     }
 
+
+
+    // core gameplay phases
+
     public void placeTotem(Player player, String selectedOfferTileId) {
         Objects.requireNonNull(player, "player cannot be null");
         Objects.requireNonNull(selectedOfferTileId, "selectedOfferTileId cannot be null");
+
+        if (!player.equals(this.currentPlayer)) {
+            throw new IllegalStateException("cannot place totem: it is not player " + player.getNickname() + "'s turn");
+        }
 
         if (this.currentPhase != GamePhase.PLACE_TOTEMS) {
             throw new IllegalStateException("cannot place totem: current phase is " + this.currentPhase);
@@ -156,9 +166,6 @@ public class GameState implements GameObservable {
         }
 
         targetTile.placePlayer(player);
-
-        // totem placement effects are triggered for the player's buildings
-        player.triggerBuildingEffectsOnTotemPlaced(targetTile, this);
 
         // completion of the placement phase is evaluated
         int occupiedCount = 0;
@@ -185,6 +192,10 @@ public class GameState implements GameObservable {
         Objects.requireNonNull(chosenCharacterCardsIds, "chosenCharacterCardsIds cannot be null");
         Objects.requireNonNull(chosenBuildingCardsIds, "chosenBuildingCardsIds cannot be null");
 
+        if (!player.equals(this.currentPlayer)) {
+            throw new IllegalStateException("cannot place totem: it is not player " + player.getNickname() + "'s turn");
+        }
+
         if (this.currentPhase != GamePhase.RESOLVE_ACTIONS && this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
             throw new IllegalStateException("cannot resolve action: current phase is " + this.currentPhase);
         }
@@ -207,24 +218,24 @@ public class GameState implements GameObservable {
             );
         }
 
-        List<Card> foundCharacters = new ArrayList<>();
+        // list is strictly typed to charactercard to avoid casts later
+        List<CharacterCard> foundCharacters = new ArrayList<>();
         List<BuildingCard> foundBuildings = new ArrayList<>();
         int requestedUpper = 0;
         int requestedLower = 0;
 
+        // a single visitor is instantiated by passing the list as a reference
+        AcquisitionValidatorVisitor visitor = new AcquisitionValidatorVisitor(foundCharacters);
+
         // character cards are searched in the upper and lower tribe rows
         for (String id : chosenCharacterCardsIds) {
             boolean found = false;
+
+            // upper row is searched
             for (Card c : this.upperTribeRow) {
                 if (c.getId().equals(id)) {
-                    // events cannot be acquired by players
-                    if (c.isEvent()) {
-                        throw new InvalidActionException(
-                                InvalidActionReason.EVENT_CARD_NOT_ALLOWED,
-                                "event cards cannot be selected"
-                        );
-                    }
-                    foundCharacters.add(c);
+                    // double dispatch is utilized to safely populate the typed collection or reject invalid cards
+                    c.accept(visitor);
                     requestedUpper++;
                     found = true;
                     break;
@@ -232,16 +243,11 @@ public class GameState implements GameObservable {
             }
             if (found) continue;
 
+            // lower row is searched
             for (Card c : this.lowerTribeRow) {
                 if (c.getId().equals(id)) {
-                    // events cannot be acquired by players
-                    if (c.isEvent()) {
-                        throw new InvalidActionException(
-                                InvalidActionReason.EVENT_CARD_NOT_ALLOWED,
-                                "event cards cannot be selected"
-                        );
-                    }
-                    foundCharacters.add(c);
+                    // double dispatch is utilized to safely populate the typed collection or reject invalid cards
+                    c.accept(visitor);
                     requestedLower++;
                     found = true;
                     break;
@@ -287,51 +293,35 @@ public class GameState implements GameObservable {
         // action validity is checked against tile constraints
         int totalUpperSize = this.upperTribeRow.size() + this.upperBuildingRow.size();
         int totalLowerSize = this.lowerTribeRow.size() + this.lowerBuildingRow.size();
-        Action tileAction = targetTile.getAction();
 
-        if (!tileAction.isValidSelection(requestedUpper, requestedLower, totalUpperSize, totalLowerSize)) {
+        if (!targetTile.isValidSelection(requestedUpper, requestedLower, totalUpperSize, totalLowerSize)) {
             throw new InvalidActionException(
                     InvalidActionReason.INVALID_SELECTION_AMOUNT,
                     "selected cards do not match offer tile constraints"
             );
         }
 
-        // total cost is calculated taking into account player's discounts
-        int totalCost = 0;
-        for (BuildingCard building : foundBuildings) {
-            int discountedCost = Math.max(0, building.getCost() - player.getBuildingDiscount());
-            totalCost += discountedCost;
-        }
+        // player validates and pays for the selected buildings internally
+        player.payForBuildings(foundBuildings);
 
-        // food availability is checked
-        if (!player.hasEnoughFood(totalCost)) {
-            throw new InvalidActionException(
-                    InvalidActionReason.NOT_ENOUGH_FOOD,
-                    "player does not have enough food to buy the selected buildings"
-            );
-        }
-
-        // transaction is executed: cards are removed from the board
-        for (Card c : foundCharacters) {
+        // transaction is executed: cards are removed from the board and dispatched to the player
+        for (CharacterCard c : foundCharacters) {
             if (!this.upperTribeRow.remove(c)) {
                 this.lowerTribeRow.remove(c);
             }
-            player.addCharacter((CharacterCard) c);
+            // card acquisition and its related state updates are delegated to the player entity
+            player.acquireCharacter(c);
         }
 
         for (BuildingCard b : foundBuildings) {
             if (!this.upperBuildingRow.remove(b)) {
                 this.lowerBuildingRow.remove(b);
             }
-            player.addBuilding(b);
+            // card acquisition and its related state updates are delegated to the player entity
+            player.acquireBuilding(b, this);
         }
 
-        // food is paid
-        if (totalCost > 0) {
-            player.removeFood(totalCost);
-        }
-
-        // player is moved to the turn order tile and end-of-turn effects are applied
+        // player is moved to the turn order tile and end-of-turn effects are evaluated
         targetTile.removePlayer();
         this.turnOrderTile.placePlayer(player);
 
@@ -349,13 +339,14 @@ public class GameState implements GameObservable {
             this.currentPlayer = nextPlayer;
             return;
         }
-        // RESOLVE_ACTIONS phase is complete
+
+        // resolve_actions phase is complete
         // building effects for the end of the action phase are triggered
         for (Player p : this.players) {
             p.triggerBuildingEffectsOnRoundEnd(this);
         }
 
-        // if no building effect altered the phase to EXTRA_ACQUISITION, proceed to RESOLVE_EVENTS
+        // if no building effect altered the phase to extra_acquisition, proceed to resolve_events
         if (this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
             this.currentPhase = GamePhase.RESOLVE_EVENTS;
             // current player is set to null
@@ -364,35 +355,21 @@ public class GameState implements GameObservable {
     }
 
     public void resolveEvents() {
-        List<EventCard> eventsToResolve = new ArrayList<>();
-
         if (this.currentPhase != GamePhase.RESOLVE_EVENTS) {
             throw new IllegalStateException("cannot resolve events: current phase is " + this.currentPhase);
         }
 
-        // events are extracted from the lower tribe row
+        EventCollectorVisitor visitor = new EventCollectorVisitor();
+
+        // cards are processed using double dispatch to extract events
         for (Card card : this.lowerTribeRow) {
-            if (card.isEvent()) {
-                // safe cast is performed because the card is verified as an event
-                eventsToResolve.add((EventCard) card);
-            }
+            card.accept(visitor);
         }
 
-        // events are sorted
-        eventsToResolve.sort((e1, e2) -> {
-            boolean isE1Sustenance = e1.getEventType() == EventType.SUSTENANCE;
-            boolean isE2Sustenance = e2.getEventType() == EventType.SUSTENANCE;
+        List<EventCard> eventsToResolve = visitor.getCollectedEvents();
 
-            // sustenance event is pushed to the last position
-            if (isE1Sustenance && !isE2Sustenance) {
-                return 1;
-            } else if (!isE1Sustenance && isE2Sustenance) {
-                return -1;
-            } else {
-                // remaining events are sorted by era in ascending order
-                return Integer.compare(e1.getEra(), e2.getEra());
-            }
-        });
+        // events are sorted naturally
+        java.util.Collections.sort(eventsToResolve);
 
         // events are resolved sequentially
         for (EventCard event : eventsToResolve) {
@@ -465,70 +442,40 @@ public class GameState implements GameObservable {
         }
     }
 
+
+
+    // endgame evaluation
+
     public GameResult calculateResults() {
         Map<Player, int[]> finalScores = new HashMap<>();
 
-        // final points are calculated for each player
+        // final prestige logic is encapsulated and resolved within the player
         for (Player player : this.players) {
-            // endgame effects from buildings are triggered
-            player.triggerBuildingEffectsOnGameEnd(this);
+            player.computeFinalPrestige(this);
+        }
 
-            // prestige from builders is calculated
-            int builderPoints = player.getBuildersTotalPrestige();
+        // highest ranking player is determined implicitly through the comparable interface
+        Player topPlayer = Collections.max(this.players);
 
-            // prestige from artists is calculated (10 pp for every 2 artists)
-            int artistPoints = (player.getArtistCount() / 2) * 10;
-
-            // prestige from inventors is calculated (inventors count * different inventions)
-            int inventorPoints = player.getInventorCount() * player.getInventionCount();
-
-            // total prestige is updated with character bonuses
-            int totalBonus = builderPoints + artistPoints + inventorPoints;
-            if (totalBonus > 0) {
-                player.addPrestige(totalBonus);
+        // winners list is populated with players matching the top score (handling ties naturally)
+        List<Player> winners = new ArrayList<>();
+        for (Player player : this.players) {
+            if (player.compareTo(topPlayer) == 0) {
+                winners.add(player);
             }
 
-            // final score and food amount are saved in an array (index 0: prestige, index 1: food)
+            // final score and food amount are read and saved in an array (index 0: prestige, index 1: food)
             int[] scoreData = new int[]{player.getPrestige(), player.getFood()};
             finalScores.put(player, scoreData);
-        }
-
-        // maximum prestige is determined
-        int maxPrestige = Integer.MIN_VALUE;
-        for (int[] score : finalScores.values()) {
-            if (score[0] > maxPrestige) {
-                maxPrestige = score[0];
-            }
-        }
-
-        // players with the maximum prestige are isolated
-        List<Player> prestigeTiedPlayers = new ArrayList<>();
-        for (Map.Entry<Player, int[]> entry : finalScores.entrySet()) {
-            if (entry.getValue()[0] == maxPrestige) {
-                prestigeTiedPlayers.add(entry.getKey());
-            }
-        }
-
-        // tie-breaker based on food is applied
-        int maxFood = Integer.MIN_VALUE;
-        for (Player p : prestigeTiedPlayers) {
-            int playerFood = finalScores.get(p)[1];
-            if (playerFood > maxFood) {
-                maxFood = playerFood;
-            }
-        }
-
-        // final winners are determined
-        List<Player> winners = new ArrayList<>();
-        for (Player p : prestigeTiedPlayers) {
-            if (finalScores.get(p)[1] == maxFood) {
-                winners.add(p);
-            }
         }
 
         // game result dto is created and returned
         return new GameResult(winners, finalScores);
     }
+
+
+
+    // observer pattern implementation
 
     @Override
     public void addObserver(GameObserver observer) {
@@ -554,9 +501,9 @@ public class GameState implements GameObservable {
         }
     }
 
-    public List<Player> getPlayers() {
-        return List.copyOf(this.players);
-    }
+
+
+    // player management
 
     public void addPlayer(Player player) {
         Objects.requireNonNull(player, "player cannot be null");
@@ -573,6 +520,10 @@ public class GameState implements GameObservable {
         this.players.remove(player);
     }
 
+
+
+    // state observation (getters and setters)
+
     public int getGameId() {
         return this.gameId;
     }
@@ -581,15 +532,14 @@ public class GameState implements GameObservable {
         return this.targetPlayers;
     }
 
+    public List<Player> getPlayers() {
+        return List.copyOf(this.players);
+    }
+
     public List<OfferTile> getOfferTrack() {
         return List.copyOf(this.offerTrack);
     }
 
-    /**
-     * // an immutable list representing the current turn order is returned
-     *
-     * @return the list of players in turn order
-     */
     public List<Player> getTurnOrder() {
         return List.copyOf(this.turnOrderTile.getTurnOrder());
     }
@@ -644,12 +594,6 @@ public class GameState implements GameObservable {
         return this.currentPlayer;
     }
 
-    /**
-     * // the current player is updated
-     * // null is permitted to indicate no active player
-     *
-     * @param currentPlayer the new current player, or null
-     */
     public void setCurrentPlayer(Player currentPlayer) {
         this.currentPlayer = currentPlayer;
     }

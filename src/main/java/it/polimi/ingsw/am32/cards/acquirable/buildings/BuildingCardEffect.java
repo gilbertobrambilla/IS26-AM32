@@ -1,21 +1,27 @@
 package it.polimi.ingsw.am32.cards.acquirable.buildings;
 
-import it.polimi.ingsw.am32.Player;
 import it.polimi.ingsw.am32.GameState;
-import it.polimi.ingsw.am32.cards.events.EventCard;
-import it.polimi.ingsw.am32.cards.acquirable.characters.CharacterCard;
-import it.polimi.ingsw.am32.tiles.OfferTile;
+import it.polimi.ingsw.am32.Player;
 
 public interface BuildingCardEffect {
     void onAcquire(Player player, GameState gameState);
-
-    void onEvent(EventCard event, Player player, GameState gameState);
-
     void onRoundEnd(Player player, GameState gameState);
-
     void onGameEnd(Player player, GameState gameState);
 
-    void onTotemPlaced(OfferTile offerTile, Player player, GameState gameState);
+    default void onArtistAdded(Player player) {}
+    default void onBuilderAdded(Player player) {}
+    default void onGathererAdded(Player player) {}
+    default void onHunterAdded(Player player) {}
+    default void onInventorAdded(Player player) {}
+    default void onShamanAdded(Player player) {}
 
-    void onCharacterAdded(Player player, CharacterCard newCard);
+    default void onHuntEvent(Player player, GameState gameState) {}
+    default void onSustenanceEvent(Player player, GameState gameState) {}
+    default void onCavePaintingsEvent(Player player, GameState gameState) {}
+    default void onShamanicRitualEvent(Player player, GameState gameState) {}
+
+    default void onSetCompleted(Player player) {}
+    default void onInventorPairCompleted(Player player) {}
+
+    default void onTurnOrderPlaced(Player player, boolean gainedFood) {}
 }

@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.cards.acquirable.characters;
 
 import it.polimi.ingsw.am32.Player;
+import it.polimi.ingsw.am32.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.enums.CharacterType;
 
 import java.util.Objects;
@@ -29,5 +30,11 @@ public class ShamanCard extends CharacterCard {
 
         player.addShaman();
         player.addShamanStars(this.shamanStars);
+    }
+
+    @Override
+    public void notifyBuilding(BuildingCard building, Player player) {
+        // specific building effect method is invoked
+        building.onShamanAdded(player);
     }
 }

@@ -47,4 +47,8 @@ public class OfferTile extends Tile{
     public boolean isFree() {
         return this.occupyingPlayer == null;
     }
+
+    public boolean isValidSelection(int requestedUpper, int requestedLower, int availableUpper, int availableLower) {
+        return this.action.isValidSelection(requestedUpper, requestedLower, availableUpper, availableLower);
+    }
 }

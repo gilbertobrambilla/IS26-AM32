@@ -55,24 +55,12 @@ public class TurnOrderTile extends Tile{
 
         // modifiers are evaluated based on the position index
         int foodMod = this.foodModifiers.get(index);
+        int prestigeMod = this.prestigeModifiers.get(index);
+        player.processTurnOrderModifiers(foodMod, prestigeMod);
+        boolean gainedFood = (foodMod > 0);
 
-        if (foodMod > 0) {
-            // positive food modifier is applied
-            player.addFood(foodMod);
-        } else if (foodMod < 0) {
-            // negative food modifier is processed
-            int cost = Math.abs(foodMod);
-            if (player.hasEnoughFood(cost)) {
-                // food is paid if available
-                player.removeFood(cost);
-            } else {
-                // prestige penalty is applied if food is insufficient
-                int prestigeMod = this.prestigeModifiers.get(index);
-                if (prestigeMod < 0) {
-                    player.removePrestige(Math.abs(prestigeMod));
-                }
-            }
-        }
+        // the player is notified of the placement to trigger relevant building effects
+        player.onPlacedOnTurnOrderTile(gainedFood);
     }
 
     public void removePlayer(Player player) {

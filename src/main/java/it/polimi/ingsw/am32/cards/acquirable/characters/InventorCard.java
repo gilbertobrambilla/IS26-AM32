@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.cards.acquirable.characters;
 
 import it.polimi.ingsw.am32.Player;
+import it.polimi.ingsw.am32.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.enums.CharacterType;
 import it.polimi.ingsw.am32.enums.InventionType;
 
@@ -28,5 +29,18 @@ public class InventorCard extends CharacterCard {
 
         player.addInventor();
         player.addInvention(this.invention);
+    }
+
+    @Override
+    public void onGameEnd(Player player) {
+        Objects.requireNonNull(player, "player cannot be null");
+
+        player.scoreInventor();
+    }
+
+    @Override
+    public void notifyBuilding(BuildingCard building, Player player) {
+        // specific building effect method is invoked
+        building.onInventorAdded(player);
     }
 }

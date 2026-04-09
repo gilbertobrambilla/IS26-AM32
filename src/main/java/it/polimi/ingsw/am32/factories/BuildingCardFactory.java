@@ -64,18 +64,33 @@ public class BuildingCardFactory implements CardFactory<BuildingCardDTO, Buildin
 
                 // event effects
                 case SUSTENANCE_DISCOUNT_PER_CHARACTER:
-                    effect = new SustenanceDiscountPerCharacterEffect(
-                            CharacterType.valueOf(getRequiredString(params, JSONConsts.BUILD_TARGET_CHAR, dto.getId())),
-                            getRequiredInt(params, JSONConsts.BUILD_DISC_PER_CHAR, dto.getId())
-                    );
+                    CharacterType targetChar = CharacterType.valueOf(getRequiredString(params, JSONConsts.BUILD_TARGET_CHAR, dto.getId()));
+                    int discount = getRequiredInt(params, JSONConsts.BUILD_DISC_PER_CHAR, dto.getId());
+
+                    if (targetChar == CharacterType.ARTIST) {
+                        effect = new ArtistSustenanceDiscountEffect(discount);
+                    } else if (targetChar == CharacterType.INVENTOR) {
+                        effect = new InventorSustenanceDiscountEffect(discount);
+                    } else if (targetChar == CharacterType.GATHERER) {
+                        effect = new GathererSustenanceDiscountEffect(discount);
+                    } else {
+                        throw new IllegalStateException("unsupported character type for sustenance discount building " + dto.getId());
+                    }
                     break;
                 case EXTRA_RESOURCES_ON_EVENT:
-                    effect = new ExtraResourcesOnEventEffect(
-                            EventType.valueOf(getRequiredString(params, JSONConsts.BUILD_TARGET_EVENT, dto.getId())),
-                            CharacterType.valueOf(getRequiredString(params, JSONConsts.BUILD_TARGET_CHAR, dto.getId())),
-                            getRequiredInt(params, JSONConsts.BUILD_EXTRA_FOOD, dto.getId()),
-                            getRequiredInt(params, JSONConsts.BUILD_EXTRA_PRESTIGE, dto.getId())
-                    );
+                    EventType eventType = EventType.valueOf(getRequiredString(params, JSONConsts.BUILD_TARGET_EVENT, dto.getId()));
+                    CharacterType charType = CharacterType.valueOf(getRequiredString(params, JSONConsts.BUILD_TARGET_CHAR, dto.getId()));
+                    int exFood = getRequiredInt(params, JSONConsts.BUILD_EXTRA_FOOD, dto.getId());
+                    int exPrestige = getRequiredInt(params, JSONConsts.BUILD_EXTRA_PRESTIGE, dto.getId());
+
+                    // correct effect class is instantiated based on the target event
+                    if (eventType == EventType.HUNT) {
+                        effect = new ExtraResourcesOnHuntEffect(charType, exFood, exPrestige);
+                    } else if (eventType == EventType.CAVE_PAINTINGS) {
+                        effect = new ExtraResourcesOnCavePaintingsEffect(charType, exFood, exPrestige);
+                    } else {
+                        throw new IllegalStateException("unsupported event type for building");
+                    }
                     break;
 
                 // phase effects

@@ -25,5 +25,5 @@ public abstract class Card {
         return this.id;
     }
 
-    public abstract boolean isEvent();
+    public abstract void accept(CardVisitor visitor);
 }

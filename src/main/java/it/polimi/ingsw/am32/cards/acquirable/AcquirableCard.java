@@ -15,11 +15,6 @@ public abstract class AcquirableCard extends Card {
         this.basePrestige = basePrestige;
     }
 
-    @Override
-    public boolean isEvent() {
-        return false;
-    }
-
     public int getBasePrestige() {
         return this.basePrestige;
     }
