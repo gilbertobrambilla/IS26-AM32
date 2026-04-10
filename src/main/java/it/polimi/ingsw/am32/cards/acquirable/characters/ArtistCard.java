@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.cards.acquirable.characters;
 
 import it.polimi.ingsw.am32.Player;
+import it.polimi.ingsw.am32.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.enums.CharacterType;
 
 import java.util.Objects;
@@ -28,5 +29,18 @@ public class ArtistCard extends CharacterCard {
         Objects.requireNonNull(player, "player cannot be null");
 
         player.addArtist();
+    }
+
+    @Override
+    public void onGameEnd(Player player) {
+        Objects.requireNonNull(player, "player cannot be null");
+
+        player.scoreArtist(this.prestigePerPair);
+    }
+
+    @Override
+    public void notifyBuilding(BuildingCard building, Player player) {
+        // specific building effect method is invoked
+        building.onArtistAdded(player);
     }
 }

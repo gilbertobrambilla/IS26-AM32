@@ -7,8 +7,8 @@ import it.polimi.ingsw.am32.enums.EventType;
 import java.util.Objects;
 
 public class SustenanceEvent extends EventCard {
-    private int foodCost;
-    private int prestigePenalty;
+    private final int foodCost;
+    private final int prestigePenalty;
 
     public SustenanceEvent(String id, int era, boolean isFinal, int foodCost, int prestigePenalty) {
         super(id, era, isFinal);
@@ -34,22 +34,14 @@ public class SustenanceEvent extends EventCard {
         Objects.requireNonNull(gameState, "gameState cannot be null");
 
         for (Player player : gameState.getPlayers()) {
-            int totalCharacters = player.getCharacterCount();
-            int grossCost = totalCharacters * this.foodCost;
-            int discount = player.getSustenanceDiscount();
-
-            // calculate net cost ensuring it does not drop below zero
-            int netCost = Math.max(0, grossCost - discount);
-            int currentFood = player.getFood();
-
-            if (currentFood >= netCost) {
-                player.removeFood(netCost);
-            } else {
-                // player pays all available food, penalty applied for each unfed character
-                player.removeFood(currentFood);
-                int unfedCharacters = (netCost - currentFood) / this.foodCost;
-                player.removePrestige(unfedCharacters * this.prestigePenalty);
-            }
+            player.applySustenanceEvent(this.foodCost, this.prestigePenalty);
+            player.triggerSustenanceEffects(gameState);
         }
+    }
+
+    @Override
+    protected int getResolutionPriority() {
+        // lower priority is returned for sustenance event
+        return 2;
     }
 }

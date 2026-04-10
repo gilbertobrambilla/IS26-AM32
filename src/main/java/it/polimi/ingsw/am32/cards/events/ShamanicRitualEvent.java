@@ -7,8 +7,8 @@ import it.polimi.ingsw.am32.enums.EventType;
 import java.util.Objects;
 
 public class ShamanicRitualEvent extends EventCard {
-    private int prestigeBonus;
-    private int prestigePenalty;
+    private final int prestigeBonus;
+    private final int prestigePenalty;
 
     public ShamanicRitualEvent(String id, int era, boolean isFinal, int prestigeBonus, int prestigePenalty) {
         super(id, era, isFinal);
@@ -36,7 +36,7 @@ public class ShamanicRitualEvent extends EventCard {
         int maxStars = -1;
         int minStars = Integer.MAX_VALUE;
 
-        // find max and min shaman stars across all players
+        // shamanic power is retrieved to determine highest and lowest values across all players
         for (Player player : gameState.getPlayers()) {
             int stars = player.getShamanStars();
             if (stars > maxStars) {
@@ -47,18 +47,14 @@ public class ShamanicRitualEvent extends EventCard {
             }
         }
 
-        // independent ifs allow applying both bonus and penalty in case of a total tie
-        // apply bonuses and penalties checking building status effects
+        // event result is delegated to each player and shamanic ritual specific effects are triggered
         for (Player player : gameState.getPlayers()) {
             int stars = player.getShamanStars();
+            boolean isWinner = (stars == maxStars);
+            boolean isLoser = (stars == minStars);
 
-            if (stars == maxStars) {
-                int finalBonus = player.hasDoubleShamanicBonus() ? (this.prestigeBonus * 2) : this.prestigeBonus;
-                player.addPrestige(finalBonus);
-            }
-            if (stars == minStars && !player.hasShamanicImmunity()) {
-                player.removePrestige(this.prestigePenalty);
-            }
+            player.applyShamanicRitualResult(isWinner, isLoser, this.prestigeBonus, this.prestigePenalty);
+            player.triggerShamanicRitualEffects(gameState);
         }
     }
 }

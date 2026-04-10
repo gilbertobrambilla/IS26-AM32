@@ -7,9 +7,9 @@ import it.polimi.ingsw.am32.enums.EventType;
 import java.util.Objects;
 
 public class CavePaintingsEvent extends EventCard {
-    private int prestigeBonus;
-    private int bonusThreshold;
-    private int prestigePenalty;
+    private final int prestigeBonus;
+    private final int bonusThreshold;
+    private final int prestigePenalty;
 
     public CavePaintingsEvent(String id, int era, boolean isFinal, int prestigeBonus, int bonusThreshold, int prestigePenalty) {
         super(id, era, isFinal);
@@ -39,13 +39,8 @@ public class CavePaintingsEvent extends EventCard {
         Objects.requireNonNull(gameState, "gameState cannot be null");
 
         for (Player player : gameState.getPlayers()) {
-            int artists = player.getArtistCount();
-
-            if (artists < this.bonusThreshold) {
-                player.removePrestige(this.prestigePenalty);
-            } else {
-                player.addPrestige(artists * this.prestigeBonus);
-            }
+            player.applyCavePaintingsEvent(this.prestigeBonus, this.bonusThreshold, this.prestigePenalty);
+            player.triggerCavePaintingsEffects(gameState);
         }
     }
 }

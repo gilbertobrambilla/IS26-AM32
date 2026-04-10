@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.cards.acquirable.characters;
 
 import it.polimi.ingsw.am32.Player;
+import it.polimi.ingsw.am32.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.enums.CharacterType;
 
 import java.util.Objects;
@@ -22,11 +23,12 @@ public class HunterCard extends CharacterCard {
     public void onAcquire(Player player){
         Objects.requireNonNull(player, "player cannot be null");
 
-        player.addHunter();
+        player.addHunter(this.hasMeat);
+    }
 
-        // grant 1 food for each hunter currently in the tribe if this hunter has meat
-        if (this.hasMeat) {
-            player.addFood(player.getHunterCount());
-        }
+    @Override
+    public void notifyBuilding(BuildingCard building, Player player) {
+        // specific building effect method is invoked
+        building.onHunterAdded(player);
     }
 }
