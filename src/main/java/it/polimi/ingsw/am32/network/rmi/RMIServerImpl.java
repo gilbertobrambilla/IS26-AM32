@@ -25,23 +25,26 @@ public class RMIServerImpl extends UnicastRemoteObject implements RMIServer {
 
     @Override
     public void connect(String nickname, RMIClient clientStub) throws RemoteException {
-        System.out.println("[RMI SERVER] Ricevuta richiesta di connessione da: " + nickname);
+        System.out.println("[RMI SERVER] connection request received from: " + nickname);
+
+        if (activeViews.containsKey(nickname)) {
+            throw new RemoteException("Nickname already in use: " + nickname);
+        }
 
         ClientNode clientNode = new RMIClientAdapter(clientStub);
 
-        VirtualView view = new VirtualViewImpl(nickname, clientNode, () -> {
+        VirtualView view = VirtualViewImpl.create(nickname, clientNode, () -> {
             activeViews.remove(nickname);
             lobbyController.handlePlayerNetworkDrop(nickname);
         });
 
         activeViews.put(nickname, view);
-
         lobbyController.connectPlayer(nickname, view);
     }
 
     @Override
     public void sendLobbyCommand(LobbyCommand command, String nickname) throws RemoteException {
-        System.out.println("[RMI SERVER] Ricevuto LobbyCommand da: " + nickname);
+        System.out.println("[RMI SERVER] LobbyCommand received from: " + nickname);
         VirtualView view = activeViews.get(nickname);
 
         if (view != null) {
@@ -52,8 +55,6 @@ public class RMIServerImpl extends UnicastRemoteObject implements RMIServer {
     @Override
     public void sendGameCommand(GameCommand command, String nickname) throws RemoteException {
         System.out.println("[RMI SERVER] game command received from: " + nickname);
-
-        // command is forwarded to the lobby controller to hide internal game mapping
         lobbyController.handleGameCommand(command, nickname);
     }
 }

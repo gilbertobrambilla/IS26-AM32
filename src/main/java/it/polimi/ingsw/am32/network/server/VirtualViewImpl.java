@@ -16,17 +16,22 @@ public class VirtualViewImpl implements VirtualView {
     private final String clientNickname;
     private final ClientNode clientNode;
     private final Runnable onDisconnectCallback;
-
     private final AtomicBoolean isConnected;
     private Thread heartbeatThread;
+
 
     public VirtualViewImpl(String clientNickname, ClientNode clientNode, Runnable onDisconnectCallback) {
         this.clientNickname = clientNickname;
         this.clientNode = clientNode;
         this.onDisconnectCallback = onDisconnectCallback;
         this.isConnected = new AtomicBoolean(true);
+    }
 
-        startHeartbeat();
+    public static VirtualViewImpl create(String clientNickname, ClientNode clientNode,
+                                         Runnable onDisconnectCallback) {
+        VirtualViewImpl instance = new VirtualViewImpl(clientNickname, clientNode, onDisconnectCallback);
+        instance.startHeartbeat();
+        return instance;
     }
 
     private void startHeartbeat() {
@@ -34,7 +39,6 @@ public class VirtualViewImpl implements VirtualView {
             try {
                 while (isConnected.get() && !Thread.currentThread().isInterrupted()) {
                     Thread.sleep(5000);
-
                     clientNode.ping();
                 }
             } catch (InterruptedException | NetworkException e) {
@@ -46,9 +50,9 @@ public class VirtualViewImpl implements VirtualView {
         this.heartbeatThread.start();
     }
 
-    public synchronized void handleDisconnect() {
+    public void handleDisconnect() {
         if (isConnected.compareAndSet(true, false)) {
-            System.err.println("[SERVER] Connessione persa con: " + clientNickname);
+            System.err.println("[SERVER] connection lost with: " + clientNickname);
 
             if (heartbeatThread != null) {
                 heartbeatThread.interrupt();
@@ -90,9 +94,24 @@ public class VirtualViewImpl implements VirtualView {
     }
 
     @Override
+    public void notifyGameSuspended() {
+        tryInvoke(clientNode::notifyGameSuspended);
+    }
+
+    @Override
+    public void notifyGameResumed() {
+        tryInvoke(clientNode::notifyGameResumed);
+    }
+
+    @Override
+    public void notifyLeaderboard(LeaderboardDTO leaderboard) {
+        tryInvoke(() -> clientNode.notifyLeaderboard(leaderboard));
+    }
+
+    @Override
     public void notifyGameEnded(GameResultDTO resultDTO) {
         tryInvoke(() -> clientNode.notifyGameEnded(resultDTO));
-        isConnected.set(false);
+        System.out.println("[SERVER] Game ended for " + clientNickname + ". Connection kept alive.");
     }
 
     private void tryInvoke(NetworkAction action) {

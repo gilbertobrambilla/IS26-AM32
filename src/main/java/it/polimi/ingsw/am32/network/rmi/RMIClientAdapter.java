@@ -23,7 +23,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.ping();
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI durante il ping", e);
+            throw new NetworkException("RMI network error while pinging", e);
         }
     }
 
@@ -32,7 +32,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.notifyConnectionResult(successful, message);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI", e);
+            throw new NetworkException("RMI Network Error", e);
         }
     }
 
@@ -41,7 +41,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.notifyLobbyState(availableGames);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI", e);
+            throw new NetworkException("RMI Network Error", e);
         }
     }
 
@@ -50,7 +50,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.notifyGameStarted(gameId);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI", e);
+            throw new NetworkException("RMI Network Error", e);
         }
     }
 
@@ -59,7 +59,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.notifyError(reason, message);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI", e);
+            throw new NetworkException("RMI Network Error", e);
         }
     }
 
@@ -68,7 +68,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.receiveEvent(event);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI", e);
+            throw new NetworkException("RMI Network Error", e);
         }
     }
 
@@ -77,7 +77,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.notifyGameSuspended();
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI", e);
+            throw new NetworkException("RMI Network Error", e);
         }
     }
 
@@ -86,7 +86,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.notifyGameResumed();
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI", e);
+            throw new NetworkException("RMI Network Error", e);
         }
     }
 
@@ -95,7 +95,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.notifyGameEnded(resultDTO);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI", e);
+            throw new NetworkException("RMI Network Error", e);
         }
     }
 
@@ -104,7 +104,7 @@ public class RMIClientAdapter implements ClientNode {
         try {
             clientStub.notifyLeaderboard(leaderboard);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore di rete RMI durante notifyLeaderboard", e);
+            throw new NetworkException("RMI network error while notifyingLeaderboard", e);
         }
     }
 }

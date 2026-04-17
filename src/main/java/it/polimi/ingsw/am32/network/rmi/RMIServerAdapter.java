@@ -22,7 +22,7 @@ public class RMIServerAdapter implements ServerNode {
         try {
             serverStub.connect(nickname, clientStub);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore RMI durante la connessione", e);
+            throw new NetworkException("RMI error while connecting", e);
         }
     }
 
@@ -31,7 +31,7 @@ public class RMIServerAdapter implements ServerNode {
         try {
             serverStub.sendLobbyCommand(command, nickname);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore RMI invio LobbyCommand", e);
+            throw new NetworkException("RMI error sending LobbyCommand", e);
         }
     }
 
@@ -40,7 +40,7 @@ public class RMIServerAdapter implements ServerNode {
         try {
             serverStub.sendGameCommand(command, nickname);
         } catch (RemoteException e) {
-            throw new NetworkException("Errore RMI invio GameCommand", e);
+            throw new NetworkException("RMI error sending GameCommand", e);
         }
     }
 
