@@ -3,11 +3,16 @@ package it.polimi.ingsw.am32.network.client;
 import it.polimi.ingsw.am32.client.ClientController;
 import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
-import it.polimi.ingsw.am32.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.dto.results.GameResultDTO;
+import it.polimi.ingsw.am32.dto.results.LeaderboardDTO;
+import it.polimi.ingsw.am32.dto.state.GameInfoDTO;
+import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.model.observers.GameEvent;
+import it.polimi.ingsw.am32.network.NetworkAction;
 import it.polimi.ingsw.am32.network.ServerConnection;
 import it.polimi.ingsw.am32.network.exceptions.NetworkException;
-import it.polimi.ingsw.am32.observers.GameEvent;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VirtualServer implements ServerConnection {
@@ -16,12 +21,11 @@ public class VirtualServer implements ServerConnection {
     private final Runnable onServerCrashCallback;
     private final AtomicBoolean isConnected;
 
-    private ClientController clientController;
+    private volatile ClientController clientController;
 
     public void setClientController(ClientController clientController) {
         this.clientController = clientController;
     }
-
 
     public VirtualServer(ServerNode serverNode, Runnable onServerCrashCallback) {
         this.serverNode = serverNode;
@@ -36,6 +40,12 @@ public class VirtualServer implements ServerConnection {
             if (onServerCrashCallback != null) {
                 onServerCrashCallback.run();
             }
+        }
+    }
+
+    public void disconnectGracefully() {
+        if (isConnected.compareAndSet(true, false)) {
+            serverNode.disconnect();
         }
     }
 
@@ -127,10 +137,5 @@ public class VirtualServer implements ServerConnection {
         if (clientController != null) {
             clientController.onLeaderboardUpdated(leaderboard);
         }
-    }
-
-    @FunctionalInterface
-    private interface NetworkAction {
-        void execute() throws NetworkException;
     }
 }

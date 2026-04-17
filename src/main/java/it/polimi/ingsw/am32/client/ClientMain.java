@@ -79,7 +79,7 @@ public class ClientMain {
 
             if ("quit".equalsIgnoreCase(userInput)) {
                 System.out.println("[CLIENT] Closing application...");
-                virtualServer.handleServerDisconnect();
+                virtualServer.disconnectGracefully();
                 isRunning = false;
             } else {
                 System.out.println("[CLIENT] Unknown command: " + userInput);

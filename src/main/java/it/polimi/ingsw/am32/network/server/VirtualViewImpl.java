@@ -6,6 +6,7 @@ import it.polimi.ingsw.am32.dto.state.GameInfoDTO;
 import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
 import it.polimi.ingsw.am32.model.observers.GameEvent;
 import it.polimi.ingsw.am32.network.ClientNode;
+import it.polimi.ingsw.am32.network.NetworkAction;
 import it.polimi.ingsw.am32.network.exceptions.NetworkException;
 
 import java.util.List;
@@ -123,8 +124,4 @@ public class VirtualViewImpl implements VirtualView {
         }
     }
 
-    @FunctionalInterface
-    private interface NetworkAction {
-        void execute() throws NetworkException;
-    }
 }
