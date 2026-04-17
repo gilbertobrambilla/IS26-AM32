@@ -1,6 +1,6 @@
-package it.polimi.ingsw.am32.model.dao;
+package it.polimi.ingsw.am32.dao;
 
-import it.polimi.ingsw.am32.model.dto.setup.EventCardDTO;
+import it.polimi.ingsw.am32.dto.setup.BuildingCardDTO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,18 +9,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EventCardDAO implements DAO<EventCardDTO> {
+public class BuildingCardDAO implements DAO<BuildingCardDTO> {
     private final Connection connection;
 
-    public EventCardDAO(Connection connection) {
+    public BuildingCardDAO(Connection connection) {
         this.connection = connection;
     }
 
     @Override
-    public List<EventCardDTO> fetchAll() {
-        List<EventCardDTO> dtoList = new ArrayList<>();
+    public List<BuildingCardDTO> fetchAll() {
+        List<BuildingCardDTO> dtoList = new ArrayList<>();
 
-        String query = "SELECT * FROM event_cards";
+        String query = "SELECT * FROM building_cards";
 
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -33,10 +33,12 @@ public class EventCardDAO implements DAO<EventCardDTO> {
             while (rs.next()) {
                 String id = rs.getString("id");
                 int era = rs.getInt("era");
-                String eventType = rs.getString("event_type");
-                String eventDetails = rs.getString("event_params");
+                int basePrestige = rs.getInt("base_prestige");
+                int cost = rs.getInt("cost");
+                String effectCode = rs.getString("effect_code");
+                String effectDetails = rs.getString("effect_params");
 
-                EventCardDTO dto = new EventCardDTO(id, era, eventType, eventDetails);
+                BuildingCardDTO dto = new BuildingCardDTO(id, era, basePrestige, cost, effectCode, effectDetails);
                 dtoList.add(dto);
             }
         } catch (SQLException e) {

@@ -1,6 +1,6 @@
-package it.polimi.ingsw.am32.model.dao;
+package it.polimi.ingsw.am32.dao;
 
-import it.polimi.ingsw.am32.model.dto.setup.TurnOrderTileDTO;
+import it.polimi.ingsw.am32.dto.setup.TurnOrderTileDTO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,8 +18,8 @@ public class TurnOrderTileDAO implements DAO<TurnOrderTileDTO> {
 
     @Override
     public List<TurnOrderTileDTO> fetchAll() {
-        String sql = "SELECT * FROM turn_order_tiles";
-        return executeFetch(sql, null);
+        String query = "SELECT * FROM turn_order_tiles";
+        return executeFetch(query, null);
     }
 
     public TurnOrderTileDTO fetch(int numOfPlayers) {
@@ -27,8 +27,8 @@ public class TurnOrderTileDAO implements DAO<TurnOrderTileDTO> {
             throw new IllegalArgumentException("numOfPlayers must be between 2 and 5");
         }
 
-        String sql = "SELECT * FROM turn_order_tiles WHERE required_players = ?";
-        return executeFetch(sql, numOfPlayers).getFirst();
+        String query = "SELECT * FROM turn_order_tiles WHERE required_players = ?";
+        return executeFetch(query, numOfPlayers).getFirst();
     }
 
     private List<TurnOrderTileDTO> executeFetch(String query, Integer numOfPlayers) {

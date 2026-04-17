@@ -1,29 +1,27 @@
 package it.polimi.ingsw.am32.model;
 
+import it.polimi.ingsw.am32.dao.*;
 import it.polimi.ingsw.am32.model.cards.Card;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.model.cards.acquirable.characters.CharacterCard;
 import it.polimi.ingsw.am32.model.cards.events.EventCard;
-import it.polimi.ingsw.am32.model.dao.*;
 import it.polimi.ingsw.am32.model.factories.*;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 public class GameCreator {
     private final int gameId;
-    private final Connection connection;
 
-    public GameCreator(int gameId, Connection connection) {
+    public GameCreator(int gameId) {
         if (gameId < 0) {
             throw new IllegalArgumentException("gameId cannot be negative");
         }
-        Objects.requireNonNull(connection, "connection cannot be null");
 
         this.gameId = gameId;
-        this.connection = connection;
     }
 
     public GameState createGame(int numOfPlayers) {
@@ -31,20 +29,35 @@ public class GameCreator {
             throw new IllegalArgumentException("numOfPlayers must be between 2 and 5");
         }
 
-        // decks are generated
-        Deck<Card> tribeDeck = generateTribeDeck(numOfPlayers);
-        Map<Integer, Deck<BuildingCard>> buildingDecks = generateBuildingDecks(numOfPlayers);
+        Connection connection = null;
+        try {
+            // database connection is retrieved
+            connection = DatabaseConnection.getInstance().getConnection();
 
-        // tiles are generated
-        List<OfferTile> offerTrack = generateOfferTrack(numOfPlayers);
-        TurnOrderTile turnOrderTile = generateTurnOrderTile(numOfPlayers);
+            // decks are generated
+            Deck<Card> tribeDeck = generateTribeDeck(numOfPlayers, connection);
+            Map<Integer, Deck<BuildingCard>> buildingDecks = generateBuildingDecks(numOfPlayers, connection);
 
-        GameState gameState = new GameState(gameId, numOfPlayers, offerTrack, turnOrderTile, tribeDeck, buildingDecks);
+            // tiles are generated
+            List<OfferTile> offerTrack = generateOfferTrack(numOfPlayers, connection);
+            TurnOrderTile turnOrderTile = generateTurnOrderTile(numOfPlayers, connection);
 
-        return gameState;
+            // game state is instantiated
+            return new GameState(this.gameId, numOfPlayers, offerTrack, turnOrderTile, tribeDeck, buildingDecks);
+
+        } finally {
+            // connection is safely closed
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    System.err.println("error closing connection: " + e.getMessage());
+                }
+            }
+        }
     }
 
-    private Deck<Card> generateTribeDeck(int numOfPlayers) {
+    private Deck<Card> generateTribeDeck(int numOfPlayers, Connection connection) {
         CharacterCardDAO charDao = new CharacterCardDAO(connection);
         EventCardDAO eventDao = new EventCardDAO(connection);
 
@@ -90,7 +103,7 @@ public class GameCreator {
         return tribeDeck;
     }
 
-    private Map<Integer, Deck<BuildingCard>> generateBuildingDecks(int numOfPlayers) {
+    private Map<Integer, Deck<BuildingCard>> generateBuildingDecks(int numOfPlayers, Connection connection) {
         BuildingCardDAO bldDao = new BuildingCardDAO(connection);
         List<BuildingCard> allBuildings = new BuildingCardFactory().createCards(bldDao.fetchAll());
 
@@ -132,7 +145,7 @@ public class GameCreator {
         return deck;
     }
 
-    private List<OfferTile> generateOfferTrack(int numOfPlayers) {
+    private List<OfferTile> generateOfferTrack(int numOfPlayers, Connection connection) {
         OfferTileDAO dao = new OfferTileDAO(connection);
         List<OfferTile> offerTrack = new OfferTileFactory().createTiles(dao.fetchAll(numOfPlayers));
 
@@ -141,7 +154,7 @@ public class GameCreator {
         return offerTrack;
     }
 
-    private TurnOrderTile generateTurnOrderTile(int numOfPlayers) {
+    private TurnOrderTile generateTurnOrderTile(int numOfPlayers, Connection connection) {
         TurnOrderTileDAO dao = new TurnOrderTileDAO(connection);
         return new TurnOrderTileFactory().createTile(dao.fetch(numOfPlayers));
     }

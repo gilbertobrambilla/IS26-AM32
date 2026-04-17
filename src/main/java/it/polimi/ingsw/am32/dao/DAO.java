@@ -1,4 +1,4 @@
-package it.polimi.ingsw.am32.model.dao;
+package it.polimi.ingsw.am32.dao;
 
 import java.util.List;
 
