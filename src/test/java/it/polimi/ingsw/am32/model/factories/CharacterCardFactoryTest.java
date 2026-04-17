@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.model.factories;
 
 import it.polimi.ingsw.am32.model.cards.acquirable.characters.*;
-import it.polimi.ingsw.am32.model.dto.setup.CharacterCardDTO;
+import it.polimi.ingsw.am32.dto.setup.CharacterCardDTO;
 import it.polimi.ingsw.am32.model.enums.CharacterType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

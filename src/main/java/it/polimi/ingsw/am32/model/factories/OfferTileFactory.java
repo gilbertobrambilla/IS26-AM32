@@ -1,6 +1,6 @@
 package it.polimi.ingsw.am32.model.factories;
 
-import it.polimi.ingsw.am32.model.dto.setup.OfferTileDTO;
+import it.polimi.ingsw.am32.dto.setup.OfferTileDTO;
 import it.polimi.ingsw.am32.model.tiles.Action;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 

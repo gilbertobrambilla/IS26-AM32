@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.model.factories;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.polimi.ingsw.am32.model.cards.events.*;
-import it.polimi.ingsw.am32.model.dto.setup.EventCardDTO;
+import it.polimi.ingsw.am32.dto.setup.EventCardDTO;
 import it.polimi.ingsw.am32.model.enums.EventType;
 
 import java.util.ArrayList;

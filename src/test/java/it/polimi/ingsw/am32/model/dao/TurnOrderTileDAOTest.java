@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.model.dao;
 
-import it.polimi.ingsw.am32.model.dto.setup.TurnOrderTileDTO;
+import it.polimi.ingsw.am32.dao.TurnOrderTileDAO;
+import it.polimi.ingsw.am32.dto.setup.TurnOrderTileDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

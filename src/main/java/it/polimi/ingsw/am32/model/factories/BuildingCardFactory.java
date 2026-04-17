@@ -9,7 +9,7 @@ import it.polimi.ingsw.am32.model.cards.acquirable.buildings.effects.events.*;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.effects.phases.*;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.effects.resources.*;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.effects.status.*;
-import it.polimi.ingsw.am32.model.dto.setup.BuildingCardDTO;
+import it.polimi.ingsw.am32.dto.setup.BuildingCardDTO;
 import it.polimi.ingsw.am32.model.enums.BuildingEffectCode;
 import it.polimi.ingsw.am32.model.enums.CharacterType;
 import it.polimi.ingsw.am32.model.enums.EventType;

@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.model.dao;
 
-import it.polimi.ingsw.am32.model.dto.setup.CharacterCardDTO;
+import it.polimi.ingsw.am32.dao.CharacterCardDAO;
+import it.polimi.ingsw.am32.dto.setup.CharacterCardDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

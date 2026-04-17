@@ -1,4 +1,4 @@
-package it.polimi.ingsw.am32.model.dto.setup;
+package it.polimi.ingsw.am32.dto.setup;
 
 public class BuildingCardDTO {
     private final String id;

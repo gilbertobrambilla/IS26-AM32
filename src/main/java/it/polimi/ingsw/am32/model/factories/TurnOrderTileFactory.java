@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.model.factories;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.polimi.ingsw.am32.model.dto.setup.TurnOrderTileDTO;
+import it.polimi.ingsw.am32.dto.setup.TurnOrderTileDTO;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 
 import java.util.ArrayList;
