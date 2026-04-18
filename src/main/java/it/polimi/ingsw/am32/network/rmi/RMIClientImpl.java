@@ -12,7 +12,7 @@ import java.util.List;
 
 public class RMIClientImpl extends UnicastRemoteObject implements RMIClient {
 
-    private transient VirtualServer virtualServer;
+    private transient volatile VirtualServer virtualServer;
 
     public RMIClientImpl() throws RemoteException {
         super();

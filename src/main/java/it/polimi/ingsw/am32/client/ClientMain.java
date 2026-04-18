@@ -26,17 +26,14 @@ public class ClientMain {
         System.out.print("Enter server IP (e.g. localhost or 127.0.0.1): ");
         String serverIp = scanner.nextLine();
 
-        // 1. Setup Rete
         VirtualServer virtualServer = connectToServer(serverIp);
         if (virtualServer == null) {
             System.exit(1);
         }
 
-        // 2. Setup Controller Logico
         ClientController clientController = new ClientController(virtualServer);
         virtualServer.setClientController(clientController);
 
-        // 3. Avvio TUI
         runTUI(scanner, virtualServer);
     }
 

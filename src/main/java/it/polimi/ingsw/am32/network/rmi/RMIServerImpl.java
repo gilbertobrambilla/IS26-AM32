@@ -27,10 +27,6 @@ public class RMIServerImpl extends UnicastRemoteObject implements RMIServer {
     public void connect(String nickname, RMIClient clientStub) throws RemoteException {
         System.out.println("[RMI SERVER] connection request received from: " + nickname);
 
-        if (activeViews.containsKey(nickname)) {
-            throw new RemoteException("Nickname already in use: " + nickname);
-        }
-
         ClientNode clientNode = new RMIClientAdapter(clientStub);
 
         VirtualView view = VirtualViewImpl.create(nickname, clientNode, () -> {
@@ -38,7 +34,11 @@ public class RMIServerImpl extends UnicastRemoteObject implements RMIServer {
             lobbyController.handlePlayerNetworkDrop(nickname);
         });
 
-        activeViews.put(nickname, view);
+        if (activeViews.putIfAbsent(nickname, view) != null) {
+            view.handleDisconnect();
+            throw new RemoteException("Nickname already in use: " + nickname);
+        }
+
         lobbyController.connectPlayer(nickname, view);
     }
 
