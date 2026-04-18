@@ -99,12 +99,4 @@ public class RMIClientAdapter implements ClientNode {
         }
     }
 
-    @Override
-    public void notifyLeaderboard(LeaderboardDTO leaderboard) {
-        try {
-            clientStub.notifyLeaderboard(leaderboard);
-        } catch (RemoteException e) {
-            throw new NetworkException("RMI network error while notifyingLeaderboard", e);
-        }
-    }
 }

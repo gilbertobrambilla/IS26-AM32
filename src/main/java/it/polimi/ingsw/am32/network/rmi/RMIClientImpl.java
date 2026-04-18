@@ -66,9 +66,4 @@ public class RMIClientImpl extends UnicastRemoteObject implements RMIClient {
         if (virtualServer != null) virtualServer.receiveGameEnded(resultDTO);
     }
 
-    @Override
-    public void notifyLeaderboard(LeaderboardDTO leaderboard) throws RemoteException {
-        if (virtualServer != null) virtualServer.receiveLeaderboard(leaderboard);
-
-    }
 }

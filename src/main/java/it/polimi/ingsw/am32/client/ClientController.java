@@ -1,7 +1,6 @@
 package it.polimi.ingsw.am32.client;
 
 import it.polimi.ingsw.am32.dto.results.GameResultDTO;
-import it.polimi.ingsw.am32.dto.results.LeaderboardDTO;
 import it.polimi.ingsw.am32.dto.state.GameInfoDTO;
 import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
 import it.polimi.ingsw.am32.model.observers.GameEvent;
@@ -56,11 +55,6 @@ public class ClientController {
     public void onGameEnded(GameResultDTO resultDTO) {
         // ui.showEndGameScreen(resultDTO);
         System.out.println("[CONTROLLER] Game over. Showing results.");
-    }
-
-    public void onLeaderboardUpdated(LeaderboardDTO leaderboard) {
-        // ui.updateGlobalLeaderboard(leaderboard);
-        System.out.println("[CONTROLLER] Global leaderboard updated in UI.");
     }
 
 }

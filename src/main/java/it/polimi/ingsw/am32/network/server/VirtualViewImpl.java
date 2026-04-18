@@ -105,11 +105,6 @@ public class VirtualViewImpl implements VirtualView {
     }
 
     @Override
-    public void notifyLeaderboard(LeaderboardDTO leaderboard) {
-        tryInvoke(() -> clientNode.notifyLeaderboard(leaderboard));
-    }
-
-    @Override
     public void notifyGameEnded(GameResultDTO resultDTO) {
         tryInvoke(() -> clientNode.notifyGameEnded(resultDTO));
         System.out.println("[SERVER] Game ended for " + clientNickname + ". Connection kept alive.");

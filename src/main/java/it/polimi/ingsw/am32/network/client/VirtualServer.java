@@ -4,7 +4,6 @@ import it.polimi.ingsw.am32.client.ClientController;
 import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
 import it.polimi.ingsw.am32.dto.results.GameResultDTO;
-import it.polimi.ingsw.am32.dto.results.LeaderboardDTO;
 import it.polimi.ingsw.am32.dto.state.GameInfoDTO;
 import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
 import it.polimi.ingsw.am32.model.observers.GameEvent;
@@ -132,10 +131,4 @@ public class VirtualServer implements ServerConnection {
         }
     }
 
-    public void receiveLeaderboard(LeaderboardDTO leaderboard) {
-        System.out.println("[CLIENT] leaderboard update received from server.");
-        if (clientController != null) {
-            clientController.onLeaderboardUpdated(leaderboard);
-        }
-    }
 }
