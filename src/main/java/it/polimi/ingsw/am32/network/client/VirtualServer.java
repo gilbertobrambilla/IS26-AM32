@@ -19,6 +19,7 @@ public class VirtualServer implements ServerConnection {
     private final ServerNode serverNode;
     private final Runnable onServerCrashCallback;
     private final AtomicBoolean isConnected;
+    private Thread heartbeatThread;
 
     private volatile ClientController clientController;
 
@@ -26,14 +27,40 @@ public class VirtualServer implements ServerConnection {
         this.clientController = clientController;
     }
 
-    public VirtualServer(ServerNode serverNode, Runnable onServerCrashCallback) {
+    private VirtualServer(ServerNode serverNode, Runnable onServerCrashCallback) {
         this.serverNode = serverNode;
         this.onServerCrashCallback = onServerCrashCallback;
         this.isConnected = new AtomicBoolean(true);
     }
 
+    public static VirtualServer create(ServerNode serverNode, Runnable onServerCrashCallback) {
+        VirtualServer instance = new VirtualServer(serverNode, onServerCrashCallback);
+        instance.startHeartbeat();
+        return instance;
+    }
+
+    private void startHeartbeat() {
+        this.heartbeatThread = new Thread(() -> {
+            try {
+                while (isConnected.get() && !Thread.currentThread().isInterrupted()) {
+                    Thread.sleep(5000);
+                    tryInvoke(serverNode::ping);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                handleServerDisconnect();
+            }
+        }, "ServerHeartbeat-" + System.currentTimeMillis());
+
+        this.heartbeatThread.setDaemon(true);
+        this.heartbeatThread.start();
+    }
+
     public void handleServerDisconnect() {
         if (isConnected.compareAndSet(true, false)) {
+            if (heartbeatThread != null) {
+                heartbeatThread.interrupt();
+            }
             serverNode.disconnect();
 
             if (onServerCrashCallback != null) {

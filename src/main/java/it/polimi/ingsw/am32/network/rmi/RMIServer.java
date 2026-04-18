@@ -7,10 +7,8 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface RMIServer extends Remote {
-
+    void ping() throws RemoteException;
     void connect(String nickname, RMIClient clientStub) throws RemoteException;
-
     void sendLobbyCommand(LobbyCommand command, String nickname) throws RemoteException;
-
     void sendGameCommand(GameCommand command, String nickname) throws RemoteException;
 }

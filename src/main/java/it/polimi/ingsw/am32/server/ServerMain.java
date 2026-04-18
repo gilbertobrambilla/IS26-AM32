@@ -10,10 +10,23 @@ import java.sql.Connection;
 
 public class ServerMain {
 
-    private static final int RMI_PORT = 1099;
+    private static int rmiPort = 1099;
     private static final String SERVER_NAME = "MesosServer";
 
     public static void main(String[] args) {
+        if (args.length > 0) {
+            try {
+                rmiPort = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                System.err.println("[SERVER] Porta non valida inserita negli argomenti. Uso il default: " + rmiPort);
+            }
+        }
+
+        if (args.length > 1) {
+            System.setProperty("java.rmi.server.hostname", args[1]);
+            System.out.println("[SERVER] RMI Hostname forzato a: " + args[1]);
+        }
+
         System.setProperty("sun.rmi.transport.tcp.responseTimeout", "5000");
         System.setProperty("sun.rmi.transport.tcp.readTimeout", "5000");
 
@@ -34,8 +47,8 @@ public class ServerMain {
             LobbyController lobbyController = new LobbyController();
             RMIServerImpl rmiServer = new RMIServerImpl(lobbyController);
 
-            System.out.println("[SERVER] Starting RMI Registry on port " + RMI_PORT + "...");
-            Registry registry = LocateRegistry.createRegistry(RMI_PORT);
+            System.out.println("[SERVER] Starting RMI Registry on port " + rmiPort + "...");
+            Registry registry = LocateRegistry.createRegistry(rmiPort);
             registry.rebind(SERVER_NAME, rmiServer);
 
             System.out.println("[SERVER] === SERVER READY AND LISTENING ===");

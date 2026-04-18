@@ -18,6 +18,15 @@ public class RMIServerAdapter implements ServerNode {
     }
 
     @Override
+    public void ping() {
+        try {
+            serverStub.ping();
+        } catch (RemoteException e) {
+            throw new NetworkException("RMI server unreachable during ping", e);
+        }
+    }
+
+    @Override
     public void connect(String nickname) {
         try {
             serverStub.connect(nickname, clientStub);

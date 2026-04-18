@@ -24,6 +24,11 @@ public class RMIServerImpl extends UnicastRemoteObject implements RMIServer {
     }
 
     @Override
+    public void ping() throws RemoteException {
+
+    }
+
+    @Override
     public void connect(String nickname, RMIClient clientStub) throws RemoteException {
         System.out.println("[RMI SERVER] connection request received from: " + nickname);
 
