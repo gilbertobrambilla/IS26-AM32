@@ -71,14 +71,17 @@ public class ClientMain {
             RMIServer serverStub = (RMIServer) registry.lookup(SERVER_NAME);
 
             RMIClientImpl rmiClient = new RMIClientImpl();
-            ServerNode serverNode = new RMIServerAdapter(serverStub, rmiClient);
 
+            ServerNode serverNode = new RMIServerAdapter(serverStub, rmiClient);
             VirtualServer virtualServer = VirtualServer.create(serverNode, () -> {
                 System.err.println("\n[FATAL ERROR] Connection to server lost unexpectedly!");
                 System.exit(1);
             });
 
             rmiClient.setVirtualServer(virtualServer);
+
+            java.rmi.server.UnicastRemoteObject.exportObject(rmiClient, 0);
+
             System.out.println("[CLIENT] Connection established successfully!\n");
 
             return virtualServer;
@@ -102,13 +105,18 @@ public class ClientMain {
             String userInput = scanner.nextLine();
 
             if ("quit".equalsIgnoreCase(userInput)) {
-                System.out.println("[CLIENT] Closing application...");
+                System.out.println("[CLIENT] Disconnecting from server...");
                 virtualServer.disconnectGracefully();
                 isRunning = false;
             } else {
                 System.out.println("[CLIENT] Unknown command: " + userInput);
             }
         }
+
         scanner.close();
+
+        System.out.println("[CLIENT] Application closed successfully. Goodbye!");
+
+        System.exit(0);
     }
 }

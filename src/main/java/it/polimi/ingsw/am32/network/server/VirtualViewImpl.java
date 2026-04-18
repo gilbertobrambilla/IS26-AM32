@@ -1,138 +1,219 @@
 package it.polimi.ingsw.am32.network.server;
 
 import it.polimi.ingsw.am32.controller.VirtualView;
-import it.polimi.ingsw.am32.dto.results.GameResultDTO;
-import it.polimi.ingsw.am32.dto.state.GameInfoDTO;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
-import it.polimi.ingsw.am32.model.observers.GameEvent;
 import it.polimi.ingsw.am32.network.ClientNode;
-import it.polimi.ingsw.am32.network.NetworkAction;
 import it.polimi.ingsw.am32.network.exceptions.NetworkException;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
+import it.polimi.ingsw.am32.dto.messages.game.events.*;
+import it.polimi.ingsw.am32.dto.messages.game.models.*;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
+/**
+ * Implementazione lato server della VirtualView.
+ * Funge da proxy di rete: riceve i comandi dal Model/Controller e li invia
+ * al ClientNode reale (RMI o Socket). Gestisce anche il thread di heartbeat
+ * per monitorare lo stato della connessione del client.
+ */
 public class VirtualViewImpl implements VirtualView {
 
-    private final String clientNickname;
+    private final String nickname;
     private final ClientNode clientNode;
-    private final Runnable onDisconnectCallback;
-    private final AtomicBoolean isConnected;
+
+    private final Consumer<Boolean> onConnectionClosed;
+
+    private volatile boolean isRunning;
     private Thread heartbeatThread;
 
-    private VirtualViewImpl(String clientNickname, ClientNode clientNode, Runnable onDisconnectCallback) {
-        this.clientNickname = clientNickname;
+    private VirtualViewImpl(String nickname, ClientNode clientNode, Consumer<Boolean> onConnectionClosed) {
+        this.nickname = nickname;
         this.clientNode = clientNode;
-        this.onDisconnectCallback = onDisconnectCallback;
-        this.isConnected = new AtomicBoolean(true);
+        this.onConnectionClosed = onConnectionClosed;
+        this.isRunning = true;
     }
 
-    public static VirtualViewImpl create(String clientNickname, ClientNode clientNode,
-                                         Runnable onDisconnectCallback) {
-        VirtualViewImpl instance = new VirtualViewImpl(clientNickname, clientNode, onDisconnectCallback);
-        instance.startHeartbeat();
-        return instance;
+    public static VirtualViewImpl create(String nickname, ClientNode clientNode, Consumer<Boolean> onConnectionClosed) {
+        VirtualViewImpl view = new VirtualViewImpl(nickname, clientNode, onConnectionClosed);
+        view.startHeartbeat();
+        return view;
     }
 
     private void startHeartbeat() {
-        this.heartbeatThread = new Thread(() -> {
-            try {
-                while (isConnected.get() && !Thread.currentThread().isInterrupted()) {
+        heartbeatThread = new Thread(() -> {
+            while (isRunning) {
+                try {
                     Thread.sleep(5000);
-                    clientNode.ping();
+                    if (isRunning) {
+                        clientNode.ping();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (NetworkException | java.rmi.RemoteException e) {
+                    System.err.println("[VIRTUAL VIEW] Heartbeat failed for " + nickname + ". Client dropped.");
+                    handleDisconnect();
+                    break;
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                handleDisconnect();
-
-            } catch (NetworkException e) {
-                handleDisconnect();
             }
-        }, "Heartbeat-" + clientNickname);
+        });
+        heartbeatThread.setName("Heartbeat-" + nickname);
+        heartbeatThread.start();
+    }
 
-        this.heartbeatThread.setDaemon(true);
-        this.heartbeatThread.start();
+    public void stopHeartbeat() {
+        isRunning = false;
+        if (heartbeatThread != null) {
+            heartbeatThread.interrupt();
+        }
     }
 
     public void handleDisconnect() {
-        if (isConnected.compareAndSet(true, false)) {
-            System.err.println("[SERVER] connection lost with: " + clientNickname);
+        if (!isRunning) return;
 
-            if (heartbeatThread != null) {
-                heartbeatThread.interrupt();
-            }
-
-            if (onDisconnectCallback != null) {
-                onDisconnectCallback.run();
-            }
+        stopHeartbeat();
+        if (onConnectionClosed != null) {
+            onConnectionClosed.accept(true);
         }
     }
 
     @Override
     public boolean checkAndHandleLiveness() {
-        if (!isConnected.get()) {
-            return false;
-        }
-        try {
-            clientNode.ping();
-            return true;
-        } catch (NetworkException e) {
-            handleDisconnect();
-            return false;
-        }
+        return isRunning;
     }
 
     @Override
     public void notifyConnectionResult(boolean successful, String message) {
-        tryInvoke(() -> clientNode.notifyConnectionResult(successful, message));
+        try {
+            clientNode.notifyConnectionResult(successful, message);
+        } catch (Exception e) {
+            handleDisconnect();
+        }
 
         if (!successful) {
-            handleDisconnect();
+            stopHeartbeat();
+            if (onConnectionClosed != null) {
+                onConnectionClosed.accept(false);
+            }
         }
     }
 
     @Override
-    public void notifyLobbyState(List<GameInfoDTO> availableGames) {
-        tryInvoke(() -> clientNode.notifyLobbyState(availableGames));
+    public void notifyLobbyState(AvailableGamesListEvent dto) {
+        try {
+            clientNode.notifyLobbyState(dto);
+        } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyLobbyRoomUpdated(LobbyStateUpdatedEvent dto) {
+        try {
+            clientNode.notifyLobbyRoomUpdated(dto);
+        } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyGameStarted(int gameId) {
-        tryInvoke(() -> clientNode.notifyGameStarted(gameId));
+        // Se usi un evento specifico (es. GameStartedEvent), aggiorna la firma in base alla tua interfaccia
+        try {
+            clientNode.notifyGameStarted(gameId);
+        } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
-    public void notifyError(InvalidActionReason reason, String message) {
-        tryInvoke(() -> clientNode.notifyError(reason, message));
+    public void notifyGameStarted(GameStartedEvent dto) {
+        try {
+            clientNode.notifyGameStarted(dto);
+        } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
-    public void update(GameEvent event) {
-        tryInvoke(() -> clientNode.receiveEvent(event));
+    public void notifyGameState(GameStateDTO dto) {
+        try {
+            clientNode.notifyGameState(dto);
+        } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyGameEnded(GameEndedEvent resultDTO) {
+        try {
+            clientNode.notifyGameEnded(resultDTO);
+        } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyError(InvalidActionEvent dto) {
+        try {
+            clientNode.notifyError(dto);
+        } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyGameSuspended() {
-        tryInvoke(clientNode::notifyGameSuspended);
+        try {
+            clientNode.notifyGameSuspended();
+        } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyGameResumed() {
-        tryInvoke(clientNode::notifyGameResumed);
+        try {
+            clientNode.notifyGameResumed();
+        } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
-    public void notifyGameEnded(GameResultDTO resultDTO) {
-        tryInvoke(() -> clientNode.notifyGameEnded(resultDTO));
-        System.out.println("[SERVER] Game ended for " + clientNickname + ". Connection kept alive.");
+    public void notifyPlayerDisconnected(PlayerDisconnectedEvent dto) {
+        try {
+            clientNode.notifyPlayerDisconnected(dto);
+        } catch (Exception e) { handleDisconnect(); }
     }
 
-    private void tryInvoke(NetworkAction action) {
-        if (!isConnected.get()) return;
+    @Override
+    public void notifyPlayerReconnected(PlayerReconnectedEvent dto) {
         try {
-            action.execute();
-        } catch (NetworkException e) {
-            handleDisconnect();
-        }
+            clientNode.notifyPlayerReconnected(dto);
+        } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyTotemPlaced(TotemPlacedEvent dto) {
+        try {
+            clientNode.notifyTotemPlaced(dto);
+        } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyActionResolved(ActionResolvedEvent dto) {
+        try {
+            clientNode.notifyActionResolved(dto);
+        } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent dto) {
+        try {
+            clientNode.notifyExtraAcquisitionResolved(dto);
+        } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyEventResolved(EventResolvedEvent dto) {
+        try {
+            clientNode.notifyEventResolved(dto);
+        } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyRoundEnded(RoundEndedEvent dto) {
+        try {
+            clientNode.notifyRoundEnded(dto);
+        } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyGamePhaseChanged(GamePhaseChangedEvent dto) {
+        try {
+            clientNode.notifyGamePhaseChanged(dto);
+        } catch (Exception e) { handleDisconnect(); }
     }
 }

@@ -23,10 +23,6 @@ public class VirtualServer implements ServerConnection {
 
     private volatile ClientController clientController;
 
-    public void setClientController(ClientController clientController) {
-        this.clientController = clientController;
-    }
-
     private VirtualServer(ServerNode serverNode, Runnable onServerCrashCallback) {
         this.serverNode = serverNode;
         this.onServerCrashCallback = onServerCrashCallback;
@@ -39,6 +35,10 @@ public class VirtualServer implements ServerConnection {
         return instance;
     }
 
+    public void setClientController(ClientController clientController) {
+        this.clientController = clientController;
+    }
+
     private void startHeartbeat() {
         this.heartbeatThread = new Thread(() -> {
             try {
@@ -48,7 +48,7 @@ public class VirtualServer implements ServerConnection {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                handleServerDisconnect();
+                System.out.println("[CLIENT] Heartbeat thread stopped cleanly.");
             }
         }, "ServerHeartbeat-" + System.currentTimeMillis());
 
@@ -71,6 +71,9 @@ public class VirtualServer implements ServerConnection {
 
     public void disconnectGracefully() {
         if (isConnected.compareAndSet(true, false)) {
+            if (heartbeatThread != null) {
+                heartbeatThread.interrupt();
+            }
             serverNode.disconnect();
         }
     }
@@ -157,5 +160,4 @@ public class VirtualServer implements ServerConnection {
             clientController.onGameEnded(resultDTO);
         }
     }
-
 }
