@@ -20,8 +20,7 @@ public class VirtualViewImpl implements VirtualView {
     private final AtomicBoolean isConnected;
     private Thread heartbeatThread;
 
-
-    public VirtualViewImpl(String clientNickname, ClientNode clientNode, Runnable onDisconnectCallback) {
+    private VirtualViewImpl(String clientNickname, ClientNode clientNode, Runnable onDisconnectCallback) {
         this.clientNickname = clientNickname;
         this.clientNode = clientNode;
         this.onDisconnectCallback = onDisconnectCallback;
@@ -42,7 +41,11 @@ public class VirtualViewImpl implements VirtualView {
                     Thread.sleep(5000);
                     clientNode.ping();
                 }
-            } catch (InterruptedException | NetworkException e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                handleDisconnect();
+
+            } catch (NetworkException e) {
                 handleDisconnect();
             }
         }, "Heartbeat-" + clientNickname);
@@ -62,6 +65,20 @@ public class VirtualViewImpl implements VirtualView {
             if (onDisconnectCallback != null) {
                 onDisconnectCallback.run();
             }
+        }
+    }
+
+    @Override
+    public boolean checkAndHandleLiveness() {
+        if (!isConnected.get()) {
+            return false;
+        }
+        try {
+            clientNode.ping();
+            return true;
+        } catch (NetworkException e) {
+            handleDisconnect();
+            return false;
         }
     }
 
@@ -118,5 +135,4 @@ public class VirtualViewImpl implements VirtualView {
             handleDisconnect();
         }
     }
-
 }
