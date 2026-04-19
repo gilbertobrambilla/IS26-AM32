@@ -3,6 +3,7 @@ module it.polimi.ingsw.am32 {
     requires javafx.fxml;
     requires java.sql;
     requires com.fasterxml.jackson.databind;
+    requires java.rmi;
 
 
     opens it.polimi.ingsw.am32 to javafx.fxml;
