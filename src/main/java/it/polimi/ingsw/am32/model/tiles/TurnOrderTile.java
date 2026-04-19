@@ -3,12 +3,13 @@ package it.polimi.ingsw.am32.model.tiles;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
 import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
+import it.polimi.ingsw.am32.model.receipts.TurnOrderPlacementReceipt;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class TurnOrderTile extends Tile{
+public class TurnOrderTile extends Tile {
     private final List<Player> turnOrder;
     private final List<Integer> foodModifiers;
     private final List<Integer> prestigeModifiers;
@@ -36,7 +37,7 @@ public class TurnOrderTile extends Tile{
         this.turnOrder.addAll(playerList);
     }
 
-    public void placePlayer(Player player) {
+    public TurnOrderPlacementReceipt placePlayer(Player player) {
         Objects.requireNonNull(player, "player cannot be null");
 
         if (isFull()) {
@@ -61,6 +62,8 @@ public class TurnOrderTile extends Tile{
 
         // the player is notified of the placement to trigger relevant building effects
         player.onPlacedOnTurnOrderTile(gainedFood);
+
+        return new TurnOrderPlacementReceipt(index, foodMod, prestigeMod);
     }
 
     public void removePlayer(Player player) {

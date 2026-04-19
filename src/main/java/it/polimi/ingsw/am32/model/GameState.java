@@ -9,10 +9,13 @@ import it.polimi.ingsw.am32.model.cards.visitors.EventCollectorVisitor;
 import it.polimi.ingsw.am32.model.cards.visitors.RowDistributionVisitor;
 import it.polimi.ingsw.am32.model.enums.GamePhase;
 import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.model.enums.StatChangeReason;
+import it.polimi.ingsw.am32.model.enums.TotemColor;
 import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
 import it.polimi.ingsw.am32.model.observers.GameEvent;
 import it.polimi.ingsw.am32.model.observers.GameObservable;
 import it.polimi.ingsw.am32.model.observers.GameObserver;
+import it.polimi.ingsw.am32.model.receipts.*;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 
@@ -143,8 +146,8 @@ public class GameState implements GameObservable {
 
     // core gameplay phases
 
-    public void placeTotem(Player player, String selectedOfferTileId) {
-        Objects.requireNonNull(player, "player cannot be null");
+    public void placeTotem(String playerNickname, String selectedOfferTileId) {
+        Objects.requireNonNull(playerNickname, "player cannot be null");
         Objects.requireNonNull(selectedOfferTileId, "selectedOfferTileId cannot be null");
 
         Player player = getPlayerByNickname(playerNickname);
@@ -195,8 +198,18 @@ public class GameState implements GameObservable {
         }
     }
 
-    public void resolveAction(Player player, List<String> chosenCharacterCardsIds, List<String> chosenBuildingCardsIds) {
-        Objects.requireNonNull(player, "player cannot be null");
+    /**
+     * Resolves the standard action phase for a player, processing card acquisitions,
+     * costs, passive effects, and totem repositioning.
+     *
+     * @param playerNickname         the nickname of the player performing the action
+     * @param chosenCharacterCardsIds the list of character card IDs chosen by the player
+     * @param chosenBuildingCardsIds  the list of building card IDs chosen by the player
+     * @return an ActionReceipt containing the detailed breakdown of the action
+     * @throws InvalidActionException if the action is invalid or the player cannot afford it
+     */
+    public ActionReceipt resolveAction(String playerNickname, List<String> chosenCharacterCardsIds, List<String> chosenBuildingCardsIds) {
+        Objects.requireNonNull(playerNickname, "player cannot be null");
         Objects.requireNonNull(chosenCharacterCardsIds, "chosenCharacterCardsIds cannot be null");
         Objects.requireNonNull(chosenBuildingCardsIds, "chosenBuildingCardsIds cannot be null");
 
@@ -311,10 +324,32 @@ public class GameState implements GameObservable {
             );
         }
 
+        List<PlayerStatsChangeReceipt> statsChanges = new ArrayList<>();
+
+        // initial stats are recorded before payment
+        int prePaymentFood = player.getFood();
+        int prePaymentPrestige = player.getPrestige();
+
         // player validates and pays for the selected buildings internally
         player.payForBuildings(foundBuildings);
 
-        // transaction is executed: cards are removed from the board and dispatched to the player
+        // payment cost is evaluated and recorded
+        if (player.getFood() != prePaymentFood || player.getPrestige() != prePaymentPrestige) {
+            statsChanges.add(new PlayerStatsChangeReceipt(
+                    playerNickname,
+                    player.getFood() - prePaymentFood,
+                    player.getPrestige() - prePaymentPrestige,
+                    player.getFood(),
+                    player.getPrestige(),
+                    StatChangeReason.ACTION_COST.toString()
+            ));
+        }
+
+        // stats are recorded before card assignment to track passive bonuses
+        int preAcquisitionFood = player.getFood();
+        int preAcquisitionPrestige = player.getPrestige();
+
+        // transaction is executed and cards are removed from the board
         for (CharacterCard c : foundCharacters) {
             if (!this.upperTribeRow.remove(c)) {
                 this.lowerTribeRow.remove(c);
@@ -331,9 +366,38 @@ public class GameState implements GameObservable {
             player.acquireBuilding(b, this);
         }
 
-        // player is moved to the turn order tile and end-of-turn effects are evaluated
+        // passive bonuses from acquisitions are evaluated and recorded
+        if (player.getFood() != preAcquisitionFood || player.getPrestige() != preAcquisitionPrestige) {
+            statsChanges.add(new PlayerStatsChangeReceipt(
+                    playerNickname,
+                    player.getFood() - preAcquisitionFood,
+                    player.getPrestige() - preAcquisitionPrestige,
+                    player.getFood(),
+                    player.getPrestige(),
+                    StatChangeReason.BUILDING_PASSIVE.toString()
+            ));
+        }
+
+        // stats are recorded before totem placement
+        int prePlacementFood = player.getFood();
+        int prePlacementPrestige = player.getPrestige();
+
+        // player is moved to the turn order tile
         targetTile.removePlayer();
-        this.turnOrderTile.placePlayer(player);
+        TurnOrderPlacementReceipt placementInfo = this.turnOrderTile.placePlayer(player);
+
+        // placement bonus or malus is evaluated
+        PlayerStatsChangeReceipt placementStatsChange = null;
+        if (player.getFood() != prePlacementFood || player.getPrestige() != prePlacementPrestige) {
+            placementStatsChange = new PlayerStatsChangeReceipt(
+                    playerNickname,
+                    player.getFood() - prePlacementFood,
+                    player.getPrestige() - prePlacementPrestige,
+                    player.getFood(),
+                    player.getPrestige(),
+                    StatChangeReason.TURN_ORDER_BONUS.toString()
+            );
+        }
 
         // next player is determined by checking the offer track from left to right
         Player nextPlayer = null;
@@ -344,27 +408,236 @@ public class GameState implements GameObservable {
             }
         }
 
+        String nextPlayerNickname = null;
+
         if (nextPlayer != null) {
             // the turn is passed to the next player on the offer track
             this.currentPlayer = nextPlayer;
-            return;
+            nextPlayerNickname = nextPlayer.getNickname();
+        } else {
+            // resolve_actions phase is complete
+            // building effects for the end of the action phase are triggered
+            for (Player p : this.players) {
+                p.triggerBuildingEffectsOnRoundEnd(this);
+            }
+
+            // phase is advanced if no extra acquisition is triggered
+            if (this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
+                this.currentPhase = GamePhase.RESOLVE_EVENTS;
+                this.currentPlayer = null;
+            } else {
+                nextPlayerNickname = this.currentPlayer.getNickname();
+            }
         }
 
-        // resolve_actions phase is complete
-        // building effects for the end of the action phase are triggered
-        for (Player p : this.players) {
-            p.triggerBuildingEffectsOnRoundEnd(this);
-        }
+        // totem details are packed into the receipt
+        TotemReturnReceipt totemDetails = new TotemReturnReceipt(
+                playerNickname,
+                placementInfo.getSlotIndex(),
+                placementStatsChange,
+                nextPlayerNickname
+        );
 
-        // if no building effect altered the phase to extra_acquisition, proceed to resolve_events
-        if (this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
-            this.currentPhase = GamePhase.RESOLVE_EVENTS;
-            // current player is set to null
-            this.currentPlayer = null;
-        }
+        // final receipt is generated and returned
+        return new ActionReceipt(statsChanges, totemDetails);
     }
 
-    public void resolveEvents() {
+    /**
+     * Forfeits the player's action, moving their totem directly to the turn order tile
+     * without acquiring any cards.
+     *
+     * @param playerNickname the nickname of the player forfeiting the action
+     * @return an ActionReceipt containing only the totem repositioning details
+     */
+    public ActionReceipt forfeitAction(String playerNickname) {
+        Objects.requireNonNull(playerNickname, "player cannot be null");
+        Player player = getPlayerByNickname(playerNickname);
+
+        // phase is verified
+        if (this.currentPhase != GamePhase.RESOLVE_ACTIONS && this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
+            throw new IllegalStateException("cannot forfeit action: current phase is " + this.currentPhase);
+        }
+
+        OfferTile targetTile = null;
+        // player occupied tile is identified
+        for (OfferTile tile : this.offerTrack) {
+            if (player.equals(tile.getOccupyingPlayer())) {
+                targetTile = tile;
+                break;
+            }
+        }
+
+        // tile existence is verified
+        if (targetTile == null) {
+            throw new InvalidActionException(
+                    InvalidActionReason.PLAYER_NOT_ON_TILE,
+                    "player is not occupying any offer tile"
+            );
+        }
+
+        // stats are recorded before totem placement
+        int prePlacementFood = player.getFood();
+        int prePlacementPrestige = player.getPrestige();
+
+        // player is removed from the board and moved to the turn order tile
+        targetTile.removePlayer();
+        TurnOrderPlacementReceipt placementInfo = this.turnOrderTile.placePlayer(player);
+
+        // placement bonus or malus is evaluated
+        PlayerStatsChangeReceipt placementStatsChange = null;
+        if (player.getFood() != prePlacementFood || player.getPrestige() != prePlacementPrestige) {
+            placementStatsChange = new PlayerStatsChangeReceipt(
+                    playerNickname,
+                    player.getFood() - prePlacementFood,
+                    player.getPrestige() - prePlacementPrestige,
+                    player.getFood(),
+                    player.getPrestige(),
+                    StatChangeReason.TURN_ORDER_BONUS.toString()
+            );
+        }
+
+        // next player is determined by scanning the offer track
+        Player nextPlayer = null;
+        for (OfferTile tile : this.offerTrack) {
+            if (!tile.isFree()) {
+                nextPlayer = tile.getOccupyingPlayer();
+                break;
+            }
+        }
+
+        String nextPlayerNickname = null;
+
+        if (nextPlayer != null) {
+            this.currentPlayer = nextPlayer;
+            nextPlayerNickname = nextPlayer.getNickname();
+        } else {
+            // building effects are triggered on round end
+            for (Player p : this.players) {
+                p.triggerBuildingEffectsOnRoundEnd(this);
+            }
+
+            // phase transition is handled
+            if (this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
+                this.currentPhase = GamePhase.RESOLVE_EVENTS;
+                this.currentPlayer = null;
+            } else {
+                nextPlayerNickname = this.currentPlayer.getNickname();
+            }
+        }
+
+        // totem details are packed into the receipt
+        TotemReturnReceipt totemDetails = new TotemReturnReceipt(
+                playerNickname,
+                placementInfo.getSlotIndex(),
+                placementStatsChange,
+                nextPlayerNickname
+        );
+
+        // final receipt is generated and returned with an empty stats list
+        return new ActionReceipt(new ArrayList<>(), totemDetails);
+    }
+
+    /**
+     * Resolves the extra acquisition phase, allowing a player to purchase an additional
+     * card from the upper row.
+     *
+     * @param playerNickname the nickname of the player performing the extra acquisition
+     * @param cardId         the ID of the card to be acquired
+     * @return an ExtraAcquisitionReceipt detailing the costs and bonuses of the acquisition
+     */
+    public ExtraAcquisitionReceipt resolveExtraAcquisition(String playerNickname, String cardId) {
+        Objects.requireNonNull(playerNickname, "player cannot be null");
+        Objects.requireNonNull(cardId, "cardId cannot be null");
+
+        Player player = getPlayerByNickname(playerNickname);
+
+        // phase and turn are verified
+        if (this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
+            throw new IllegalStateException("cannot resolve extra acquisition: current phase is " + this.currentPhase);
+        }
+        if (!player.equals(this.currentPlayer)) {
+            throw new IllegalStateException("cannot perform extra acquisition: it is not player " + playerNickname + "'s turn");
+        }
+
+        Card targetCard = null;
+        boolean isCharacter = false;
+
+        // card is searched exclusively in the upper tribe row
+        for (Card c : this.upperTribeRow) {
+            if (c.getId().equals(cardId)) {
+                targetCard = c;
+                isCharacter = true;
+                break;
+            }
+        }
+
+        // card is searched in the upper building row if not found
+        if (targetCard == null) {
+            for (BuildingCard b : this.upperBuildingRow) {
+                if (b.getId().equals(cardId)) {
+                    targetCard = b;
+                    break;
+                }
+            }
+        }
+
+        // card existence is verified
+        if (targetCard == null) {
+            throw new InvalidActionException(
+                    InvalidActionReason.CARD_NOT_FOUND,
+                    "card " + cardId + " is not available in the upper row"
+            );
+        }
+
+        List<PlayerStatsChangeReceipt> statsChanges = new ArrayList<>();
+
+        // stats are recorded before acquisition
+        int preAcquisitionFood = player.getFood();
+        int preAcquisitionPrestige = player.getPrestige();
+
+        // transaction is executed based on card type
+        if (isCharacter) {
+            this.upperTribeRow.remove(targetCard);
+            player.acquireCharacter((CharacterCard) targetCard);
+        } else {
+            BuildingCard buildingCard = (BuildingCard) targetCard;
+
+            // building is paid for internally
+            List<BuildingCard> buildingList = new ArrayList<>();
+            buildingList.add(buildingCard);
+            player.payForBuildings(buildingList);
+
+            this.upperBuildingRow.remove(buildingCard);
+            player.acquireBuilding(buildingCard, this);
+        }
+
+        // acquisition cost and passives are evaluated and recorded
+        if (player.getFood() != preAcquisitionFood || player.getPrestige() != preAcquisitionPrestige) {
+            statsChanges.add(new PlayerStatsChangeReceipt(
+                    playerNickname,
+                    player.getFood() - preAcquisitionFood,
+                    player.getPrestige() - preAcquisitionPrestige,
+                    player.getFood(),
+                    player.getPrestige(),
+                    StatChangeReason.EXTRA_ACQUISITION_COST.toString()
+            ));
+        }
+
+        // phase is advanced and current player is reset
+        this.currentPhase = GamePhase.RESOLVE_EVENTS;
+        this.currentPlayer = null;
+
+        // receipt is generated and returned
+        return new ExtraAcquisitionReceipt(statsChanges);
+    }
+
+    /**
+     * events in the lower tribe row are resolved sequentially and a list of resolution receipts is returned
+     *
+     * @return a list of receipts detailing the resolution of each event
+     * @throws IllegalStateException if the current phase is not resolve_events
+     */
+    public List<EventResolutionReceipt> resolveEvents() {
         if (this.currentPhase != GamePhase.RESOLVE_EVENTS) {
             throw new IllegalStateException("cannot resolve events: current phase is " + this.currentPhase);
         }
@@ -381,13 +654,20 @@ public class GameState implements GameObservable {
         // events are sorted naturally
         java.util.Collections.sort(eventsToResolve);
 
-        // events are resolved sequentially
+        // list of resolution receipts is initialized
+        List<EventResolutionReceipt> allReceipts = new ArrayList<>();
+
+        // events are resolved sequentially and receipts are collected
         for (EventCard event : eventsToResolve) {
-            event.resolveEvent(this);
+            List<PlayerStatsChangeReceipt> statChanges = event.resolveEvent(this);
+            allReceipts.add(new EventResolutionReceipt(event.getId(), statChanges));
         }
 
         // game phase is updated to end round
         this.currentPhase = GamePhase.END_ROUND;
+
+        // collected receipts are returned
+        return allReceipts;
     }
 
     public void endRound() {
@@ -521,8 +801,10 @@ public class GameState implements GameObservable {
         this.players.add(player);
     }
 
-    public void removePlayer(Player player) {
-        Objects.requireNonNull(player, "player cannot be null");
+    public void removePlayer(String playerNickname) {
+        Objects.requireNonNull(playerNickname, "player cannot be null");
+
+        Player player = getPlayerByNickname(playerNickname);
 
         if (!this.players.contains(player)) {
             throw new IllegalStateException("player not found in game state");
