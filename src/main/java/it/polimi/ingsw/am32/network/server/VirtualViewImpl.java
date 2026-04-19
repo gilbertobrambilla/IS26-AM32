@@ -9,12 +9,6 @@ import it.polimi.ingsw.am32.dto.messages.game.models.*;
 
 import java.util.function.Consumer;
 
-/**
- * Implementazione lato server della VirtualView.
- * Funge da proxy di rete: riceve i comandi dal Model/Controller e li invia
- * al ClientNode reale (RMI o Socket). Gestisce anche il thread di heartbeat
- * per monitorare lo stato della connessione del client.
- */
 public class VirtualViewImpl implements VirtualView {
 
     private final String nickname;
@@ -49,7 +43,7 @@ public class VirtualViewImpl implements VirtualView {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
-                } catch (NetworkException | java.rmi.RemoteException e) {
+                } catch (NetworkException e) {
                     System.err.println("[VIRTUAL VIEW] Heartbeat failed for " + nickname + ". Client dropped.");
                     handleDisconnect();
                     break;
@@ -100,120 +94,89 @@ public class VirtualViewImpl implements VirtualView {
     @Override
     public void notifyLobbyState(AvailableGamesListEvent dto) {
         try {
-            clientNode.notifyLobbyState(dto);
-        } catch (Exception e) { handleDisconnect(); }
-    }
-
-    @Override
-    public void notifyLobbyRoomUpdated(LobbyStateUpdatedEvent dto) {
-        try {
-            clientNode.notifyLobbyRoomUpdated(dto);
+            clientNode.notifyLobbyState(dto.getAvailableGames());
         } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyGameStarted(int gameId) {
-        // Se usi un evento specifico (es. GameStartedEvent), aggiorna la firma in base alla tua interfaccia
         try {
             clientNode.notifyGameStarted(gameId);
         } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
-    public void notifyGameStarted(GameStartedEvent dto) {
-        try {
-            clientNode.notifyGameStarted(dto);
-        } catch (Exception e) { handleDisconnect(); }
-    }
-
-    @Override
-    public void notifyGameState(GameStateDTO dto) {
-        try {
-            clientNode.notifyGameState(dto);
-        } catch (Exception e) { handleDisconnect(); }
-    }
-
-    @Override
-    public void notifyGameEnded(GameEndedEvent resultDTO) {
-        try {
-            clientNode.notifyGameEnded(resultDTO);
-        } catch (Exception e) { handleDisconnect(); }
-    }
-
-    @Override
     public void notifyError(InvalidActionEvent dto) {
-        try {
-            clientNode.notifyError(dto);
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.notifyError(dto.getReason(), dto.getMessage()); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyGameSuspended() {
-        try {
-            clientNode.notifyGameSuspended();
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.notifyGameSuspended(); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyGameResumed() {
-        try {
-            clientNode.notifyGameResumed();
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.notifyGameResumed(); } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyLobbyRoomUpdated(LobbyStateUpdatedEvent dto) {
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyGameStarted(GameStartedEvent dto) {
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyGameState(GameStateDTO dto) {
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+    }
+
+    @Override
+    public void notifyGameEnded(GameEndedEvent dto) {
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyPlayerDisconnected(PlayerDisconnectedEvent dto) {
-        try {
-            clientNode.notifyPlayerDisconnected(dto);
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyPlayerReconnected(PlayerReconnectedEvent dto) {
-        try {
-            clientNode.notifyPlayerReconnected(dto);
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyTotemPlaced(TotemPlacedEvent dto) {
-        try {
-            clientNode.notifyTotemPlaced(dto);
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyActionResolved(ActionResolvedEvent dto) {
-        try {
-            clientNode.notifyActionResolved(dto);
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent dto) {
-        try {
-            clientNode.notifyExtraAcquisitionResolved(dto);
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyEventResolved(EventResolvedEvent dto) {
-        try {
-            clientNode.notifyEventResolved(dto);
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyRoundEnded(RoundEndedEvent dto) {
-        try {
-            clientNode.notifyRoundEnded(dto);
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
     }
 
     @Override
     public void notifyGamePhaseChanged(GamePhaseChangedEvent dto) {
-        try {
-            clientNode.notifyGamePhaseChanged(dto);
-        } catch (Exception e) { handleDisconnect(); }
+        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
     }
 }
