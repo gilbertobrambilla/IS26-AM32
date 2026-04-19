@@ -114,7 +114,13 @@ public class Player implements Comparable<Player> {
         return this.isConnected;
     }
 
+    public List<BuildingCard> getBuildingList() {
+        return buildingList;
+    }
 
+    public List<CharacterCard> getCharacterList() {
+        return characterList;
+    }
 
     // basic resource management
 

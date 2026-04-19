@@ -30,6 +30,10 @@ public class BuildingCard extends AcquirableCard {
         visitor.visit(this);
     }
 
+    public int getCost() {
+        return cost;
+    }
+
     public int getDiscountedCost(int playerDiscount) {
         return Math.max(0, this.cost - playerDiscount);
     }
