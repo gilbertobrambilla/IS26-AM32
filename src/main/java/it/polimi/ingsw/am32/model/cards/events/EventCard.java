@@ -4,7 +4,9 @@ import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.cards.Card;
 import it.polimi.ingsw.am32.model.cards.CardVisitor;
 import it.polimi.ingsw.am32.model.enums.EventType;
+import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
 
+import java.util.List;
 import java.util.Objects;
 
 public abstract class EventCard extends Card implements Comparable<EventCard> {
@@ -46,5 +48,5 @@ public abstract class EventCard extends Card implements Comparable<EventCard> {
     }
 
     public abstract EventType getEventType();
-    public abstract void resolveEvent(GameState gameState);
+    public abstract List<PlayerStatsChangeReceipt> resolveEvent(GameState gameState);
 }

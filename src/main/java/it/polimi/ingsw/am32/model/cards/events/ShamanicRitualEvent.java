@@ -3,7 +3,11 @@ package it.polimi.ingsw.am32.model.cards.events;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.enums.EventType;
+import it.polimi.ingsw.am32.model.enums.StatChangeReason;
+import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class ShamanicRitualEvent extends EventCard {
@@ -30,31 +34,45 @@ public class ShamanicRitualEvent extends EventCard {
     }
 
     @Override
-    public void resolveEvent(GameState gameState) {
+    public List<PlayerStatsChangeReceipt> resolveEvent(GameState gameState) {
         Objects.requireNonNull(gameState, "gameState cannot be null");
+        List<PlayerStatsChangeReceipt> receipts = new ArrayList<>();
 
         int maxStars = -1;
         int minStars = Integer.MAX_VALUE;
 
-        // shamanic power is retrieved to determine highest and lowest values across all players
         for (Player player : gameState.getPlayers()) {
             int stars = player.getShamanStars();
-            if (stars > maxStars) {
-                maxStars = stars;
-            }
-            if (stars < minStars) {
-                minStars = stars;
-            }
+            if (stars > maxStars) maxStars = stars;
+            if (stars < minStars) minStars = stars;
         }
 
-        // event result is delegated to each player and shamanic ritual specific effects are triggered
         for (Player player : gameState.getPlayers()) {
+            // stats are recorded before resolution
+            int preFood = player.getFood();
+            int prePrestige = player.getPrestige();
+
             int stars = player.getShamanStars();
             boolean isWinner = (stars == maxStars);
             boolean isLoser = (stars == minStars);
 
             player.applyShamanicRitualResult(isWinner, isLoser, this.prestigeBonus, this.prestigePenalty);
             player.triggerShamanicRitualEffects(gameState);
+
+            // stats are recorded after resolution
+            int postFood = player.getFood();
+            int postPrestige = player.getPrestige();
+
+            // receipt is created to notify client of resolution results
+            receipts.add(new PlayerStatsChangeReceipt(
+                    player.getNickname(),
+                    postFood - preFood,
+                    postPrestige - prePrestige,
+                    postFood,
+                    postPrestige,
+                    StatChangeReason.SHAMANIC_RITUAL.toString()
+            ));
         }
+        return receipts;
     }
 }
