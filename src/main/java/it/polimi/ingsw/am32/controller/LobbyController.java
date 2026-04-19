@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am32.controller;
 
-import it.polimi.ingsw.am32.dto.state.GameInfoDTO;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.AvailableGamesListEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.models.GameInfoDTO;
 import it.polimi.ingsw.am32.model.GameCreator;
 import it.polimi.ingsw.am32.model.GameResult;
 import it.polimi.ingsw.am32.model.GameState;
@@ -43,8 +45,8 @@ public class LobbyController implements GameLifecycleCallback {
             // player is added to lobby
             if (this.connectedPlayers.putIfAbsent(nickname, view) == null) {
                 view.notifyConnectionResult(true, "connection successful");
-                // lobby state is broadcasted
-                broadcastLobbyState();
+                // available lobby list is sent to the newly connected player
+                view.notifyLobbyState(buildAvailableGamesListEvent());
             } else {
                 view.notifyConnectionResult(false, "nickname is already taken in the lobby");
             }
@@ -84,10 +86,8 @@ public class LobbyController implements GameLifecycleCallback {
         Player player = new Player(nickname);
         gameController.addPlayerToGame(nickname, view, player);
 
-        // client is notified
-        view.notifyGameStarted(gameId);
-        // lobby state is broadcasted
-        broadcastLobbyState();
+        // lobby is notified of the newly created room via delta update
+        broadcastRoomUpdate(gameController);
     }
 
     /**
@@ -101,8 +101,7 @@ public class LobbyController implements GameLifecycleCallback {
         GameController game = this.activeGames.get(gameId);
 
         if (view != null && game != null) {
-            // capacity and game state are checked
-            // note: assumed getters for player counts and start status
+            // capacity and game state are checked to prevent race conditions
             if (game.getCurrentPlayersCount() < game.getTargetPlayersCount() && !game.isStarted()) {
                 // player is mapped to game
                 this.playerGameMap.put(nickname, game);
@@ -113,18 +112,24 @@ public class LobbyController implements GameLifecycleCallback {
                 Player player = new Player(nickname);
                 game.addPlayerToGame(nickname, view, player);
 
-                // client is notified
-                view.notifyGameStarted(gameId);
-                // lobby state is broadcasted
-                broadcastLobbyState();
+                if (game.getCurrentPlayersCount() == game.getTargetPlayersCount()) {
+                    // room full update is broadcasted so clients hide the room
+                    broadcastRoomUpdate(game);
+                    // game initialization is triggered
+                    game.startGame();
+                } else {
+                    // delta update is broadcasted to lobby
+                    broadcastRoomUpdate(game);
+                }
             } else {
+                // connection is rejected due to race condition or full game
                 view.notifyConnectionResult(false, "game is full or already started");
             }
         }
     }
 
     /**
-     * A network drop event is handled by notifying the relevant game or removing the player from the lobby.
+     * A network drop event is handled by notifying the relevant game or destroying an unstarted game.
      *
      * @param nickname The nickname of the disconnected player.
      */
@@ -134,11 +139,14 @@ public class LobbyController implements GameLifecycleCallback {
 
         GameController game = this.playerGameMap.get(nickname);
         if (game != null) {
-            // disconnect task is enqueued in game controller
-            game.enqueueSystemTask(() -> game.processDisconnect(nickname));
+            if (!game.isStarted()) {
+                // unstarted game is destroyed and remaining players are notified
+                destroyUnstartedGame(game);
+            } else {
+                // disconnect task is enqueued in game controller
+                game.enqueueSystemTask(() -> game.processDisconnect(nickname));
+            }
         }
-        // lobby state is broadcasted
-        broadcastLobbyState();
     }
 
     /**
@@ -155,23 +163,60 @@ public class LobbyController implements GameLifecycleCallback {
             // player mappings are cleared
             this.playerGameMap.entrySet().removeIf(entry -> entry.getValue().equals(removedGame));
         }
-        // lobby state is broadcasted
-        broadcastLobbyState();
+        // no broadcast is needed as the game was already hidden from lobby
     }
 
     /**
-     * The current state of available games is broadcasted to all players in the lobby.
+     * An unstarted game is destroyed and remaining players are notified and returned to the lobby.
+     *
+     * @param game The unstarted game to destroy.
      */
-    private void broadcastLobbyState() {
+    private void destroyUnstartedGame(GameController game) {
+        int gameId = game.getGameId();
+
+        // game is removed from active games
+        this.activeGames.remove(gameId);
+
+        // game controller is notified to inform its active clients
+        game.enqueueSystemTask(game::destroyPregame);
+
+        // player mappings for this game are cleared
+        this.playerGameMap.entrySet().removeIf(entry -> entry.getValue().equals(game));
+
+        // lobby is notified via delta that the room is empty and destroyed
+        LobbyStateUpdatedEvent dto = new LobbyStateUpdatedEvent(gameId, java.util.Collections.emptyList(), game.getTargetPlayersCount());
+        for (VirtualView view : this.connectedPlayers.values()) {
+            view.notifyLobbyRoomUpdated(dto);
+        }
+    }
+
+    /**
+     * A delta update regarding a specific game room is broadcasted to all players in the lobby.
+     *
+     * @param game The game controller associated with the updated room.
+     */
+    private void broadcastRoomUpdate(GameController game) {
+        // room update event is built using the game's current state
+        LobbyStateUpdatedEvent dto = new LobbyStateUpdatedEvent(game.getGameId(), game.getPlayersNicknames(), game.getTargetPlayersCount());
+
+        // event is pushed to all players currently in the lobby
+        for (VirtualView view : this.connectedPlayers.values()) {
+            view.notifyLobbyRoomUpdated(dto);
+        }
+    }
+
+    /**
+     * The complete list of available games is built for newly connected players.
+     *
+     * @return The built AvailableGamesListEvent DTO.
+     */
+    private AvailableGamesListEvent buildAvailableGamesListEvent() {
         // available games are filtered and mapped to dtos
         List<GameInfoDTO> availableGames = this.activeGames.values().stream()
                 .filter(gc -> !gc.isStarted() && gc.getCurrentPlayersCount() < gc.getTargetPlayersCount())
                 .map(gc -> new GameInfoDTO(gc.getGameId(), gc.getCurrentPlayersCount(), gc.getTargetPlayersCount()))
                 .collect(Collectors.toList());
 
-        // lobby state is broadcasted to all waiting players
-        for (VirtualView view : this.connectedPlayers.values()) {
-            view.notifyLobbyState(availableGames);
-        }
+        return new AvailableGamesListEvent(availableGames);
     }
 }
