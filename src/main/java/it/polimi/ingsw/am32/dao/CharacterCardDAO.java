@@ -18,8 +18,8 @@ public class CharacterCardDAO implements DAO<CharacterCardDTO> {
 
     @Override
     public List<CharacterCardDTO> fetchAll() {
-        String sql = "SELECT * FROM character_cards";
-        return executeFetch(sql, null);
+        String query = "SELECT * FROM character_cards";
+        return executeFetch(query, null);
     }
 
     public List<CharacterCardDTO> fetchAll(int numOfPlayers) {
@@ -27,8 +27,8 @@ public class CharacterCardDAO implements DAO<CharacterCardDTO> {
             throw new IllegalArgumentException("numOfPlayers must be between 2 and 5");
         }
 
-        String sql = "SELECT * FROM character_cards WHERE min_players <= ?";
-        return executeFetch(sql, numOfPlayers);
+        String query = "SELECT * FROM character_cards WHERE min_players <= ?";
+        return executeFetch(query, numOfPlayers);
     }
 
     private List<CharacterCardDTO> executeFetch(String query, Integer numOfPlayers) {

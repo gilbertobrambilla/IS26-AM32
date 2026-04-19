@@ -18,8 +18,8 @@ public class OfferTileDAO implements DAO<OfferTileDTO> {
 
     @Override
     public List<OfferTileDTO> fetchAll() {
-        String sql = "SELECT * FROM offer_tiles";
-        return executeFetch(sql, null);
+        String query = "SELECT * FROM offer_tiles";
+        return executeFetch(query, null);
     }
 
     public List<OfferTileDTO> fetchAll(int numOfPlayers) {
@@ -27,8 +27,8 @@ public class OfferTileDAO implements DAO<OfferTileDTO> {
             throw new IllegalArgumentException("numOfPlayers must be between 2 and 5");
         }
 
-        String sql = "SELECT * FROM offer_tiles WHERE min_players <= ?";
-        return executeFetch(sql, numOfPlayers);
+        String query = "SELECT * FROM offer_tiles WHERE min_players <= ?";
+        return executeFetch(query, numOfPlayers);
     }
 
     private List<OfferTileDTO> executeFetch(String query, Integer numOfPlayers) {

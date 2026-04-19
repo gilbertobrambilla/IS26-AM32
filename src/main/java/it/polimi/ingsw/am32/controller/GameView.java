@@ -1,0 +1,28 @@
+package it.polimi.ingsw.am32.controller;
+
+import it.polimi.ingsw.am32.dto.messages.game.events.*;
+import it.polimi.ingsw.am32.dto.messages.game.models.GameStateDTO;
+import it.polimi.ingsw.am32.model.observers.GameObserver;
+
+public interface GameView extends GameObserver {
+
+    // state and lifecycle events
+    void notifyGameStarted(GameStartedEvent dto);
+    void notifyGameState(GameStateDTO dto);
+    void notifyGameEnded(GameEndedEvent resultDTO);
+    void notifyError(InvalidActionEvent dto);
+
+    // resilience events
+    void notifyGameSuspended();
+    void notifyGameResumed();
+    void notifyPlayerDisconnected(PlayerDisconnectedEvent dto);
+    void notifyPlayerReconnected(PlayerReconnectedEvent dto);
+
+    // gameplay events
+    void notifyTotemPlaced(TotemPlacedEvent dto);
+    void notifyActionResolved(ActionResolvedEvent dto);
+    void notifyExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent dto);
+    void notifyEventResolved(EventResolvedEvent dto);
+    void notifyRoundEnded(RoundEndedEvent dto);
+    void notifyGamePhaseChanged(GamePhaseChangedEvent dto);
+}
