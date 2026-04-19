@@ -12,7 +12,7 @@ import java.util.*;
 
 public class Player implements Comparable<Player> {
     private final String nickname;
-    private final TotemColor totem;
+    private TotemColor totem;
     private int food;
     private int prestige;
 
@@ -33,12 +33,11 @@ public class Player implements Comparable<Player> {
     private final List<CharacterCard> characterList;
     private final List<BuildingCard> buildingList;
 
-    public Player(String nickname, TotemColor totem) {
+    public Player(String nickname) {
         Objects.requireNonNull(nickname, "nickname cannot be null");
-        Objects.requireNonNull(totem, "totem cannot be null");
 
         this.nickname = nickname;
-        this.totem = totem;
+        this.totem = null;
         this.food = 0;
         this.prestige = 0;
 
@@ -60,6 +59,15 @@ public class Player implements Comparable<Player> {
 
         this.characterList = new ArrayList<>();
         this.buildingList = new ArrayList<>();
+    }
+
+    public void setTotem(TotemColor totem) {
+        Objects.requireNonNull(totem, "totem cannot be null");
+
+        if (this.totem != null) {
+            throw new IllegalArgumentException("totem already set");
+        }
+        this.totem = totem;
     }
 
     // comparable implementation

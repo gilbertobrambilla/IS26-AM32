@@ -77,6 +77,12 @@ public class GameState implements GameObservable {
         // players are shuffled to determine initial turn order
         Collections.shuffle(this.players);
 
+        // totem colors are assigned uniquely to each player
+        TotemColor[] availableColors = TotemColor.values();
+        for (int i = 0; i < this.players.size(); i++) {
+            this.players.get(i).setTotem(availableColors[i]);
+        }
+
         // players are placed on the turn order tile for the first round
         this.turnOrderTile.initPlayersOrder(this.players);
 
@@ -141,6 +147,8 @@ public class GameState implements GameObservable {
         Objects.requireNonNull(player, "player cannot be null");
         Objects.requireNonNull(selectedOfferTileId, "selectedOfferTileId cannot be null");
 
+        Player player = getPlayerByNickname(playerNickname);
+
         if (!player.equals(this.currentPlayer)) {
             throw new IllegalStateException("cannot place totem: it is not player " + player.getNickname() + "'s turn");
         }
@@ -191,6 +199,8 @@ public class GameState implements GameObservable {
         Objects.requireNonNull(player, "player cannot be null");
         Objects.requireNonNull(chosenCharacterCardsIds, "chosenCharacterCardsIds cannot be null");
         Objects.requireNonNull(chosenBuildingCardsIds, "chosenBuildingCardsIds cannot be null");
+
+        Player player = getPlayerByNickname(playerNickname);
 
         if (!player.equals(this.currentPlayer)) {
             throw new IllegalStateException("cannot place totem: it is not player " + player.getNickname() + "'s turn");
@@ -576,6 +586,10 @@ public class GameState implements GameObservable {
         return this.currentRound;
     }
 
+    public int getCurrentEra() {
+        return currentEra;
+    }
+
     public void incrementCurrentRound() {
         this.currentRound++;
     }
@@ -596,5 +610,14 @@ public class GameState implements GameObservable {
 
     public void setCurrentPlayer(Player currentPlayer) {
         this.currentPlayer = currentPlayer;
+    }
+
+    private Player getPlayerByNickname(String nickname) {
+        Objects.requireNonNull(nickname, "nickname cannot be null");
+
+        return this.players.stream()
+                .filter(p -> p.getNickname().equals(nickname))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("player " + nickname + " not found in game state"));
     }
 }
