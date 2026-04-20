@@ -1,10 +1,11 @@
 package it.polimi.ingsw.am32.dto.messages.game.models;
 
+import java.io.Serializable;
 import java.util.List;
 
 import it.polimi.ingsw.am32.model.enums.GamePhase;
 
-public class GameStateDTO {
+public class GameStateDTO implements Serializable {
     private final int gameId;
     private final List<PlayerDTO> players;
     private final List<CardDTO> upperTribeRow;

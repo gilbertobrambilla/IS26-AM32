@@ -1,8 +1,9 @@
 package it.polimi.ingsw.am32.dto.messages.game.events;
 
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
 
-public class InvalidActionEvent {
+public class InvalidActionEvent implements MessageDTO {
     private final String playerNickname;
     private final InvalidActionReason reason;
     private final String errorMessage;

@@ -2,9 +2,10 @@ package it.polimi.ingsw.am32.dto.messages.game.models;
 
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class PlayerDTO {
+public class PlayerDTO implements Serializable {
     private final String nickname;
     private final TotemColor totem;
     private final int food;

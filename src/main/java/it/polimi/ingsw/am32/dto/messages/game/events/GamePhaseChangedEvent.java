@@ -1,8 +1,9 @@
 package it.polimi.ingsw.am32.dto.messages.game.events;
 
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.model.enums.GamePhase;
 
-public class GamePhaseChangedEvent {
+public class GamePhaseChangedEvent implements MessageDTO {
     private final GamePhase newPhase;
     private final String nextPlayerNickname;
 

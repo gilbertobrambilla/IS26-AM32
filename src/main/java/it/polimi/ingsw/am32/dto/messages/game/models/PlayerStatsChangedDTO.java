@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am32.dto.messages.game.models;
 
-public class PlayerStatsChangedDTO {
+import java.io.Serializable;
+
+public class PlayerStatsChangedDTO implements Serializable {
     private final String playerNickname;
     private final int foodChange;
     private final int prestigeChange;

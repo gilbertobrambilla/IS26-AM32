@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am32.dto.messages.game.models;
 
-public class TotemReturnedDTO {
+import java.io.Serializable;
+
+public class TotemReturnedDTO implements Serializable {
     private final String playerNickname;
     private final int turnOrderPosition;
     private final PlayerStatsChangedDTO statsChange;

@@ -1,8 +1,9 @@
 package it.polimi.ingsw.am32.dto.messages.game.events;
 
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.dto.messages.game.models.GameStateDTO;
 
-public class GameStartedEvent {
+public class GameStartedEvent implements MessageDTO {
     private final GameStateDTO initialGameState;
     private final String nextPlayerNickname;
 

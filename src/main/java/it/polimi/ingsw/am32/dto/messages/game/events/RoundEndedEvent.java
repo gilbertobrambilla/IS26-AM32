@@ -1,10 +1,11 @@
 package it.polimi.ingsw.am32.dto.messages.game.events;
 
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.dto.messages.game.models.CardDTO;
 
 import java.util.List;
 
-public class RoundEndedEvent {
+public class RoundEndedEvent implements MessageDTO {
     private final int newRoundNumber;
     private final int newEraNumber;
 

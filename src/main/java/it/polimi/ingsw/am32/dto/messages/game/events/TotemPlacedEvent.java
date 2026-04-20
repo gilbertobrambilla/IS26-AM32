@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am32.dto.messages.game.events;
 
-public class TotemPlacedEvent {
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
+
+public class TotemPlacedEvent implements MessageDTO {
     private final String playerNickname;
     private final String offerTileId;
     private final String nextPlayerNickname;

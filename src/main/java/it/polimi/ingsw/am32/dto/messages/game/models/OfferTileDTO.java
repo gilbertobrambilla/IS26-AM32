@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am32.dto.messages.game.models;
 
-public class OfferTileDTO {
+import java.io.Serializable;
+
+public class OfferTileDTO implements Serializable {
     private final String tileId;
     private final String occupyingPlayer;
 

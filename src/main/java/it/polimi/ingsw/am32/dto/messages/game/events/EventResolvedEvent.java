@@ -1,10 +1,11 @@
 package it.polimi.ingsw.am32.dto.messages.game.events;
 
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.dto.messages.game.models.PlayerStatsChangedDTO;
 
 import java.util.List;
 
-public class EventResolvedEvent {
+public class EventResolvedEvent implements MessageDTO {
     private final String eventCardId;
     private final List<PlayerStatsChangedDTO> playersStatChanges;
     private final String nextPlayerNickname;
