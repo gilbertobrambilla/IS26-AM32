@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.network.rmi;
 
-import it.polimi.ingsw.am32.dto.results.GameResultDTO;
-import it.polimi.ingsw.am32.dto.state.GameInfoDTO;
+import it.polimi.ingsw.am32.dto.messages.game.models.GameResultDTO;
+import it.polimi.ingsw.am32.dto.messages.lobby.models.GameInfoDTO;
 import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
 import it.polimi.ingsw.am32.model.observers.GameEvent;
 import it.polimi.ingsw.am32.network.ClientNode;

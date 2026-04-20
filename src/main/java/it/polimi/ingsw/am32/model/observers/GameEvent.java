@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.model.observers;
 
-import it.polimi.ingsw.am32.model.dto.GameStateDTO;
+
+import it.polimi.ingsw.am32.dto.messages.game.models.GameStateDTO;
 
 public abstract class GameEvent {
     private String message;

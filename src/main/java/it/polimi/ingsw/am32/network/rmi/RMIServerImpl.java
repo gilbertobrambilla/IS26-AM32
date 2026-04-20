@@ -6,6 +6,7 @@ import it.polimi.ingsw.am32.network.server.VirtualViewImpl;
 import it.polimi.ingsw.am32.network.ClientNode;
 import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
+import it.polimi.ingsw.am32.network.server.NetworkNode;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;

@@ -1,5 +1,7 @@
 package it.polimi.ingsw.am32.controller;
 
+import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
+import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.AvailableGamesListEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.GameInfoDTO;

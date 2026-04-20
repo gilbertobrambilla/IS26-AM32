@@ -6,8 +6,6 @@ import it.polimi.ingsw.am32.dto.messages.game.models.*;
 import it.polimi.ingsw.am32.model.GameResult;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
-import it.polimi.ingsw.am32.dao.DatabaseConnection;
-import it.polimi.ingsw.am32.dao.LeaderboardDAO;
 import it.polimi.ingsw.am32.model.cards.Card;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.model.cards.acquirable.characters.CharacterCard;
@@ -18,7 +16,6 @@ import it.polimi.ingsw.am32.model.receipts.*;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -599,28 +596,28 @@ public class GameController implements Runnable {
 
         List<LeaderboardEntryDTO> globalRanking = new ArrayList<>();
         Connection conn = null;
-        try {
-            // database connection is established
-            conn = DatabaseConnection.getInstance().getConnection();
-            LeaderboardDAO leaderboardDAO = new LeaderboardDAO(conn);
-
-            // only active players are saved to database with original player count
-            leaderboardDAO.saveMatchResults(activePlayersDbScores, numOfPlayers);
-
-            // global ranking is fetched
-            globalRanking = leaderboardDAO.fetchLeaderboard(numOfPlayers);
-        } catch (Exception e) {
-            System.err.println("error during database operations: " + e.getMessage());
-        } finally {
-            if (conn != null) {
-                try {
-                    // database connection is closed
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+//        try {
+//            // database connection is established
+//            conn = DatabaseConnection.getInstance().getConnection();
+//            LeaderboardDAO leaderboardDAO = new LeaderboardDAO(conn);
+//
+//            // only active players are saved to database with original player count
+//            leaderboardDAO.saveMatchResults(activePlayersDbScores, numOfPlayers);
+//
+//            // global ranking is fetched
+//            globalRanking = leaderboardDAO.fetchLeaderboard(numOfPlayers);
+//        } catch (Exception e) {
+//            System.err.println("error during database operations: " + e.getMessage());
+//        } finally {
+//            if (conn != null) {
+//                try {
+//                    // database connection is closed
+//                    conn.close();
+//                } catch (SQLException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
 
         for (PlayerSession session : this.activeClients.values()) {
             String currentNickname = session.getPlayer().getNickname();
