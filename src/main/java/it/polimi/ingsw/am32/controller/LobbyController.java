@@ -59,13 +59,10 @@ public class LobbyController implements GameLifecycleCallback {
      * A new game creation request is processed.
      *
      * @param nickname     The nickname of the creator.
+     * @param view         The player's connection view.
      * @param numOfPlayers The targeted number of players for the new game.
      */
-    public void createGame(String nickname, int numOfPlayers) {
-        // player view is retrieved
-        VirtualView view = this.connectedPlayers.get(nickname);
-        if (view == null) return; // player not in lobby
-
+    public void createGame(String nickname, VirtualView view, int numOfPlayers) {
         // game id is incremented
         int gameId = this.nextGameId.getAndIncrement();
 
@@ -96,10 +93,10 @@ public class LobbyController implements GameLifecycleCallback {
      * A game join request is processed.
      *
      * @param nickname The nickname of the player joining.
+     * @param view     The player's connection view.
      * @param gameId   The ID of the target game.
      */
-    public void joinGame(String nickname, int gameId) {
-        VirtualView view = this.connectedPlayers.get(nickname);
+    public void joinGame(String nickname, VirtualView view, int gameId) {
         GameController game = this.activeGames.get(gameId);
 
         if (view != null && game != null) {
@@ -220,5 +217,37 @@ public class LobbyController implements GameLifecycleCallback {
                 .collect(Collectors.toList());
 
         return new AvailableGamesListEvent(availableGames);
+    }
+
+    /**
+     * Handles a lobby command received from the network.
+     *
+     * @param command the lobby command to be executed
+     * @param nickname the nickname of the player issuing the command
+     */
+    public void handleLobbyCommand(LobbyCommand command, String nickname) {
+        // virtual view is retrieved from connected players map
+        VirtualView view = this.connectedPlayers.get(nickname);
+
+        if (view != null) {
+            // command is executed
+            command.execute(this, view, nickname);
+        }
+    }
+
+    /**
+     * Routes a game command received from the network to the appropriate game controller.
+     *
+     * @param command the game command to be executed
+     * @param nickname the nickname of the player issuing the command
+     */
+    public void handleGameCommand(GameCommand command, String nickname) {
+        // game controller is retrieved from player game map
+        GameController game = this.playerGameMap.get(nickname);
+
+        if (game != null) {
+            // command is enqueued in the target game controller
+            game.enqueueCommand(command, nickname);
+        }
     }
 }

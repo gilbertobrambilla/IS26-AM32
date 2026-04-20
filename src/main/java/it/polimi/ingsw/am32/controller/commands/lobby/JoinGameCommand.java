@@ -12,7 +12,7 @@ public class JoinGameCommand implements LobbyCommand {
 
     @Override
     public void execute(LobbyController lobby, VirtualView view, String sessionNickname) {
-        // game join is requested using the targeted game id and the authenticated session nickname
-        lobby.joinGame(sessionNickname, gameId);
+        // game join is requested passing the view, the session nickname and the targeted game id
+        lobby.joinGame(sessionNickname, view, gameId);
     }
 }
