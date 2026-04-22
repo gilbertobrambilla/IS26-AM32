@@ -4,30 +4,30 @@ import java.io.Serializable;
 
 public class LeaderboardEntryDTO implements Serializable {
     private final int position;
-    private final String nickname;
+    private final String player;
     private final int score;
     private final String date;
 
-    public LeaderboardEntryDTO(int position, String nickname, int score, String date) {
+    public LeaderboardEntryDTO(int position, String player, int score, String date) {
         this.position = position;
-        this.nickname = nickname;
+        this.player = player;
         this.score = score;
         this.date = date;
     }
 
     public int getPosition() {
-        return this.position;
+        return position;
     }
 
-    public String getNickname() {
-        return this.nickname;
+    public String getPlayer() {
+        return player;
     }
 
     public int getScore() {
-        return this.score;
+        return score;
     }
 
     public String getDate() {
-        return this.date;
+        return date;
     }
 }

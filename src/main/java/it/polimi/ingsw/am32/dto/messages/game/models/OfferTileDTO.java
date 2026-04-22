@@ -4,18 +4,18 @@ import java.io.Serializable;
 
 public class OfferTileDTO implements Serializable {
     private final String tileId;
-    private final String occupyingPlayer;
+    private final String player;
 
-    public OfferTileDTO(String tileId, String occupyingPlayer) {
+    public OfferTileDTO(String tileId, String player) {
         this.tileId = tileId;
-        this.occupyingPlayer = occupyingPlayer;
+        this.player = player;
     }
 
     public String getTileId() {
-        return this.tileId;
+        return tileId;
     }
 
-    public String getOccupyingPlayer() {
-        return this.occupyingPlayer;
+    public String getPlayer() {
+        return player;
     }
 }

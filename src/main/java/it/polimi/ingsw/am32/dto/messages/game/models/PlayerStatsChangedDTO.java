@@ -3,24 +3,24 @@ package it.polimi.ingsw.am32.dto.messages.game.models;
 import java.io.Serializable;
 
 public class PlayerStatsChangedDTO implements Serializable {
-    private final String playerNickname;
+    private final String player;
     private final int foodChange;
     private final int prestigeChange;
-    private final int currentFood;
-    private final int currentPrestige;
+    private final int food;
+    private final int prestige;
     private final String reason;
 
-    public PlayerStatsChangedDTO(String playerNickname, int foodChange, int prestigeChange, int currentFood, int currentPrestige, String reason) {
-        this.playerNickname = playerNickname;
+    public PlayerStatsChangedDTO(String player, int foodChange, int prestigeChange, int food, int prestige, String reason) {
+        this.player = player;
         this.foodChange = foodChange;
         this.prestigeChange = prestigeChange;
-        this.currentFood = currentFood;
-        this.currentPrestige = currentPrestige;
+        this.food = food;
+        this.prestige = prestige;
         this.reason = reason;
     }
 
-    public String getPlayerNickname() {
-        return playerNickname;
+    public String getPlayer() {
+        return player;
     }
 
     public int getFoodChange() {
@@ -31,12 +31,12 @@ public class PlayerStatsChangedDTO implements Serializable {
         return prestigeChange;
     }
 
-    public int getCurrentFood() {
-        return currentFood;
+    public int getFood() {
+        return food;
     }
 
-    public int getCurrentPrestige() {
-        return currentPrestige;
+    public int getPrestige() {
+        return prestige;
     }
 
     public String getReason() {

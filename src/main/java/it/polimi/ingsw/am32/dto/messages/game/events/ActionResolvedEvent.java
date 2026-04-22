@@ -3,36 +3,31 @@ package it.polimi.ingsw.am32.dto.messages.game.events;
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.dto.messages.game.models.PlayerStatsChangedDTO;
 import it.polimi.ingsw.am32.dto.messages.game.models.TotemReturnedDTO;
+import it.polimi.ingsw.am32.network.client.ClientMessageVisitor;
 
 import java.util.List;
 
 public class ActionResolvedEvent implements MessageDTO {
-    private final String playerNickname;
+    private final String player;
     private final List<String> acquiredCharacterCardIds;
     private final List<String> acquiredBuildingCardIds;
     private final List<PlayerStatsChangedDTO> statsChanges;
     private final TotemReturnedDTO totemReturnDetails;
-    private final String nextPlayerNickname;
+    private final String nextPlayer;
     private final boolean isAutoPlayed;
 
-    public ActionResolvedEvent(String playerNickname,
-                               List<String> acquiredCharacterCardIds,
-                               List<String> acquiredBuildingCardIds,
-                               List<PlayerStatsChangedDTO> statsChanges,
-                               TotemReturnedDTO totemReturnDetails,
-                               String nextPlayerNickname,
-                               boolean isAutoPlayed) {
-        this.playerNickname = playerNickname;
-        this.acquiredCharacterCardIds = acquiredCharacterCardIds;
-        this.acquiredBuildingCardIds = acquiredBuildingCardIds;
-        this.statsChanges = statsChanges;
+    public ActionResolvedEvent(String player, List<String> acquiredCharacterCardIds, List<String> acquiredBuildingCardIds, List<PlayerStatsChangedDTO> statsChanges, TotemReturnedDTO totemReturnDetails, String nextPlayer, boolean isAutoPlayed) {
+        this.player = player;
+        this.acquiredCharacterCardIds = List.copyOf(acquiredCharacterCardIds);
+        this.acquiredBuildingCardIds = List.copyOf(acquiredBuildingCardIds);
+        this.statsChanges = List.copyOf(statsChanges);
         this.totemReturnDetails = totemReturnDetails;
-        this.nextPlayerNickname = nextPlayerNickname;
+        this.nextPlayer = nextPlayer;
         this.isAutoPlayed = isAutoPlayed;
     }
 
-    public String getPlayerNickname() {
-        return playerNickname;
+    public String getPlayer() {
+        return player;
     }
 
     public List<String> getAcquiredCharacterCardIds() {
@@ -51,11 +46,16 @@ public class ActionResolvedEvent implements MessageDTO {
         return totemReturnDetails;
     }
 
-    public String getNextPlayerNickname() {
-        return nextPlayerNickname;
+    public String getNextPlayer() {
+        return nextPlayer;
     }
 
     public boolean isAutoPlayed() {
         return isAutoPlayed;
+    }
+
+    @Override
+    public void accept(ClientMessageVisitor visitor) {
+        visitor.visit(this);
     }
 }

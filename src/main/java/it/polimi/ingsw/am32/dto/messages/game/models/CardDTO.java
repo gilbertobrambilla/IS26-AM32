@@ -10,6 +10,6 @@ public class CardDTO implements Serializable {
     }
 
     public String getId() {
-        return this.id;
+        return id;
     }
 }

@@ -52,58 +52,58 @@ public class GameStateDTO implements Serializable {
     }
 
     public int getGameId() {
-        return this.gameId;
+        return gameId;
     }
 
     public List<PlayerDTO> getPlayers() {
-        return this.players;
+        return players;
     }
 
     public List<CardDTO> getUpperTribeRow() {
-        return this.upperTribeRow;
+        return upperTribeRow;
     }
 
     public List<CardDTO> getLowerTribeRow() {
-        return this.lowerTribeRow;
+        return lowerTribeRow;
     }
 
     public List<CardDTO> getUpperBuildingRow() {
-        return this.upperBuildingRow;
+        return upperBuildingRow;
     }
 
     public List<CardDTO> getLowerBuildingRow() {
-        return this.lowerBuildingRow;
+        return lowerBuildingRow;
     }
 
     public List<OfferTileDTO> getOfferTrack() {
-        return this.offerTrack;
+        return offerTrack;
     }
 
     public List<String> getTurnOrder() {
-        return this.turnOrder;
+        return turnOrder;
     }
 
     public int getTribeDeckSize() {
-        return this.tribeDeckSize;
+        return tribeDeckSize;
     }
 
     public int getTribeDeckTopCardEra() {
-        return this.tribeDeckTopCardEra;
+        return tribeDeckTopCardEra;
     }
 
     public int getCurrentRound() {
-        return this.currentRound;
+        return currentRound;
     }
 
     public int getCurrentEra() {
-        return this.currentEra;
+        return currentEra;
     }
 
     public GamePhase getCurrentPhase() {
-        return this.currentPhase;
+        return currentPhase;
     }
 
     public String getCurrentPlayer() {
-        return this.currentPlayer;
+        return currentPlayer;
     }
 }
