@@ -3,22 +3,32 @@ package it.polimi.ingsw.am32.network.server;
 import it.polimi.ingsw.am32.controller.VirtualView;
 import it.polimi.ingsw.am32.network.ClientNode;
 import it.polimi.ingsw.am32.network.exceptions.NetworkException;
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import it.polimi.ingsw.am32.dto.messages.game.models.*;
 
 import java.util.function.Consumer;
 
-public class VirtualViewImpl implements VirtualView {
+/**
+ * Virtual view implementation acting as an adapter between the controller and the network.
+ */
+public class VirtualViewImpl implements VirtualView, NetworkNode {
 
     private final String nickname;
     private final ClientNode clientNode;
-
     private final Consumer<Boolean> onConnectionClosed;
 
-    private volatile boolean isRunning;
+    private boolean isRunning;
     private Thread heartbeatThread;
 
+    /**
+     * Constructs a new virtual view implementation.
+     *
+     * @param nickname           The nickname of the player.
+     * @param clientNode         The client network node.
+     * @param onConnectionClosed The callback to invoke when connection drops.
+     */
     private VirtualViewImpl(String nickname, ClientNode clientNode, Consumer<Boolean> onConnectionClosed) {
         this.nickname = nickname;
         this.clientNode = clientNode;
@@ -26,6 +36,14 @@ public class VirtualViewImpl implements VirtualView {
         this.isRunning = true;
     }
 
+    /**
+     * Creates and starts a new virtual view implementation.
+     *
+     * @param nickname           The nickname of the player.
+     * @param clientNode         The client network node.
+     * @param onConnectionClosed The callback to invoke when connection drops.
+     * @return The created virtual view instance.
+     */
     public static VirtualViewImpl create(String nickname, ClientNode clientNode, Consumer<Boolean> onConnectionClosed) {
         VirtualViewImpl view = new VirtualViewImpl(nickname, clientNode, onConnectionClosed);
         view.startHeartbeat();
@@ -38,12 +56,15 @@ public class VirtualViewImpl implements VirtualView {
                 try {
                     Thread.sleep(5000);
                     if (isRunning) {
+                        // ping is sent to client node
                         clientNode.ping();
                     }
                 } catch (InterruptedException e) {
+                    // heartbeat thread is interrupted
                     Thread.currentThread().interrupt();
                     break;
                 } catch (NetworkException e) {
+                    // client drop is handled
                     System.err.println("[VIRTUAL VIEW] Heartbeat failed for " + nickname + ". Client dropped.");
                     handleDisconnect();
                     break;
@@ -57,15 +78,20 @@ public class VirtualViewImpl implements VirtualView {
     public void stopHeartbeat() {
         isRunning = false;
         if (heartbeatThread != null) {
+            // heartbeat thread is interrupted
             heartbeatThread.interrupt();
         }
     }
 
+    @Override
     public void handleDisconnect() {
         if (!isRunning) return;
 
+        // heartbeat is stopped
         stopHeartbeat();
+
         if (onConnectionClosed != null) {
+            // connection closed callback is invoked
             onConnectionClosed.accept(true);
         }
     }
@@ -75,17 +101,30 @@ public class VirtualViewImpl implements VirtualView {
         return isRunning;
     }
 
-    @Override
-    public void notifyConnectionResult(boolean successful, String message) {
+    /**
+     * Pushes a generic message dto to the client catching potential network exceptions.
+     * * @param message The generic message dto to be sent.
+     */
+    private void sendMessageToClient(MessageDTO message) {
         try {
-            clientNode.notifyConnectionResult(successful, message);
+            // generic message is pushed to client
+            clientNode.sendMessage(message);
         } catch (Exception e) {
+            // disconnect is triggered on failure
             handleDisconnect();
         }
+    }
 
-        if (!successful) {
+    @Override
+    public void notifyConnectionResult(ConnectionResultEvent dto) {
+        // connection result dto is created and pushed
+        sendMessageToClient(dto);
+
+        if (!dto.isSuccessful()) {
+            // resources are cleaned up on failed connection
             stopHeartbeat();
             if (onConnectionClosed != null) {
+                // connection closed callback is invoked
                 onConnectionClosed.accept(false);
             }
         }
@@ -93,90 +132,97 @@ public class VirtualViewImpl implements VirtualView {
 
     @Override
     public void notifyLobbyState(AvailableGamesListEvent dto) {
-        try {
-            clientNode.notifyLobbyState(dto.getAvailableGames());
-        } catch (Exception e) { handleDisconnect(); }
-    }
-
-    @Override
-    public void notifyGameStarted(int gameId) {
-        try {
-            clientNode.notifyGameStarted(gameId);
-        } catch (Exception e) { handleDisconnect(); }
-    }
-
-    @Override
-    public void notifyError(InvalidActionEvent dto) {
-        try { clientNode.notifyError(dto.getReason(), dto.getMessage()); } catch (Exception e) { handleDisconnect(); }
-    }
-
-    @Override
-    public void notifyGameSuspended() {
-        try { clientNode.notifyGameSuspended(); } catch (Exception e) { handleDisconnect(); }
-    }
-
-    @Override
-    public void notifyGameResumed() {
-        try { clientNode.notifyGameResumed(); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyLobbyRoomUpdated(LobbyStateUpdatedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyGameStarted(GameStartedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
-    public void notifyGameState(GameStateDTO dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+    public void notifyGameState(GameStateEvent dto) {
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyGameEnded(GameEndedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
+    }
+
+    @Override
+    public void notifyError(InvalidActionEvent dto) {
+        // dto is pushed to client
+        sendMessageToClient(dto);
+    }
+
+    @Override
+    public void notifyGameSuspended() {
+        // game suspended dto is created and pushed
+        sendMessageToClient(new GameSuspendedEvent());
+    }
+
+    @Override
+    public void notifyGameResumed() {
+        // game resumed dto is created and pushed
+        sendMessageToClient(new GameResumedEvent());
     }
 
     @Override
     public void notifyPlayerDisconnected(PlayerDisconnectedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyPlayerReconnected(PlayerReconnectedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyTotemPlaced(TotemPlacedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyActionResolved(ActionResolvedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyEventResolved(EventResolvedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyRoundEnded(RoundEndedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 
     @Override
     public void notifyGamePhaseChanged(GamePhaseChangedEvent dto) {
-        try { clientNode.receiveEvent(dto); } catch (Exception e) { handleDisconnect(); }
+        // dto is pushed to client
+        sendMessageToClient(dto);
     }
 }
