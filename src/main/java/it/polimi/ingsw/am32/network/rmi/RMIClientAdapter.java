@@ -1,19 +1,23 @@
 package it.polimi.ingsw.am32.network.rmi;
 
-import it.polimi.ingsw.am32.dto.messages.game.models.GameResultDTO;
-import it.polimi.ingsw.am32.dto.messages.lobby.models.GameInfoDTO;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
-import it.polimi.ingsw.am32.model.observers.GameEvent;
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.network.ClientNode;
 import it.polimi.ingsw.am32.network.exceptions.NetworkException;
 
 import java.rmi.RemoteException;
-import java.util.List;
 
+/**
+ * Adapter class mapping the client node interface to the rmi client stub.
+ */
 public class RMIClientAdapter implements ClientNode {
 
     private final RMIClient clientStub;
 
+    /**
+     * Constructs a new rmi client adapter.
+     *
+     * @param clientStub The rmi client stub.
+     */
     public RMIClientAdapter(RMIClient clientStub) {
         this.clientStub = clientStub;
     }
@@ -21,82 +25,22 @@ public class RMIClientAdapter implements ClientNode {
     @Override
     public void ping() {
         try {
+            // ping is sent through the stub
             clientStub.ping();
         } catch (RemoteException e) {
-            throw new NetworkException("RMI network error while pinging", e);
+            // network exception is thrown
+            throw new NetworkException("rmi network error while pinging", e);
         }
     }
 
     @Override
-    public void notifyConnectionResult(boolean successful, String message) {
+    public void sendMessage(MessageDTO message) {
         try {
-            clientStub.notifyConnectionResult(successful, message);
+            // message is pushed through the stub
+            clientStub.receiveMessage(message);
         } catch (RemoteException e) {
-            throw new NetworkException("RMI Network Error", e);
+            // network exception is thrown
+            throw new NetworkException("rmi network error while sending message", e);
         }
     }
-
-    @Override
-    public void notifyLobbyState(List<GameInfoDTO> availableGames) {
-        try {
-            clientStub.notifyLobbyState(availableGames);
-        } catch (RemoteException e) {
-            throw new NetworkException("RMI Network Error", e);
-        }
-    }
-
-    @Override
-    public void notifyGameStarted(int gameId) {
-        try {
-            clientStub.notifyGameStarted(gameId);
-        } catch (RemoteException e) {
-            throw new NetworkException("RMI Network Error", e);
-        }
-    }
-
-    @Override
-    public void notifyError(InvalidActionReason reason, String message) {
-        try {
-            clientStub.notifyError(reason, message);
-        } catch (RemoteException e) {
-            throw new NetworkException("RMI Network Error", e);
-        }
-    }
-
-    @Override
-    public void receiveEvent(GameEvent event) {
-        try {
-            clientStub.receiveEvent(event);
-        } catch (RemoteException e) {
-            throw new NetworkException("RMI Network Error", e);
-        }
-    }
-
-    @Override
-    public void notifyGameSuspended() {
-        try {
-            clientStub.notifyGameSuspended();
-        } catch (RemoteException e) {
-            throw new NetworkException("RMI Network Error", e);
-        }
-    }
-
-    @Override
-    public void notifyGameResumed() {
-        try {
-            clientStub.notifyGameResumed();
-        } catch (RemoteException e) {
-            throw new NetworkException("RMI Network Error", e);
-        }
-    }
-
-    @Override
-    public void notifyGameEnded(GameResultDTO resultDTO) {
-        try {
-            clientStub.notifyGameEnded(resultDTO);
-        } catch (RemoteException e) {
-            throw new NetworkException("RMI Network Error", e);
-        }
-    }
-
 }

@@ -1,22 +1,27 @@
 package it.polimi.ingsw.am32.network.rmi;
 
-import it.polimi.ingsw.am32.dto.messages.game.models.GameResultDTO;
-import it.polimi.ingsw.am32.dto.messages.lobby.models.GameInfoDTO;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
-import it.polimi.ingsw.am32.model.observers.GameEvent;
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
 
+/**
+ * Remote interface for the rmi client.
+ */
 public interface RMIClient extends Remote {
+
+    /**
+     * Checks the liveness of the client.
+     *
+     * @throws RemoteException If a network error occurs.
+     */
     void ping() throws RemoteException;
-    void notifyConnectionResult(boolean successful, String message) throws RemoteException;
-    void notifyLobbyState(List<GameInfoDTO> availableGames) throws RemoteException;
-    void notifyGameStarted(int gameId) throws RemoteException;
-    void notifyError(InvalidActionReason reason, String message) throws RemoteException;
-    void receiveEvent(GameEvent event) throws RemoteException;
-    void notifyGameSuspended() throws RemoteException;
-    void notifyGameResumed() throws RemoteException;
-    void notifyGameEnded(GameResultDTO resultDTO) throws RemoteException;
+
+    /**
+     * Receives a generic message from the server.
+     *
+     * @param message The message received.
+     * @throws RemoteException If a network error occurs.
+     */
+    void receiveMessage(MessageDTO message) throws RemoteException;
 }
