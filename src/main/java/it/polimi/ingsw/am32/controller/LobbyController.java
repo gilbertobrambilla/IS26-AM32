@@ -3,6 +3,7 @@ package it.polimi.ingsw.am32.controller;
 import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.AvailableGamesListEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.ConnectionResultEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.GameInfoDTO;
 import it.polimi.ingsw.am32.model.GameCreator;
@@ -46,11 +47,11 @@ public class LobbyController implements GameLifecycleCallback {
         } else {
             // player is added to lobby
             if (this.connectedPlayers.putIfAbsent(nickname, view) == null) {
-                view.notifyConnectionResult(true, "connection successful");
+                view.notifyConnectionResult(new ConnectionResultEvent(true, "connection successful"));
                 // available lobby list is sent to the newly connected player
                 view.notifyLobbyState(buildAvailableGamesListEvent());
             } else {
-                view.notifyConnectionResult(false, "nickname is already taken in the lobby");
+                view.notifyConnectionResult(new  ConnectionResultEvent(false, "nickname is already taken in the lobby"));
             }
         }
     }
@@ -122,7 +123,7 @@ public class LobbyController implements GameLifecycleCallback {
                 }
             } else {
                 // connection is rejected due to race condition or full game
-                view.notifyConnectionResult(false, "game is full or already started");
+                view.notifyConnectionResult(new ConnectionResultEvent(false, "game is full or already started"));
             }
         }
     }

@@ -71,7 +71,6 @@ public class GameController implements Runnable {
         // player is added to active clients and model
         this.activeClients.put(nickname, new PlayerSession(player, view));
         this.gameState.addPlayer(player);
-        this.gameState.addObserver(view);
     }
 
     /**
@@ -433,7 +432,6 @@ public class GameController implements Runnable {
         // player session is removed and observers are updated
         PlayerSession session = this.activeClients.remove(nickname);
         if (session != null) {
-            this.gameState.removeObserver(session.getView());
 
             // disconnected event is built
             PlayerDisconnectedEvent disconnectDTO = new PlayerDisconnectedEvent(nickname);
@@ -468,7 +466,6 @@ public class GameController implements Runnable {
             // session is restored
             PlayerSession session = new PlayerSession(reconnectedPlayer, newView);
             this.activeClients.put(nickname, session);
-            this.gameState.addObserver(newView);
 
             // execution is stopped if game is not started
             if (!this.started) {
@@ -487,9 +484,9 @@ public class GameController implements Runnable {
                 }
             }
 
-            // game state is built and sent in unicast
-            GameStateDTO currentState = buildGameStateDTO();
-            newView.notifyGameState(currentState);
+            // game state event is built and sent in unicast
+            GameStateEvent currentStateEvent = buildGameStateEvent();
+            newView.notifyGameState(currentStateEvent);
 
             // reconnected event is built
             PlayerReconnectedEvent reconnectedDTO = new PlayerReconnectedEvent(nickname);
@@ -644,7 +641,7 @@ public class GameController implements Runnable {
      */
     private int calculatePlayerPosition(String nickname, List<LeaderboardEntryDTO> ranking) {
         for (LeaderboardEntryDTO entry : ranking) {
-            if (entry.getNickname().equals(nickname)) {
+            if (entry.getPlayer().equals(nickname)) {
                 return entry.getPosition();
             }
         }
@@ -694,6 +691,16 @@ public class GameController implements Runnable {
                 this.gameState.getCurrentPhase(),
                 this.gameState.getCurrentPlayer() != null ? this.gameState.getCurrentPlayer().getNickname() : null
         );
+    }
+
+    /**
+     * Builds a comprehensive snapshot of the current game state wrapped in a network event.
+     *
+     * @return the generated GameStateEvent containing the full state of the game.
+     */
+    private GameStateEvent buildGameStateEvent() {
+        // game state dto is built and wrapped in the dedicated event
+        return new GameStateEvent(buildGameStateDTO());
     }
 
     /**
@@ -751,7 +758,6 @@ public class GameController implements Runnable {
 
             // view is notified and observer is removed from the game state
             session.getView().notifyError(errorDTO);
-            this.gameState.removeObserver(session.getView());
         }
 
         // client sessions map is cleared

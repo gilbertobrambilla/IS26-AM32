@@ -2,13 +2,12 @@ package it.polimi.ingsw.am32.controller;
 
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import it.polimi.ingsw.am32.dto.messages.game.models.GameStateDTO;
-import it.polimi.ingsw.am32.model.observers.GameObserver;
 
-public interface GameView extends GameObserver {
+public interface GameView {
 
     // state and lifecycle events
     void notifyGameStarted(GameStartedEvent dto);
-    void notifyGameState(GameStateDTO dto);
+    void notifyGameState(GameStateEvent dto);
     void notifyGameEnded(GameEndedEvent resultDTO);
     void notifyError(InvalidActionEvent dto);
 
