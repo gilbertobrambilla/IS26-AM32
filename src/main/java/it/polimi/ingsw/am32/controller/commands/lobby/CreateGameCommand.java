@@ -12,7 +12,7 @@ public class CreateGameCommand implements LobbyCommand {
 
     @Override
     public void execute(LobbyController lobby, VirtualView view, String sessionNickname) {
-        // game creation is requested using the already authenticated session nickname
-        lobby.createGame(sessionNickname, numOfPlayers);
+        // game creation is requested passing the view and the session nickname
+        lobby.createGame(sessionNickname, view, numOfPlayers);
     }
 }

@@ -2,9 +2,10 @@ package it.polimi.ingsw.am32.dto.messages.game.models;
 
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class PlayerDTO {
+public class PlayerDTO implements Serializable {
     private final String nickname;
     private final TotemColor totem;
     private final int food;
@@ -30,30 +31,30 @@ public class PlayerDTO {
     }
 
     public String getNickname() {
-        return this.nickname;
+        return nickname;
     }
 
     public TotemColor getTotem() {
-        return this.totem;
+        return totem;
     }
 
     public int getFood() {
-        return this.food;
+        return food;
     }
 
     public int getPrestige() {
-        return this.prestige;
+        return prestige;
     }
 
     public boolean isConnected() {
-        return this.isConnected;
+        return isConnected;
     }
 
     public List<CardDTO> getCharacterCards() {
-        return this.characterCards;
+        return characterCards;
     }
 
     public List<CardDTO> getBuildingCards() {
-        return this.buildingCards;
+        return buildingCards;
     }
 }

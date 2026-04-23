@@ -1,13 +1,21 @@
 package it.polimi.ingsw.am32.dto.messages.game.events;
 
-public class PlayerReconnectedEvent {
-    private final String reconnectedPlayerNickname;
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
+import it.polimi.ingsw.am32.network.client.ClientMessageVisitor;
 
-    public PlayerReconnectedEvent(String reconnectedPlayerNickname) {
-        this.reconnectedPlayerNickname = reconnectedPlayerNickname;
+public class PlayerReconnectedEvent implements MessageDTO {
+    private final String player;
+
+    public PlayerReconnectedEvent(String player) {
+        this.player = player;
     }
 
-    public String getReconnectedPlayerNickname() {
-        return reconnectedPlayerNickname;
+    public String getPlayer() {
+        return player;
+    }
+
+    @Override
+    public void accept(ClientMessageVisitor visitor) {
+        visitor.visit(this);
     }
 }

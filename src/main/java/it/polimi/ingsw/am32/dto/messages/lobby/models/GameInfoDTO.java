@@ -4,24 +4,24 @@ import java.io.Serializable;
 
 public class GameInfoDTO implements Serializable {
     private final int gameId;
-    private final int currentPlayers;
+    private final int currentPlayersCount;
     private final int targetPlayers;
 
-    public GameInfoDTO(int gameId, int currentPlayers, int targetPlayers) {
+    public GameInfoDTO(int gameId, int currentPlayersCount, int targetPlayers) {
         this.gameId = gameId;
-        this.currentPlayers = currentPlayers;
+        this.currentPlayersCount = currentPlayersCount;
         this.targetPlayers = targetPlayers;
     }
 
     public int getGameId() {
-        return this.gameId;
+        return gameId;
     }
 
-    public int getCurrentPlayers() {
-        return this.currentPlayers;
+    public int getCurrentPlayersCount() {
+        return currentPlayersCount;
     }
 
     public int getTargetPlayers() {
-        return this.targetPlayers;
+        return targetPlayers;
     }
 }

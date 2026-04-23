@@ -12,16 +12,13 @@ import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
 import it.polimi.ingsw.am32.model.enums.StatChangeReason;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
-import it.polimi.ingsw.am32.model.observers.GameEvent;
-import it.polimi.ingsw.am32.model.observers.GameObservable;
-import it.polimi.ingsw.am32.model.observers.GameObserver;
 import it.polimi.ingsw.am32.model.receipts.*;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 
 import java.util.*;
 
-public class GameState implements GameObservable {
+public class GameState {
     private final int gameId;
     private final int targetPlayers;
     private final List<Player> players;
@@ -37,7 +34,6 @@ public class GameState implements GameObservable {
     private int currentEra;
     private GamePhase currentPhase;
     private Player currentPlayer;
-    private final List<GameObserver> observers;
 
     public GameState(int gameId,
                      int targetPlayers,
@@ -67,7 +63,6 @@ public class GameState implements GameObservable {
         this.lowerBuildingRow = new ArrayList<>();
         this.tribeDeck = tribeDeck;
         this.buildingDecks = buildingDecks;
-        this.observers = new ArrayList<>();
         this.currentEra = 0;
         this.currentRound = 0;
     }
@@ -761,34 +756,6 @@ public class GameState implements GameObservable {
 
         // game result dto is created and returned
         return new GameResult(winners, finalScores);
-    }
-
-
-
-    // observer pattern implementation
-
-    @Override
-    public void addObserver(GameObserver observer) {
-        Objects.requireNonNull(observer, "observer cannot be null");
-
-        this.observers.add(observer);
-    }
-
-    @Override
-    public void removeObserver(GameObserver observer) {
-        Objects.requireNonNull(observer, "observer cannot be null");
-
-        this.observers.remove(observer);
-    }
-
-    @Override
-    public void notifyObservers(GameEvent event) {
-        Objects.requireNonNull(event, "event cannot be null");
-
-        // observers are notified with the latest game event
-        for (GameObserver observer : this.observers) {
-            observer.update(event);
-        }
     }
 
 

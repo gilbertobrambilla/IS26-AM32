@@ -5,31 +5,31 @@ import java.util.List;
 import java.util.Map;
 
 public class GameResultDTO implements Serializable {
-    private final List<String> winnerNicknames;
+    private final List<String> winners;
     private final Map<String, int[]> matchScores;
     private final List<LeaderboardEntryDTO> globalLeaderboard;
-    private final int playerGlobalPosition;
+    private final int globalPosition;
 
-    public GameResultDTO(List<String> winnerNicknames, Map<String, int[]> matchScores, List<LeaderboardEntryDTO> globalLeaderboard, int playerGlobalPosition) {
-        this.winnerNicknames = winnerNicknames;
-        this.matchScores = matchScores;
-        this.globalLeaderboard = globalLeaderboard;
-        this.playerGlobalPosition = playerGlobalPosition;
+    public GameResultDTO(List<String> winners, Map<String, int[]> matchScores, List<LeaderboardEntryDTO> globalLeaderboard, int globalPosition) {
+        this.winners = List.copyOf(winners);
+        this.matchScores = Map.copyOf(matchScores);
+        this.globalLeaderboard = List.copyOf(globalLeaderboard);
+        this.globalPosition = globalPosition;
     }
 
-    public List<String> getWinnerNicknames() {
-        return this.winnerNicknames;
+    public List<String> getWinners() {
+        return winners;
     }
 
     public Map<String, int[]> getMatchScores() {
-        return this.matchScores;
+        return matchScores;
     }
 
     public List<LeaderboardEntryDTO> getGlobalLeaderboard() {
-        return this.globalLeaderboard;
+        return globalLeaderboard;
     }
 
-    public int getPlayerGlobalPosition() {
-        return this.playerGlobalPosition;
+    public int getGlobalPosition() {
+        return globalPosition;
     }
 }

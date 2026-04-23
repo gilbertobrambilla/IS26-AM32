@@ -1,43 +1,36 @@
 package it.polimi.ingsw.am32.dto.messages.game.events;
 
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.dto.messages.game.models.CardDTO;
+import it.polimi.ingsw.am32.network.client.ClientMessageVisitor;
 
 import java.util.List;
 
-public class RoundEndedEvent {
-    private final int newRoundNumber;
-    private final int newEraNumber;
-
-    // absolute state of the board rows after the round ends
+public class RoundEndedEvent implements MessageDTO {
+    private final int round;
+    private final int era;
     private final List<CardDTO> upperTribeRow;
     private final List<CardDTO> lowerTribeRow;
     private final List<CardDTO> upperBuildingRow;
     private final List<CardDTO> lowerBuildingRow;
+    private final String nextPlayer;
 
-    private final String nextPlayerNickname;
-
-    public RoundEndedEvent(int newRoundNumber,
-                           int newEraNumber,
-                           List<CardDTO> upperTribeRow,
-                           List<CardDTO> lowerTribeRow,
-                           List<CardDTO> upperBuildingRow,
-                           List<CardDTO> lowerBuildingRow,
-                           String nextPlayerNickname) {
-        this.newRoundNumber = newRoundNumber;
-        this.newEraNumber = newEraNumber;
-        this.upperTribeRow = upperTribeRow;
-        this.lowerTribeRow = lowerTribeRow;
-        this.upperBuildingRow = upperBuildingRow;
-        this.lowerBuildingRow = lowerBuildingRow;
-        this.nextPlayerNickname = nextPlayerNickname;
+    public RoundEndedEvent(int round, int era, List<CardDTO> upperTribeRow, List<CardDTO> lowerTribeRow, List<CardDTO> upperBuildingRow, List<CardDTO> lowerBuildingRow, String nextPlayer) {
+        this.round = round;
+        this.era = era;
+        this.upperTribeRow = List.copyOf(upperTribeRow);
+        this.lowerTribeRow = List.copyOf(lowerTribeRow);
+        this.upperBuildingRow = List.copyOf(upperBuildingRow);
+        this.lowerBuildingRow = List.copyOf(lowerBuildingRow);
+        this.nextPlayer = nextPlayer;
     }
 
-    public int getNewRoundNumber() {
-        return newRoundNumber;
+    public int getRound() {
+        return round;
     }
 
-    public int getNewEraNumber() {
-        return newEraNumber;
+    public int getEra() {
+        return era;
     }
 
     public List<CardDTO> getUpperTribeRow() {
@@ -56,7 +49,12 @@ public class RoundEndedEvent {
         return lowerBuildingRow;
     }
 
-    public String getNextPlayerNickname() {
-        return nextPlayerNickname;
+    public String getNextPlayer() {
+        return nextPlayer;
+    }
+
+    @Override
+    public void accept(ClientMessageVisitor visitor) {
+        visitor.visit(this);
     }
 }

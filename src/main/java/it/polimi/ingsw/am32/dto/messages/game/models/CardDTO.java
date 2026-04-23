@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am32.dto.messages.game.models;
 
-public class CardDTO {
+import java.io.Serializable;
+
+public class CardDTO implements Serializable {
     private final String id;
 
     public CardDTO(String id) {
@@ -8,6 +10,6 @@ public class CardDTO {
     }
 
     public String getId() {
-        return this.id;
+        return id;
     }
 }

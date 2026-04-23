@@ -3,15 +3,11 @@ package it.polimi.ingsw.am32.network.client;
 import it.polimi.ingsw.am32.client.ClientController;
 import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
-import it.polimi.ingsw.am32.dto.results.GameResultDTO;
-import it.polimi.ingsw.am32.dto.state.GameInfoDTO;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
-import it.polimi.ingsw.am32.model.observers.GameEvent;
+import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.network.NetworkAction;
 import it.polimi.ingsw.am32.network.ServerConnection;
 import it.polimi.ingsw.am32.network.exceptions.NetworkException;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VirtualServer implements ServerConnection {
@@ -105,59 +101,18 @@ public class VirtualServer implements ServerConnection {
         }
     }
 
-    public void receiveConnectionResult(boolean successful, String message) {
-        System.out.println("[CLIENT] connection result: " + successful + " - " + message);
-        if (clientController != null) {
-            clientController.onConnectionResult(successful, message);
-        }
-    }
+    /**
+     * Receives a generic message from the network and forwards it to the client controller.
+     *
+     * @param message The message received.
+     */
+    public void receiveMessage(MessageDTO message) {
+        // console log is printed
+        System.out.println("[CLIENT] message received from server.");
 
-    public void receiveLobbyState(List<GameInfoDTO> availableGames) {
-        System.out.println("[CLIENT] lobby state updated.");
         if (clientController != null) {
-            clientController.onLobbyStateUpdate(availableGames);
-        }
-    }
-
-    public void receiveGameStarted(int gameId) {
-        System.out.println("[CLIENT] game " + gameId + " started!");
-        if (clientController != null) {
-            clientController.onGameStarted(gameId);
-        }
-    }
-
-    public void receiveError(InvalidActionReason reason, String message) {
-        System.err.println("[CLIENT] action error: " + message);
-        if (clientController != null) {
-            clientController.onError(reason, message);
-        }
-    }
-
-    public void receiveEvent(GameEvent event) {
-        System.out.println("[CLIENT] game event received.");
-        if (clientController != null) {
-            clientController.onGameEvent(event);
-        }
-    }
-
-    public void receiveGameSuspended() {
-        System.out.println("[CLIENT] game suspended waiting for reconnections.");
-        if (clientController != null) {
-            clientController.onGameSuspended();
-        }
-    }
-
-    public void receiveGameResumed() {
-        System.out.println("[CLIENT] game resumed.");
-        if (clientController != null) {
-            clientController.onGameResumed();
-        }
-    }
-
-    public void receiveGameEnded(GameResultDTO resultDTO) {
-        System.out.println("[CLIENT] game ended.");
-        if (clientController != null) {
-            clientController.onGameEnded(resultDTO);
+            // message is passed to client controller for dispatching
+            clientController.onMessageReceived(message);
         }
     }
 }
