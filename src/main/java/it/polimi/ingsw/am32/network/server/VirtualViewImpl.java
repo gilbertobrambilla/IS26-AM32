@@ -120,7 +120,7 @@ public class VirtualViewImpl implements VirtualView, NetworkNode {
         // connection result dto is created and pushed
         sendMessageToClient(dto);
 
-        if (!dto.isSuccessful()) {
+        if (!dto.isSuccess()) {
             // resources are cleaned up on failed connection
             stopHeartbeat();
             if (onConnectionClosed != null) {

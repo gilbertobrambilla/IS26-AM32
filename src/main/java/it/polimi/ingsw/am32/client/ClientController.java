@@ -48,7 +48,7 @@ public class ClientController {
     public void onConnectionResult(ConnectionResultEvent event) {
         runOnUIThread(() -> {
             // ui.showConnectionResult(event.isSuccessful(), event.getMessage());
-            System.out.println("[CONTROLLER] Connection result: " + event.isSuccessful() + " - " + event.getMessage());
+            System.out.println("[CONTROLLER] Connection result: " + event.isSuccess() + " - " + event.getMessage());
         });
     }
 
@@ -72,7 +72,7 @@ public class ClientController {
     public void onLobbyRoomUpdated(LobbyStateUpdatedEvent event) {
         runOnUIThread(() -> {
             // ui.updateLobbyRoom(event);
-            System.out.println("[CONTROLLER] Room " + event.getGameId() + " updated. Players: " + event.getCurrentPlayersNicknames() + "/" + event.getTargetPlayers());
+            System.out.println("[CONTROLLER] Room " + event.getGameId() + " updated. Players: " + event.getCurrentPlayers() + "/" + event.getTargetPlayers());
         });
     }
 
@@ -88,7 +88,7 @@ public class ClientController {
     public void onGameStarted(GameStartedEvent event) {
         runOnUIThread(() -> {
             // ui.showGameScreen(event.getInitialState());
-            System.out.println("[CONTROLLER] Game started. First turn: " + event.getNextPlayerNickname());
+            System.out.println("[CONTROLLER] Game started. First turn: " + event.getNextPlayer());
         });
     }
 
@@ -112,7 +112,7 @@ public class ClientController {
     public void onGamePhaseChanged(GamePhaseChangedEvent event) {
         runOnUIThread(() -> {
             // ui.updateGamePhase(event.getNewPhase(), event.getNextPlayer());
-            System.out.println("[CONTROLLER] Phase changed to: " + event.getNewPhase() + ". Turn of: " + event.getNextPlayerNickname());
+            System.out.println("[CONTROLLER] Phase changed to: " + event.getPhase() + ". Turn of: " + event.getNextPlayer());
         });
     }
 
@@ -124,7 +124,7 @@ public class ClientController {
     public void onRoundEnded(RoundEndedEvent event) {
         runOnUIThread(() -> {
             // ui.processRoundEnd(event);
-            System.out.println("[CONTROLLER] Round " + event.getNewRoundNumber() + " ended. Moving to era " + event.getNewEraNumber());
+            System.out.println("[CONTROLLER] Round " + event.getRound() + " ended. Moving to era " + event.getEra());
         });
     }
 
@@ -136,7 +136,7 @@ public class ClientController {
     public void onGameEnded(GameEndedEvent event) {
         runOnUIThread(() -> {
             // ui.showEndGameScreen(event.getResult());
-            System.out.println("[CONTROLLER] Game is over. Winners: " + event.getFinalResults().getWinnerNicknames());
+            System.out.println("[CONTROLLER] Game is over. Winners: " + event.getResults().getWinners());
         });
     }
 
@@ -152,7 +152,7 @@ public class ClientController {
     public void onTotemPlaced(TotemPlacedEvent event) {
         runOnUIThread(() -> {
             // ui.updateTotem(event);
-            System.out.println("[CONTROLLER] Totem placed by " + event.getPlayerNickname() + " on tile " + event.getOfferTileId());
+            System.out.println("[CONTROLLER] Totem placed by " + event.getPlayer() + " on tile " + event.getOfferTileId());
         });
     }
 
@@ -164,7 +164,7 @@ public class ClientController {
     public void onActionResolved(ActionResolvedEvent event) {
         runOnUIThread(() -> {
             // ui.updatePlayerBoard(event);
-            System.out.println("[CONTROLLER] Action resolved for " + event.getPlayerNickname());
+            System.out.println("[CONTROLLER] Action resolved for " + event.getPlayer());
         });
     }
 
@@ -188,7 +188,7 @@ public class ClientController {
     public void onExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent event) {
         runOnUIThread(() -> {
             // ui.updateExtraAcquisition(event);
-            System.out.println("[CONTROLLER] Extra acquisition resolved for " + event.getPlayerNickname() + ". Card: " + event.getAcquiredCardId());
+            System.out.println("[CONTROLLER] Extra acquisition resolved for " + event.getPlayer() + ". Card: " + event.getAcquiredCardId());
         });
     }
 
@@ -216,7 +216,7 @@ public class ClientController {
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
         runOnUIThread(() -> {
             // ui.showPlayerDisconnectedNotification(event.getNickname());
-            System.out.println("[CONTROLLER] Player disconnected: " + event.getDisconnectedPlayerNickname());
+            System.out.println("[CONTROLLER] Player disconnected: " + event.getPlayer());
         });
     }
 
@@ -228,7 +228,7 @@ public class ClientController {
     public void onPlayerReconnected(PlayerReconnectedEvent event) {
         runOnUIThread(() -> {
             // ui.showPlayerReconnectedNotification(event.getNickname());
-            System.out.println("[CONTROLLER] Player reconnected: " + event.getReconnectedPlayerNickname());
+            System.out.println("[CONTROLLER] Player reconnected: " + event.getPlayer());
         });
     }
 
