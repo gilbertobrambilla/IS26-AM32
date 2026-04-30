@@ -1,6 +1,6 @@
 package it.polimi.ingsw.am32.network.client;
 
-import it.polimi.ingsw.am32.client.ClientController;
+import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;

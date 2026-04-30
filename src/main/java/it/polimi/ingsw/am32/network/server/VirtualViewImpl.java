@@ -6,7 +6,6 @@ import it.polimi.ingsw.am32.network.exceptions.NetworkException;
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
-import it.polimi.ingsw.am32.dto.messages.game.models.*;
 
 import java.util.function.Consumer;
 
@@ -97,13 +96,27 @@ public class VirtualViewImpl implements VirtualView, NetworkNode {
     }
 
     @Override
+    public void destroy() {
+        if (!isRunning) return;
+
+        // heartbeat is stopped
+        stopHeartbeat();
+
+        if (onConnectionClosed != null) {
+            // connection closed callback is invoked cleanly
+            onConnectionClosed.accept(false);
+        }
+    }
+
+    @Override
     public boolean checkAndHandleLiveness() {
         return isRunning;
     }
 
     /**
      * Pushes a generic message dto to the client catching potential network exceptions.
-     * * @param message The generic message dto to be sent.
+     *
+     * @param message The generic message dto to be sent.
      */
     private void sendMessageToClient(MessageDTO message) {
         try {
@@ -131,13 +144,19 @@ public class VirtualViewImpl implements VirtualView, NetworkNode {
     }
 
     @Override
-    public void notifyLobbyState(AvailableGamesListEvent dto) {
+    public void notifyLobbyState(AvailableLobbiesEvent dto) {
         // dto is pushed to client
         sendMessageToClient(dto);
     }
 
     @Override
     public void notifyLobbyRoomUpdated(LobbyStateUpdatedEvent dto) {
+        // dto is pushed to client
+        sendMessageToClient(dto);
+    }
+
+    @Override
+    public void notifyLobbyError(LobbyErrorEvent dto) {
         // dto is pushed to client
         sendMessageToClient(dto);
     }
@@ -161,7 +180,7 @@ public class VirtualViewImpl implements VirtualView, NetworkNode {
     }
 
     @Override
-    public void notifyError(InvalidActionEvent dto) {
+    public void notifyError(GameErrorEvent dto) {
         // dto is pushed to client
         sendMessageToClient(dto);
     }
