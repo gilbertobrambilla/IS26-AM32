@@ -4,6 +4,8 @@ module it.polimi.ingsw.am32 {
     requires java.sql;
     requires com.fasterxml.jackson.databind;
     requires java.rmi;
+    requires org.jline.reader;
+    requires org.jline.terminal;
 
 
     opens it.polimi.ingsw.am32 to javafx.fxml;
