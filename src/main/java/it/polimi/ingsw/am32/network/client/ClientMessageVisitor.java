@@ -1,9 +1,7 @@
 package it.polimi.ingsw.am32.network.client;
 
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
-import it.polimi.ingsw.am32.dto.messages.lobby.events.AvailableGamesListEvent;
-import it.polimi.ingsw.am32.dto.messages.lobby.events.ConnectionResultEvent;
-import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 
 /**
  * Interface defining the visitor for client messages.
@@ -15,7 +13,7 @@ public interface ClientMessageVisitor {
      *
      * @param message The message to be visited.
      */
-    void visit(AvailableGamesListEvent message);
+    void visit(AvailableLobbiesEvent message);
 
     /**
      * Visits a lobby state updated event.
@@ -23,6 +21,13 @@ public interface ClientMessageVisitor {
      * @param message The message to be visited.
      */
     void visit(LobbyStateUpdatedEvent message);
+
+    /**
+     * Visits a lobby error event.
+     *
+     * @param message The message to be visited.
+     */
+    void visit(LobbyErrorEvent message);
 
     /**
      * Visits an action resolved event.
@@ -71,7 +76,7 @@ public interface ClientMessageVisitor {
      *
      * @param message The message to be visited.
      */
-    void visit(InvalidActionEvent message);
+    void visit(GameErrorEvent message);
 
     /**
      * Visits a player disconnected event.
