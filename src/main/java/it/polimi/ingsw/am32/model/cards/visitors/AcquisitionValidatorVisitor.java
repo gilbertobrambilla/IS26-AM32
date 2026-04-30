@@ -4,7 +4,7 @@ import it.polimi.ingsw.am32.model.cards.CardVisitor;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.model.cards.acquirable.characters.CharacterCard;
 import it.polimi.ingsw.am32.model.cards.events.EventCard;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
 
 import java.util.List;
@@ -25,7 +25,7 @@ public class AcquisitionValidatorVisitor implements CardVisitor {
 
         // exception is thrown immediately to prevent event acquisition
         throw new InvalidActionException(
-                InvalidActionReason.EVENT_CARD_NOT_ALLOWED,
+                GameErrorReason.EVENT_CARD_NOT_ALLOWED,
                 "event cards cannot be selected"
         );
     }

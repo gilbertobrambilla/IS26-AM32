@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.model.tiles;
 
 import it.polimi.ingsw.am32.model.Player;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
 
 import java.util.Objects;
@@ -33,7 +33,7 @@ public class OfferTile extends Tile{
         if (!isFree()) {
             // exception is thrown if the tile is already occupied
             throw new InvalidActionException(
-                    InvalidActionReason.TILE_ALREADY_OCCUPIED,
+                    GameErrorReason.TILE_ALREADY_OCCUPIED,
                     "cannot place player: offer tile is already occupied"
             );
         }

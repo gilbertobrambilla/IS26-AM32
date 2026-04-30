@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.model.tiles;
 
 import it.polimi.ingsw.am32.model.Player;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
 import it.polimi.ingsw.am32.model.receipts.TurnOrderPlacementReceipt;
 
@@ -43,7 +43,7 @@ public class TurnOrderTile extends Tile {
         if (isFull()) {
             // exception is thrown if the turn order tile is full
             throw new InvalidActionException(
-                    InvalidActionReason.TURN_ORDER_TILE_FULL,
+                    GameErrorReason.TURN_ORDER_TILE_FULL,
                     "turn order tile is already occupied"
             );
         }

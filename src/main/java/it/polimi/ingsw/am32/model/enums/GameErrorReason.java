@@ -1,6 +1,9 @@
 package it.polimi.ingsw.am32.model.enums;
 
-public enum InvalidActionReason {
+/**
+ * Represents the possible reasons for a game action failure.
+ */
+public enum GameErrorReason {
     PLAYER_NOT_ON_TILE,
     CARD_NOT_FOUND,
     EVENT_CARD_NOT_ALLOWED,
@@ -9,5 +12,6 @@ public enum InvalidActionReason {
     TILE_ALREADY_OCCUPIED,
     TURN_ORDER_TILE_FULL,
     OFFER_TILE_NOT_FOUND,
-    PREGAME_DESTROYED_HOST_DISCONNECTED
+    PREGAME_DESTROYED_HOST_DISCONNECTED,
+    ACTION_DENIED_GAME_SUSPENDED
 }

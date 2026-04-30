@@ -8,7 +8,7 @@ import it.polimi.ingsw.am32.model.cards.visitors.AcquisitionValidatorVisitor;
 import it.polimi.ingsw.am32.model.cards.visitors.EventCollectorVisitor;
 import it.polimi.ingsw.am32.model.cards.visitors.RowDistributionVisitor;
 import it.polimi.ingsw.am32.model.enums.GamePhase;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.model.enums.StatChangeReason;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
@@ -166,7 +166,7 @@ public class GameState {
         // tile existence is verified
         if (targetTile == null) {
             throw new InvalidActionException(
-                    InvalidActionReason.OFFER_TILE_NOT_FOUND,
+                    GameErrorReason.OFFER_TILE_NOT_FOUND,
                     "offer tile " + selectedOfferTileId + " does not exist"
             );
         }
@@ -231,7 +231,7 @@ public class GameState {
         // target tile existence is verified
         if (targetTile == null) {
             throw new InvalidActionException(
-                    InvalidActionReason.PLAYER_NOT_ON_TILE,
+                    GameErrorReason.PLAYER_NOT_ON_TILE,
                     "player is not occupying any offer tile"
             );
         }
@@ -273,7 +273,7 @@ public class GameState {
             }
             if (!found) {
                 throw new InvalidActionException(
-                        InvalidActionReason.CARD_NOT_FOUND,
+                        GameErrorReason.CARD_NOT_FOUND,
                         "character card " + id + " is not available on the board"
                 );
             }
@@ -302,7 +302,7 @@ public class GameState {
             }
             if (!found) {
                 throw new InvalidActionException(
-                        InvalidActionReason.CARD_NOT_FOUND,
+                        GameErrorReason.CARD_NOT_FOUND,
                         "building card " + id + " is not available on the board"
                 );
             }
@@ -314,7 +314,7 @@ public class GameState {
 
         if (!targetTile.isValidSelection(requestedUpper, requestedLower, totalUpperSize, totalLowerSize)) {
             throw new InvalidActionException(
-                    InvalidActionReason.INVALID_SELECTION_AMOUNT,
+                    GameErrorReason.INVALID_SELECTION_AMOUNT,
                     "selected cards do not match offer tile constraints"
             );
         }
@@ -465,7 +465,7 @@ public class GameState {
         // tile existence is verified
         if (targetTile == null) {
             throw new InvalidActionException(
-                    InvalidActionReason.PLAYER_NOT_ON_TILE,
+                    GameErrorReason.PLAYER_NOT_ON_TILE,
                     "player is not occupying any offer tile"
             );
         }
@@ -579,7 +579,7 @@ public class GameState {
         // card existence is verified
         if (targetCard == null) {
             throw new InvalidActionException(
-                    InvalidActionReason.CARD_NOT_FOUND,
+                    GameErrorReason.CARD_NOT_FOUND,
                     "card " + cardId + " is not available in the upper row"
             );
         }
@@ -825,6 +825,15 @@ public class GameState {
 
     public int getTribeDeckFirstCardEra() {
         return this.tribeDeck.getFirstCardEra();
+    }
+
+    /**
+     * Returns the unique identifier of the turn order tile currently in use.
+     * * @return The string identifier of the tile.
+     */
+    public String getTurnOrderTileId() {
+        // tile identifier is retrieved from model entity
+        return this.turnOrderTile.getId();
     }
 
     public Map<Integer, Deck<BuildingCard>> getBuildingDecks() {
