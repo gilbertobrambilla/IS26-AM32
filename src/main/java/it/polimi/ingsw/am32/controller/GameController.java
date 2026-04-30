@@ -3,14 +3,16 @@ package it.polimi.ingsw.am32.controller;
 import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import it.polimi.ingsw.am32.dto.messages.game.models.*;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.ConnectionResultEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyErrorEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.models.LobbyInfoDTO;
 import it.polimi.ingsw.am32.model.GameResult;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
-import it.polimi.ingsw.am32.model.cards.Card;
-import it.polimi.ingsw.am32.model.cards.acquirable.buildings.BuildingCard;
-import it.polimi.ingsw.am32.model.cards.acquirable.characters.CharacterCard;
 import it.polimi.ingsw.am32.model.enums.GamePhase;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.model.enums.GameErrorReason;
+import it.polimi.ingsw.am32.model.enums.LobbyErrorReason;
 import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
 import it.polimi.ingsw.am32.model.receipts.*;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
@@ -22,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.Collectors;
 
 /**
@@ -30,17 +32,14 @@ import java.util.stream.Collectors;
  * It handles client commands, updates the game state, and pushes updates to the views.
  */
 public class GameController implements Runnable {
-
     private final int gameId;
     private final GameState gameState;
     private final GameLifecycleCallback lifecycleCallback;
     private final Map<String, PlayerSession> activeClients;
-    private final BlockingQueue<Runnable> commandQueue;
+    private final BlockingQueue<PrioritizedTask> commandQueue;
     private boolean isSuspended;
     private boolean started;
     private final Object suspendLock = new Object();
-
-    // timeout is defined in milliseconds
     private static final long FORFEIT_TIMEOUT_MS = 60000;
 
     /**
@@ -55,22 +54,127 @@ public class GameController implements Runnable {
         this.gameState = gameState;
         this.lifecycleCallback = lifecycleCallback;
         this.activeClients = new ConcurrentHashMap<>();
-        this.commandQueue = new LinkedBlockingQueue<>();
+        this.commandQueue = new PriorityBlockingQueue<>();
         this.isSuspended = false;
         this.started = false;
     }
 
     /**
+     * Broadcasts the current waiting room state to all players inside this game.
+     */
+    public void broadcastWaitingRoomState() {
+        // lobby info dto is built
+        LobbyInfoDTO infoDTO = new LobbyInfoDTO(
+                this.gameId,
+                this.getCurrentPlayersCount(),
+                getPlayersNicknames(),
+                getTargetPlayersCount()
+        );
+
+        // waiting room event is built with the info dto
+        LobbyStateUpdatedEvent eventDTO = new LobbyStateUpdatedEvent(infoDTO);
+
+        // event is broadcasted to all active clients
+        for (PlayerSession session : this.activeClients.values()) {
+            session.getView().notifyLobbyRoomUpdated(eventDTO);
+        }
+    }
+
+    /**
      * Adds a newly connected player to the game state and active client list.
      *
-     * @param nickname the unique nickname of the player
-     * @param view the virtual view handling the connection to the player's client
-     * @param player the player model instance
+     * @param nickname The unique nickname of the player.
+     * @param view     The virtual view handling the connection to the player's client.
+     * @param player   The player model instance.
+     * @param onSuccess The callback to execute after the player is added.
      */
-    public void addPlayerToGame(String nickname, GameView view, Player player) {
+    void addPlayerToGame(String nickname, GameView view, Player player, Runnable onSuccess) {
         // player is added to active clients and model
         this.activeClients.put(nickname, new PlayerSession(player, view));
         this.gameState.addPlayer(player);
+
+        // success callback is executed
+        if (onSuccess != null) {
+            onSuccess.run();
+        }
+    }
+
+    /**
+     * Processes a player disconnection before the game has started.
+     *
+     * @param nickname   The nickname of the disconnected player.
+     * @param onComplete The callback to execute after the disconnection is processed.
+     */
+    public void processPregameDisconnect(String nickname, Runnable onComplete) {
+        // player session is removed
+        PlayerSession session = this.activeClients.remove(nickname);
+
+        if (session != null) {
+            // player is removed from game state via model method
+            this.gameState.removePlayer(nickname);
+
+            // updated waiting room state is broadcasted
+            broadcastWaitingRoomState();
+
+            // menu update callback is triggered
+            if (onComplete != null) {
+                onComplete.run();
+            }
+        }
+    }
+
+    /**
+     * Processes a join request from the lobby asynchronously.
+     *
+     * @param nickname  The nickname of the joining player.
+     * @param view      The virtual view of the player.
+     * @param onSuccess The callback to execute if the join is successful.
+     */
+    public void processJoinRequest(String nickname, VirtualView view, Runnable onSuccess) {
+        // capacity and game state are checked to prevent race conditions
+        if (this.getCurrentPlayersCount() < this.getTargetPlayersCount() && !this.isStarted()) {
+            // player is instantiated
+            Player player = new Player(nickname);
+
+            // player is added to active clients and model
+            this.activeClients.put(nickname, new PlayerSession(player, view));
+            this.gameState.addPlayer(player);
+
+            // success callback is executed
+            if (onSuccess != null) {
+                onSuccess.run();
+            }
+
+            // waiting room state is broadcasted
+            this.broadcastWaitingRoomState();
+
+            // game initialization is triggered if capacity is reached
+            if (this.getCurrentPlayersCount() == this.getTargetPlayersCount()) {
+                this.startGame();
+            }
+        } else {
+            // error is notified if game is full or started
+            view.notifyLobbyError(new LobbyErrorEvent(LobbyErrorReason.GAME_FULL_OR_STARTED, "game full or already started"));
+        }
+    }
+
+    /**
+     * Notifies the specific client that their requested action was denied due to the game being suspended.
+     *
+     * @param nickname the nickname of the player issuing the command.
+     */
+    private void notifySuspendedActionDenied(String nickname) {
+        PlayerSession session = this.activeClients.get(nickname);
+        if (session != null) {
+            // error dto is built
+            GameErrorEvent errorDTO = new GameErrorEvent(
+                    nickname,
+                    GameErrorReason.ACTION_DENIED_GAME_SUSPENDED,
+                    "action denied because the game is currently suspended"
+            );
+            // view is notified
+            session.getView().notifyError(errorDTO);
+        }
     }
 
     /**
@@ -80,17 +184,15 @@ public class GameController implements Runnable {
         // game is initialized and started flag is set
         this.gameState.initGame();
         this.started = true;
-
-        // initial game state is built
-        GameStateDTO initialState = buildGameStateDTO();
-
+        // active client nicknames are extracted
+        List<String> activeNicknames = new ArrayList<>(this.activeClients.keySet());
+        // initial game state is built via mapper
+        GameStateDTO initialState = GameDTOMapper.buildGameStateDTO(this.gameId, this.gameState, activeNicknames);
         // next player is retrieved from model
         String nextPlayer = this.gameState.getCurrentPlayer() != null ?
                 this.gameState.getCurrentPlayer().getNickname() : null;
-
         // game started event is built
         GameStartedEvent eventDTO = new GameStartedEvent(initialState, nextPlayer);
-
         // event is broadcasted to all connected clients
         for (PlayerSession session : this.activeClients.values()) {
             session.getView().notifyGameStarted(eventDTO);
@@ -100,36 +202,37 @@ public class GameController implements Runnable {
     /**
      * Adds a game command received from a client to the execution queue.
      *
-     * @param command the command object encapsulating the player's request
-     * @param playerNickname the nickname of the player issuing the command
+     * @param command the command object encapsulating the player's request.
+     * @param playerNickname the nickname of the player issuing the command.
      */
     public void enqueueCommand(GameCommand command, String playerNickname) {
-        // game command is enqueued for sequential execution
-        this.commandQueue.add(() -> command.execute(this, playerNickname));
+        // game command is enqueued with normal priority
+        this.commandQueue.add(new PrioritizedTask(2, () -> command.execute(this, playerNickname)));
     }
 
     /**
      * Adds an internal system task to the execution queue.
      *
-     * @param task the runnable task to be executed
+     * @param task the runnable task to be executed.
      */
     public void enqueueSystemTask(Runnable task) {
-        // internal system task is enqueued
-        this.commandQueue.add(task);
+        // internal system task is enqueued with high priority
+        this.commandQueue.add(new PrioritizedTask(1, task));
     }
 
     /**
      * Main execution loop for the game controller thread.
-     * Processes tasks from the command queue sequentially.
+     * Processes tasks from the command queue sequentially based on priority.
      */
     @Override
     public void run() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                // tasks are retrieved and executed from the queue
-                Runnable task = this.commandQueue.take();
+                // prioritized task is retrieved from the queue
+                PrioritizedTask prioritizedTask = this.commandQueue.take();
                 try {
-                    task.run();
+                    // task is executed
+                    prioritizedTask.run();
                 } catch (Exception e) {
                     System.err.println("task execution failed in game " + this.gameId + ": " + e.getMessage());
                 }
@@ -146,82 +249,27 @@ public class GameController implements Runnable {
      */
     private void autoAdvanceGameIfNecessary() {
         if (isGameSuspended()) return;
-
         GamePhase initialPhase = this.gameState.getCurrentPhase();
         boolean advanced = true;
-
         // phases without user input are resolved automatically
         while (advanced && !isGameSuspended()) {
             advanced = false;
-
             if (this.gameState.getCurrentPhase() == GamePhase.RESOLVE_EVENTS) {
-                // events are resolved on the model and receipts are collected
-                List<EventResolutionReceipt> eventReceipts = this.gameState.resolveEvents();
-
-                // next player is retrieved from model
-                String nextPlayer = this.gameState.getCurrentPlayer() != null ?
-                        this.gameState.getCurrentPlayer().getNickname() : null;
-
-                // each event receipt is mapped and broadcasted separately
-                for (EventResolutionReceipt receipt : eventReceipts) {
-                    // stats changes are mapped to dtos
-                    List<PlayerStatsChangedDTO> statChangesDTO = mapStatsChangesList(receipt.getStatChanges());
-
-                    // event resolved event is built
-                    EventResolvedEvent eventDTO = new EventResolvedEvent(receipt.getEventCardId(), statChangesDTO, nextPlayer);
-
-                    // event is broadcasted to all connected clients
-                    for (PlayerSession session : this.activeClients.values()) {
-                        session.getView().notifyEventResolved(eventDTO);
-                    }
-                }
-
+                // events resolution is handled
+                handleAutomaticEventsResolution();
                 advanced = true;
-            }
-
-            if (this.gameState.getCurrentPhase() == GamePhase.END_ROUND) {
+            } else if (this.gameState.getCurrentPhase() == GamePhase.END_ROUND) {
                 // endgame conditions are checked
                 if (this.gameState.getCurrentRound() == 10 || this.gameState.getTribeDeckSize() == 0) {
                     handleGameEnd();
                     return;
                 } else {
-                    // round is ended on the model
-                    this.gameState.endRound();
-
-                    // round end details are retrieved from model
-                    int newRoundNumber = this.gameState.getCurrentRound();
-                    int newEraNumber = this.gameState.getCurrentEra();
-
-                    // absolute board state is fetched from model and mapped to dtos
-                    List<CardDTO> upperTribeRow = mapCharacterCardsList(this.gameState.getUpperTribeRow());
-                    List<CardDTO> lowerTribeRow = mapCharacterCardsList(this.gameState.getLowerTribeRow());
-                    List<CardDTO> upperBuildingRow = mapBuildingCardsList(this.gameState.getUpperBuildingRow());
-                    List<CardDTO> lowerBuildingRow = mapBuildingCardsList(this.gameState.getLowerBuildingRow());
-
-                    String nextPlayer = this.gameState.getCurrentPlayer() != null ?
-                            this.gameState.getCurrentPlayer().getNickname() : null;
-
-                    // round ended event is built with the absolute state
-                    RoundEndedEvent eventDTO = new RoundEndedEvent(
-                            newRoundNumber,
-                            newEraNumber,
-                            upperTribeRow,
-                            lowerTribeRow,
-                            upperBuildingRow,
-                            lowerBuildingRow,
-                            nextPlayer
-                    );
-
-                    // event is broadcasted to all connected clients
-                    for (PlayerSession session : this.activeClients.values()) {
-                        session.getView().notifyRoundEnded(eventDTO);
-                    }
-
+                    // round end is handled
+                    handleAutomaticRoundEnd();
                     advanced = true;
                 }
             }
         }
-
         // phase change notification is broadcasted if phase advanced
         if (initialPhase != this.gameState.getCurrentPhase()) {
             String nextPlayer = this.gameState.getCurrentPlayer() != null ?
@@ -231,9 +279,62 @@ public class GameController implements Runnable {
                 session.getView().notifyGamePhaseChanged(phaseDTO);
             }
         }
-
         // disconnected player turn is evaluated
         checkAndSkipDisconnectedPlayerTurn();
+    }
+
+    /**
+     * Handles the automatic resolution of game events.
+     */
+    private void handleAutomaticEventsResolution() {
+        // events are resolved on the model and receipts are collected
+        List<EventResolutionReceipt> eventReceipts = this.gameState.resolveEvents();
+        // next player is retrieved from model
+        String nextPlayer = this.gameState.getCurrentPlayer() != null ?
+                this.gameState.getCurrentPlayer().getNickname() : null;
+        // each event receipt is mapped and broadcasted separately
+        for (EventResolutionReceipt receipt : eventReceipts) {
+            // stats changes are mapped to dtos via mapper
+            List<PlayerStatsChangedDTO> statChangesDTO = GameDTOMapper.mapStatsChangesList(receipt.getStatChanges());
+            // event resolved event is built
+            EventResolvedEvent eventDTO = new EventResolvedEvent(receipt.getEventCardId(), statChangesDTO, nextPlayer);
+            // event is broadcasted to all connected clients
+            for (PlayerSession session : this.activeClients.values()) {
+                session.getView().notifyEventResolved(eventDTO);
+            }
+        }
+    }
+
+    /**
+     * Handles the automatic round end procedures.
+     */
+    private void handleAutomaticRoundEnd() {
+        // round is ended on the model
+        this.gameState.endRound();
+        // round end details are retrieved from model
+        int newRoundNumber = this.gameState.getCurrentRound();
+        int newEraNumber = this.gameState.getCurrentEra();
+        // absolute board state is fetched from model and mapped to dtos via mapper
+        List<CardDTO> upperTribeRow = GameDTOMapper.mapCharacterCardsList(this.gameState.getUpperTribeRow());
+        List<CardDTO> lowerTribeRow = GameDTOMapper.mapCharacterCardsList(this.gameState.getLowerTribeRow());
+        List<CardDTO> upperBuildingRow = GameDTOMapper.mapBuildingCardsList(this.gameState.getUpperBuildingRow());
+        List<CardDTO> lowerBuildingRow = GameDTOMapper.mapBuildingCardsList(this.gameState.getLowerBuildingRow());
+        String nextPlayer = this.gameState.getCurrentPlayer() != null ?
+                this.gameState.getCurrentPlayer().getNickname() : null;
+        // round ended event is built with the absolute state
+        RoundEndedEvent eventDTO = new RoundEndedEvent(
+                newRoundNumber,
+                newEraNumber,
+                upperTribeRow,
+                lowerTribeRow,
+                upperBuildingRow,
+                lowerBuildingRow,
+                nextPlayer
+        );
+        // event is broadcasted to all connected clients
+        for (PlayerSession session : this.activeClients.values()) {
+            session.getView().notifyRoundEnded(eventDTO);
+        }
     }
 
     /**
@@ -243,26 +344,20 @@ public class GameController implements Runnable {
     public void forceSkipCurrentPlayerTurn() {
         Player currentPlayer = this.gameState.getCurrentPlayer();
         if (currentPlayer == null) return;
-
         String currentNickname = currentPlayer.getNickname();
         GamePhase currentPhase = this.gameState.getCurrentPhase();
-
         if (currentPhase == GamePhase.PLACE_TOTEMS) {
             List<OfferTile> track = this.gameState.getOfferTrack();
             for (int i = track.size() - 1; i >= 0; i--) {
                 if (track.get(i).isFree()) {
                     String tileId = track.get(i).getId();
-
                     // totem is placed automatically on available tile
                     this.gameState.placeTotem(currentNickname, tileId);
-
                     // next player is retrieved from model
                     String nextPlayer = this.gameState.getCurrentPlayer() != null ?
                             this.gameState.getCurrentPlayer().getNickname() : null;
-
                     // totem placed event is built with autoplayed flag set to true
                     TotemPlacedEvent eventDTO = new TotemPlacedEvent(currentNickname, tileId, nextPlayer, true);
-
                     // event is broadcasted to all connected clients
                     for (PlayerSession session : this.activeClients.values()) {
                         session.getView().notifyTotemPlaced(eventDTO);
@@ -271,17 +366,13 @@ public class GameController implements Runnable {
                 }
             }
         } else if (currentPhase == GamePhase.RESOLVE_ACTIONS) {
-
             // action is forfeited automatically and receipt is captured
             ActionReceipt receipt = this.gameState.forfeitAction(currentNickname);
-
-            // receipts are mapped to dtos
-            List<PlayerStatsChangedDTO> statsDTOs = mapStatsChangesList(receipt.getStatsChanges());
-            TotemReturnedDTO totemDTO = mapTotemReturn(receipt.getTotemDetails());
-
+            // receipts are mapped to dtos via mapper
+            List<PlayerStatsChangedDTO> statsDTOs = GameDTOMapper.mapStatsChangesList(receipt.getStatsChanges());
+            TotemReturnedDTO totemDTO = GameDTOMapper.mapTotemReturn(receipt.getTotemDetails());
             // next player is extracted directly from the receipt
             String nextPlayer = receipt.getTotemDetails().getNextPlayerNickname();
-
             // action resolved event is built with autoplayed flag set to true
             ActionResolvedEvent eventDTO = new ActionResolvedEvent(
                     currentNickname,
@@ -292,17 +383,14 @@ public class GameController implements Runnable {
                     nextPlayer,
                     true
             );
-
             // event is broadcasted to all connected clients
             for (PlayerSession session : this.activeClients.values()) {
                 session.getView().notifyActionResolved(eventDTO);
             }
         } else if (currentPhase == GamePhase.EXTRA_ACQUISITION) {
-
             // phase is advanced manually on the model
             this.gameState.setCurrentPhase(GamePhase.RESOLVE_EVENTS);
             this.gameState.setCurrentPlayer(null);
-
             // extra acquisition event is built with empty lists and autoplayed flag
             ExtraAcquisitionResolvedEvent eventDTO = new ExtraAcquisitionResolvedEvent(
                     currentNickname,
@@ -311,7 +399,6 @@ public class GameController implements Runnable {
                     null,
                     true
             );
-
             // event is broadcasted to all connected clients
             for (PlayerSession session : this.activeClients.values()) {
                 session.getView().notifyExtraAcquisitionResolved(eventDTO);
@@ -342,7 +429,11 @@ public class GameController implements Runnable {
      * @param tileId the identifier of the offer tile chosen
      */
     public void processPlaceTotem(String nickname, String tileId) {
-        if (isGameSuspended()) return;
+        if (isGameSuspended()) {
+            // suspended error is notified
+            notifySuspendedActionDenied(nickname);
+            return;
+        }
 
         PlayerSession session = this.activeClients.get(nickname);
         if (session != null) {
@@ -367,7 +458,7 @@ public class GameController implements Runnable {
 
             } catch (InvalidActionException e) {
                 // error dto is built and sent only to the specific client
-                InvalidActionEvent errorDTO = new InvalidActionEvent(nickname, e.getReason(), e.getMessage());
+                GameErrorEvent errorDTO = new GameErrorEvent(nickname, e.getReason(), e.getMessage());
                 session.getView().notifyError(errorDTO);
             }
         }
@@ -381,21 +472,21 @@ public class GameController implements Runnable {
      * @param buildings the list of building card IDs acquired
      */
     public void processResolveAction(String nickname, List<String> characters, List<String> buildings) {
-        if (isGameSuspended()) return;
-
+        if (isGameSuspended()) {
+            // suspended error is notified
+            notifySuspendedActionDenied(nickname);
+            return;
+        }
         PlayerSession session = this.activeClients.get(nickname);
         if (session != null) {
             try {
                 // action resolution is executed on the model and receipt is captured
                 ActionReceipt receipt = this.gameState.resolveAction(session.getPlayer().getNickname(), characters, buildings);
-
-                // receipts are mapped to dtos
-                List<PlayerStatsChangedDTO> statsDTOs = mapStatsChangesList(receipt.getStatsChanges());
-                TotemReturnedDTO totemDTO = mapTotemReturn(receipt.getTotemDetails());
-
+                // receipts are mapped to dtos via mapper
+                List<PlayerStatsChangedDTO> statsDTOs = GameDTOMapper.mapStatsChangesList(receipt.getStatsChanges());
+                TotemReturnedDTO totemDTO = GameDTOMapper.mapTotemReturn(receipt.getTotemDetails());
                 // next player is extracted directly from the receipt
                 String nextPlayer = receipt.getTotemDetails().getNextPlayerNickname();
-
                 // dto is instantiated with the mapped data
                 ActionResolvedEvent eventDTO = new ActionResolvedEvent(
                         nickname,
@@ -406,18 +497,15 @@ public class GameController implements Runnable {
                         nextPlayer,
                         false
                 );
-
                 // event is broadcasted to all connected clients
                 for (PlayerSession s : this.activeClients.values()) {
                     s.getView().notifyActionResolved(eventDTO);
                 }
-
                 // game phase is advanced if necessary
                 autoAdvanceGameIfNecessary();
-
             } catch (InvalidActionException e) {
                 // error dto is built and sent only to the specific client
-                InvalidActionEvent errorDTO = new InvalidActionEvent(nickname, e.getReason(), e.getMessage());
+                GameErrorEvent errorDTO = new GameErrorEvent(nickname, e.getReason(), e.getMessage());
                 session.getView().notifyError(errorDTO);
             }
         }
@@ -455,7 +543,7 @@ public class GameController implements Runnable {
      * @param nickname the nickname of the reconnected player
      * @param newView the new view associated with the reconnected player
      */
-    public void processReconnect(String nickname, GameView newView) {
+    public void processReconnect(String nickname, VirtualView newView) {
         // player is retrieved from model to restore session
         Player reconnectedPlayer = this.gameState.getPlayers().stream()
                 .filter(p -> p.getNickname().equals(nickname))
@@ -463,6 +551,14 @@ public class GameController implements Runnable {
                 .orElse(null);
 
         if (reconnectedPlayer != null) {
+            if (this.activeClients.containsKey(nickname)) {
+                // rejection is notified
+                newView.notifyConnectionResult(new ConnectionResultEvent(false, "nickname is already active in game"));
+                // virtual view is destroyed cleanly
+                newView.destroy();
+                return;
+            }
+
             // session is restored
             PlayerSession session = new PlayerSession(reconnectedPlayer, newView);
             this.activeClients.put(nickname, session);
@@ -512,21 +608,21 @@ public class GameController implements Runnable {
      * @param cardId the id of the acquired character or building card
      */
     public void processExtraAcquisition(String nickname, String cardId) {
-        if (isGameSuspended()) return;
-
+        if (isGameSuspended()) {
+            // suspended error is notified
+            notifySuspendedActionDenied(nickname);
+            return;
+        }
         PlayerSession session = this.activeClients.get(nickname);
         if (session != null) {
             try {
                 // extra acquisition is resolved on the model and receipt is captured
                 ExtraAcquisitionReceipt receipt = this.gameState.resolveExtraAcquisition(nickname, cardId);
-
-                // receipts are mapped to dtos
-                List<PlayerStatsChangedDTO> statsDTOs = mapStatsChangesList(receipt.getStatsChanges());
-
+                // receipts are mapped to dtos via mapper
+                List<PlayerStatsChangedDTO> statsDTOs = GameDTOMapper.mapStatsChangesList(receipt.getStatsChanges());
                 // next player is retrieved from model (not present in extra acquisition receipt)
                 String nextPlayer = this.gameState.getCurrentPlayer() != null ?
                         this.gameState.getCurrentPlayer().getNickname() : null;
-
                 // extra acquisition event is built using the mapped list
                 ExtraAcquisitionResolvedEvent eventDTO = new ExtraAcquisitionResolvedEvent(
                         nickname,
@@ -535,18 +631,15 @@ public class GameController implements Runnable {
                         nextPlayer,
                         false
                 );
-
                 // event is broadcasted to all connected clients
                 for (PlayerSession s : this.activeClients.values()) {
                     s.getView().notifyExtraAcquisitionResolved(eventDTO);
                 }
-
                 // game phase is advanced if necessary
                 autoAdvanceGameIfNecessary();
-
             } catch (InvalidActionException e) {
                 // error dto is built and sent only to the specific client
-                InvalidActionEvent errorDTO = new InvalidActionEvent(nickname, e.getReason(), e.getMessage());
+                GameErrorEvent errorDTO = new GameErrorEvent(nickname, e.getReason(), e.getMessage());
                 session.getView().notifyError(errorDTO);
             }
         }
@@ -649,58 +742,15 @@ public class GameController implements Runnable {
     }
 
     /**
-     * Builds a comprehensive snapshot of the current game state.
-     *
-     * @return the generated GameStateDTO containing the full state of the game
-     */
-    private GameStateDTO buildGameStateDTO() {
-        // players are mapped to dtos
-        List<PlayerDTO> playersDTO = this.gameState.getPlayers().stream()
-                .map(this::mapPlayer)
-                .collect(Collectors.toList());
-
-        // rows are retrieved from model and mapped to dtos
-        List<CardDTO> upperTribeRowDTO = mapCharacterCardsList(this.gameState.getUpperTribeRow());
-        List<CardDTO> lowerTribeRowDTO = mapCharacterCardsList(this.gameState.getLowerTribeRow());
-        List<CardDTO> upperBuildingRowDTO = mapBuildingCardsList(this.gameState.getUpperBuildingRow());
-        List<CardDTO> lowerBuildingRowDTO = mapBuildingCardsList(this.gameState.getLowerBuildingRow());
-
-        // offer track is mapped to dtos
-        List<OfferTileDTO> offerTrackDTO = this.gameState.getOfferTrack().stream()
-                .map(this::mapOfferTile)
-                .collect(Collectors.toList());
-
-        // turn order is extracted as a list of nicknames
-        List<String> turnOrderDTO = this.gameState.getTurnOrder().stream()
-                .map(Player::getNickname)
-                .collect(Collectors.toList());
-
-        return new GameStateDTO(
-                this.gameId,
-                playersDTO,
-                upperTribeRowDTO,
-                lowerTribeRowDTO,
-                upperBuildingRowDTO,
-                lowerBuildingRowDTO,
-                offerTrackDTO,
-                turnOrderDTO,
-                this.gameState.getTribeDeckSize(),
-                this.gameState.getTribeDeckFirstCardEra(),
-                this.gameState.getCurrentRound(),
-                this.gameState.getCurrentEra(),
-                this.gameState.getCurrentPhase(),
-                this.gameState.getCurrentPlayer() != null ? this.gameState.getCurrentPlayer().getNickname() : null
-        );
-    }
-
-    /**
      * Builds a comprehensive snapshot of the current game state wrapped in a network event.
      *
      * @return the generated GameStateEvent containing the full state of the game.
      */
     private GameStateEvent buildGameStateEvent() {
-        // game state dto is built and wrapped in the dedicated event
-        return new GameStateEvent(buildGameStateDTO());
+        // active client nicknames are extracted
+        List<String> activeNicknames = new ArrayList<>(this.activeClients.keySet());
+        // game state dto is built via mapper and wrapped in the dedicated event
+        return new GameStateEvent(GameDTOMapper.buildGameStateDTO(this.gameId, this.gameState, activeNicknames));
     }
 
     /**
@@ -750,9 +800,9 @@ public class GameController implements Runnable {
         for (PlayerSession session : this.activeClients.values()) {
 
             // error dto is built using the specific enum for pregame destruction
-            InvalidActionEvent errorDTO = new InvalidActionEvent(
+            GameErrorEvent errorDTO = new GameErrorEvent(
                     session.getPlayer().getNickname(),
-                    InvalidActionReason.PREGAME_DESTROYED_HOST_DISCONNECTED,
+                    GameErrorReason.PREGAME_DESTROYED_HOST_DISCONNECTED,
                     "the unstarted game has been destroyed due to a player disconnection"
             );
 
@@ -826,130 +876,5 @@ public class GameController implements Runnable {
                 }).start();
             }
         }
-    }
-
-    /**
-     * Maps a single player stats change receipt to its corresponding dto.
-     *
-     * @param receipt the receipt from the model
-     * @return the mapped dto, or null if the receipt is null
-     */
-    private PlayerStatsChangedDTO mapStatsChange(PlayerStatsChangeReceipt receipt) {
-        if (receipt == null) return null;
-        return new PlayerStatsChangedDTO(
-                receipt.getPlayerNickname(),
-                receipt.getFoodChange(),
-                receipt.getPrestigeChange(),
-                receipt.getCurrentFood(),
-                receipt.getCurrentPrestige(),
-                receipt.getReason()
-        );
-    }
-
-    /**
-     * Maps a list of player stats change receipts to a list of dtos.
-     *
-     * @param receipts the list of receipts from the model
-     * @return the mapped list of dtos
-     */
-    private List<PlayerStatsChangedDTO> mapStatsChangesList(List<PlayerStatsChangeReceipt> receipts) {
-        if (receipts == null) return new ArrayList<>();
-        return receipts.stream()
-                .map(this::mapStatsChange)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Maps a totem return receipt to its corresponding dto.
-     *
-     * @param receipt the receipt from the model
-     * @return the mapped dto, or null if the receipt is null
-     */
-    private TotemReturnedDTO mapTotemReturn(TotemReturnReceipt receipt) {
-        if (receipt == null) return null;
-        return new TotemReturnedDTO(
-                receipt.getPlayerNickname(),
-                receipt.getTurnOrderPosition(),
-                mapStatsChange(receipt.getStatsChange()),
-                receipt.getNextPlayerNickname()
-        );
-    }
-
-    /**
-     * A list of building card models is mapped to a list of card dtos.
-     *
-     * @param buildings the list of building card models to be mapped
-     * @return the mapped list of card dtos
-     */
-    private List<CardDTO> mapBuildingCardsList(List<BuildingCard> buildings) {
-        if (buildings == null) return new ArrayList<>();
-
-        // building cards are processed as a stream and mapped individually
-        return buildings.stream()
-                .map(building -> new CardDTO(
-                        building.getId()
-                ))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * A list of tribe card models is mapped to a list of card dtos.
-     *
-     * @param characters the list of tribe card models to be mapped
-     * @return the mapped list of card dtos
-     */
-    private List<CardDTO> mapCharacterCardsList(List<Card> characters) {
-        if (characters == null) return new ArrayList<>();
-
-        // character cards are processed as a stream, cast and mapped individually
-        return characters.stream()
-                .map(card -> {
-                    // card is safely cast to character card based on game rules
-                    CharacterCard character = (CharacterCard) card;
-
-                    return new CardDTO(
-                            character.getId()
-                    );
-                })
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Player model is mapped to a player dto.
-     *
-     * @param player the player model
-     * @return the mapped player dto
-     */
-    private PlayerDTO mapPlayer(Player player) {
-        if (player == null) return null;
-
-        // player cards are mapped to dtos
-        List<CardDTO> characterCards = mapCharacterCardsList(new ArrayList<>(player.getCharacterList()));
-        List<CardDTO> buildingCards = mapBuildingCardsList(new ArrayList<>(player.getBuildingList()));
-
-        return new PlayerDTO(
-                player.getNickname(),
-                player.getTotem(),
-                player.getFood(),
-                player.getPrestige(),
-                this.activeClients.containsKey(player.getNickname()),
-                characterCards,
-                buildingCards
-        );
-    }
-
-    /**
-     * Offer tile model is mapped to an offer tile dto.
-     *
-     * @param tile the offer tile model
-     * @return the mapped offer tile dto
-     */
-    private OfferTileDTO mapOfferTile(OfferTile tile) {
-        if (tile == null) return null;
-
-        // occupying player nickname is extracted if present
-        String occupyingPlayer = tile.isFree() ? null : tile.getOccupyingPlayer().getNickname();
-
-        return new OfferTileDTO(tile.getId(), occupyingPlayer);
     }
 }
