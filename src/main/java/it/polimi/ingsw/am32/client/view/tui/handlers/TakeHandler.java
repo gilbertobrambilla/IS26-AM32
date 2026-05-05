@@ -40,10 +40,10 @@ public class TakeHandler implements InputHandler {
                 // token is evaluated based on target
                 if (currentTarget == TargetList.CHARACTERS) {
                     // character is added with required prefix
-                    characters.add("char_" + token);
+                    characters.add("character_" + token);
                 } else if (currentTarget == TargetList.BUILDINGS) {
                     // building is added with required prefix
-                    buildings.add("build_" + token);
+                    buildings.add("building_" + token);
                 } else {
                     // exception is thrown for invalid syntax
                     throw new IllegalArgumentException("invalid syntax. usage: take [-c chars...] [-b builds...]");

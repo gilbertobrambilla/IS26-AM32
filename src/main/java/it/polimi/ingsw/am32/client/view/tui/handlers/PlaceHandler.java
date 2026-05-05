@@ -18,7 +18,7 @@ public class PlaceHandler implements InputHandler {
         String letter = args[1];
 
         // full tile id is constructed
-        String tileId = "offertile_" + letter.toUpperCase();
+        String tileId = "offer_tile_" + letter.toUpperCase();
 
         // totem placement is requested
         controller.requestPlaceTotem(tileId);
