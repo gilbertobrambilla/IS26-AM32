@@ -13,7 +13,7 @@ public class GameStateDTO implements Serializable {
     private final List<CardDTO> upperBuildingRow;
     private final List<CardDTO> lowerBuildingRow;
     private final List<OfferTileDTO> offerTrack;
-    private final List<String> turnOrder;
+    private final TurnOrderDTO turnOrder;
     private final int tribeDeckSize;
     private final int tribeDeckTopCardEra;
     private final int currentRound;
@@ -28,7 +28,7 @@ public class GameStateDTO implements Serializable {
                         List<CardDTO> upperBuildingRow,
                         List<CardDTO> lowerBuildingRow,
                         List<OfferTileDTO> offerTrack,
-                        List<String> turnOrder,
+                        TurnOrderDTO turnOrder,
                         int tribeDeckSize,
                         int tribeDeckTopCardEra,
                         int currentRound,
@@ -42,7 +42,7 @@ public class GameStateDTO implements Serializable {
         this.upperBuildingRow = List.copyOf(upperBuildingRow);
         this.lowerBuildingRow = List.copyOf(lowerBuildingRow);
         this.offerTrack = List.copyOf(offerTrack);
-        this.turnOrder = List.copyOf(turnOrder);
+        this.turnOrder = turnOrder;
         this.tribeDeckSize = tribeDeckSize;
         this.tribeDeckTopCardEra = tribeDeckTopCardEra;
         this.currentRound = currentRound;
@@ -79,7 +79,7 @@ public class GameStateDTO implements Serializable {
         return offerTrack;
     }
 
-    public List<String> getTurnOrder() {
+    public TurnOrderDTO getTurnOrder() {
         return turnOrder;
     }
 

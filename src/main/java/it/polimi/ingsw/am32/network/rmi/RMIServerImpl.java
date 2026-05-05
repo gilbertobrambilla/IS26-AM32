@@ -9,6 +9,7 @@ import it.polimi.ingsw.am32.network.server.NetworkNode;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -47,35 +48,33 @@ public class RMIServerImpl extends UnicastRemoteObject implements RMIServer {
      *
      * @param nickname   the nickname of the connecting player.
      * @param clientStub the remote reference to the client.
-     * @throws RemoteException if the connection fails or the nickname is already taken.
+     * @throws RemoteException if the connection fails.
      */
     @Override
     public void connect(String nickname, RMIClient clientStub) throws RemoteException {
         ClientNode clientNode = new RMIClientAdapter(clientStub);
 
-        // nickname uniqueness is verified using collection checks
-        if (this.activeNodes.containsKey(nickname)) {
-            throw new RemoteException("Nickname already in use: " + nickname);
-        }
+        // session id is generated
+        String sessionId = UUID.randomUUID().toString();
 
         try {
             // view implementation is instantiated
             VirtualViewImpl view = VirtualViewImpl.create(nickname, clientNode, (isNetworkDrop) -> {
-                this.activeNodes.remove(nickname);
+                this.activeNodes.remove(sessionId);
                 if (isNetworkDrop) {
                     this.lobbyController.handlePlayerNetworkDrop(nickname);
                 }
             });
 
             // node is stored for lifecycle management
-            this.activeNodes.put(nickname, view);
+            this.activeNodes.put(sessionId, view);
 
             // player connection is triggered on the controller
             this.lobbyController.connectPlayer(nickname, view);
 
         } catch (Exception e) {
             // failed connection cleanup is performed via the network node interface
-            NetworkNode createdNode = this.activeNodes.remove(nickname);
+            NetworkNode createdNode = this.activeNodes.remove(sessionId);
             if (createdNode != null) {
                 createdNode.handleDisconnect();
             }

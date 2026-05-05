@@ -1,11 +1,10 @@
 package it.polimi.ingsw.am32.controller;
 
-import it.polimi.ingsw.am32.dto.messages.lobby.events.AvailableGamesListEvent;
-import it.polimi.ingsw.am32.dto.messages.lobby.events.ConnectionResultEvent;
-import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 
 public interface LobbyView {
     void notifyConnectionResult(ConnectionResultEvent dto);
-    void notifyLobbyState(AvailableGamesListEvent dto);
+    void notifyLobbyState(AvailableLobbiesEvent dto);
     void notifyLobbyRoomUpdated(LobbyStateUpdatedEvent dto);
+    void notifyLobbyError(LobbyErrorEvent dto);
 }

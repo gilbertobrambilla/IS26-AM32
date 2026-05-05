@@ -1,15 +1,16 @@
 package it.polimi.ingsw.am32.controller;
 
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
-import it.polimi.ingsw.am32.dto.messages.game.models.GameStateDTO;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
 
 public interface GameView {
 
     // state and lifecycle events
+    void notifyLobbyRoomUpdated(LobbyStateUpdatedEvent dto);
     void notifyGameStarted(GameStartedEvent dto);
     void notifyGameState(GameStateEvent dto);
     void notifyGameEnded(GameEndedEvent resultDTO);
-    void notifyError(InvalidActionEvent dto);
+    void notifyError(GameErrorEvent dto);
 
     // resilience events
     void notifyGameSuspended();

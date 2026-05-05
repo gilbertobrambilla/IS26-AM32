@@ -1,27 +1,39 @@
 package it.polimi.ingsw.am32.network.client;
 
-import it.polimi.ingsw.am32.client.ClientController;
+import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
-import it.polimi.ingsw.am32.dto.messages.lobby.events.AvailableGamesListEvent;
-import it.polimi.ingsw.am32.dto.messages.lobby.events.ConnectionResultEvent;
-import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 
+/**
+ * Dispatches incoming network messages to the appropriate controller methods.
+ */
 public class MessageDispatcher implements ClientMessageVisitor {
 
     private final ClientController controller;
 
+    /**
+     * Dispatcher is instantiated.
+     *
+     * @param controller the client controller.
+     */
     public MessageDispatcher(ClientController controller) {
         this.controller = controller;
     }
 
     @Override
-    public void visit(AvailableGamesListEvent message) {
+    public void visit(AvailableLobbiesEvent message) {
         controller.onAvailableGamesListUpdate(message);
     }
 
     @Override
     public void visit(LobbyStateUpdatedEvent message) {
         controller.onLobbyRoomUpdated(message);
+    }
+
+    @Override
+    public void visit(LobbyErrorEvent message) {
+        // lobby error is dispatched to controller
+        controller.onLobbyError(message);
     }
 
     @Override
@@ -55,7 +67,7 @@ public class MessageDispatcher implements ClientMessageVisitor {
     }
 
     @Override
-    public void visit(InvalidActionEvent message) {
+    public void visit(GameErrorEvent message) {
         controller.onInvalidAction(message);
     }
 

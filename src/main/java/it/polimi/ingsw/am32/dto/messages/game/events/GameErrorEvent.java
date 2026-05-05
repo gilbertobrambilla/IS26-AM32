@@ -1,15 +1,15 @@
 package it.polimi.ingsw.am32.dto.messages.game.events;
 
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.network.client.ClientMessageVisitor;
 
-public class InvalidActionEvent implements MessageDTO {
+public class GameErrorEvent implements MessageDTO {
     private final String player;
-    private final InvalidActionReason reason;
+    private final GameErrorReason reason;
     private final String errorMessage;
 
-    public InvalidActionEvent(String player, InvalidActionReason reason, String errorMessage) {
+    public GameErrorEvent(String player, GameErrorReason reason, String errorMessage) {
         this.player = player;
         this.reason = reason;
         this.errorMessage = errorMessage;
@@ -19,7 +19,7 @@ public class InvalidActionEvent implements MessageDTO {
         return player;
     }
 
-    public InvalidActionReason getReason() {
+    public GameErrorReason getReason() {
         return reason;
     }
 

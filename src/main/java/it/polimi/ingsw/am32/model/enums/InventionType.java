@@ -6,8 +6,8 @@ public enum InventionType {
     CANOE,
     FISHHOOK,
     FLUTE,
-    HIDE,
     IDOL,
+    LEATHER,
     NECKLACE,
     POTTERY,
     ROPE

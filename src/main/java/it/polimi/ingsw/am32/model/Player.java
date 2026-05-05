@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.model;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.model.cards.acquirable.characters.CharacterCard;
 import it.polimi.ingsw.am32.model.enums.CharacterType;
-import it.polimi.ingsw.am32.model.enums.InvalidActionReason;
+import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.model.enums.InventionType;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
@@ -219,7 +219,7 @@ public class Player implements Comparable<Player> {
         // food availability is verified
         if (this.food < totalCost) {
             throw new InvalidActionException(
-                    InvalidActionReason.NOT_ENOUGH_FOOD,
+                    GameErrorReason.NOT_ENOUGH_FOOD,
                     "not enough food to buy the selected buildings"
             );
         }
