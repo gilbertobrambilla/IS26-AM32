@@ -1,12 +1,14 @@
 package it.polimi.ingsw.am32.client;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.client.view.gui.GuiApp;
 import it.polimi.ingsw.am32.client.view.tui.TuiUI; // Import is updated to the new TUI implementation.
 import it.polimi.ingsw.am32.network.client.ServerNode;
 import it.polimi.ingsw.am32.network.client.VirtualServer;
 import it.polimi.ingsw.am32.network.rmi.RMIClientImpl;
 import it.polimi.ingsw.am32.network.rmi.RMIServer;
 import it.polimi.ingsw.am32.network.rmi.RMIServerAdapter;
+import javafx.application.Application;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -98,9 +100,14 @@ public class ClientMain {
             TuiUI tui = new TuiUI(clientController); // constructor takes the controller as before
             tui.start(); // main loop is entered
         } else {
-            // gui framework is launched
-            // note: placeholder for javaFx or swing initialization
-            System.out.println("[SYSTEM] Starting GUI...");
+            // GUI framework is launched
+            System.out.println("[SYSTEM] Starting JavaFX GUI...");
+
+            // pass the instantiated controller to the static context of our JavaFX App
+            GuiApp.setController(clientController);
+
+            // launch the JavaFX Application thread
+            Application.launch(GuiApp.class, args);
         }
     }
 
