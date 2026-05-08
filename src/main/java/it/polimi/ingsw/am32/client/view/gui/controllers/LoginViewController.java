@@ -2,85 +2,89 @@ package it.polimi.ingsw.am32.client.view.gui.controllers;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.application.Platform;
 
 /**
- * Controller for the Login/Connection scene.
- * Handles user input for the nickname and requests connection via the ClientController.
+ * Controller for the Login view.
+ * Handles user input for the initial connection and delegates the action to the ClientController.
  */
 public class LoginViewController {
 
-    private final ClientController controller;
+    private final ClientController clientController;
 
-    @FXML
-    private TextField nicknameField;
-
-    @FXML
-    private Button connectButton;
-
-    @FXML
-    private Label statusLabel;
+    @FXML private TextField addressField;
+    @FXML private TextField portField;
+    @FXML private TextField usernameField;
+    @FXML private Label errorLabel;
 
     /**
-     * Constructor used by the custom Controller Factory in SceneManager.
-     * The SceneManager automatically injects the main ClientController.
+     * Constructor used by the SceneManager's Controller Factory to automatically
+     * inject the ClientController dependency.
      *
-     * @param controller the main client controller used for network communication.
+     * @param clientController The main controller managing game and network state.
      */
-    public LoginViewController(ClientController controller) {
-        this.controller = controller;
+    public LoginViewController(ClientController clientController) {
+        this.clientController = clientController;
     }
 
     /**
-     * Initializes the controller class. This method is automatically called
-     * by JavaFX after the FXML file has been loaded and the @FXML fields are injected.
+     * Initializes the view state after FXML fields are injected.
      */
     @FXML
     public void initialize() {
-        // Clear the status label on startup
-        statusLabel.setText("");
+        errorLabel.setVisible(false);
     }
 
     /**
-     * Triggered when the user clicks the "Connect" button or presses Enter
-     * inside the text field (since defaultButton is true in FXML).
+     * Triggered when the user clicks the connect button or presses Enter.
+     * Validates input and sends the connection request to the server.
      */
     @FXML
-    public void onConnectButtonClicked() {
-        String nickname = nicknameField.getText().trim();
+    private void handleConnect() {
+        String username = usernameField.getText().trim();
+        String address = addressField.getText().trim();
+        String portStr = portField.getText().trim();
 
-        // 1. Local Validation
-        if (nickname.isEmpty()) {
-            statusLabel.setText("Nickname cannot be empty!");
-            statusLabel.setStyle("-fx-text-fill: #d93025;"); // Red color for errors
+        // 1. Basic validation
+        if (username.isEmpty()) {
+            showErrorMessage("Nickname is required");
             return;
         }
 
-        // 2. Prevent multiple connection attempts by disabling inputs
-        nicknameField.setDisable(true);
-        connectButton.setDisable(true);
+        if (address.isEmpty() || portStr.isEmpty()) {
+            showErrorMessage("Address and Port are required");
+            return;
+        }
 
-        // 3. Update visual status
-        statusLabel.setText("Connecting to server...");
-        statusLabel.setStyle("-fx-text-fill: #76EEC6;"); // Acquamarine 2 color for normal status messages
+        try {
+            int port = Integer.parseInt(portStr);
 
-        // 4. Send connection request to the server
-        controller.requestConnect(nickname);
+            // --- IMPORTANT ARCHITECTURAL NOTE ---
+            // If your VirtualServer requires address and port to be set dynamically from the GUI,
+            // you might need to add a method to ClientController, e.g.:
+            // clientController.initializeNetwork(address, port);
+
+            System.out.println("[GUI] Requesting connection for nickname: " + username + " at " + address + ":" + port);
+
+            // 2. Delegate the request to the ClientController (matching your actual method)
+            clientController.requestConnect(username);
+
+        } catch (NumberFormatException e) {
+            showErrorMessage("Port must be a valid number");
+        }
     }
 
     /**
-     * Restores the UI to its active state.
-     * This can be called by the main GuiUI if the connection fails,
-     * allowing the user to try a different nickname.
+     * Displays an error message on the UI safely from any thread.
      *
-     * @param errorMessage the error message to display to the user.
+     * @param message The error message to display.
      */
-    public void showConnectionError(String errorMessage) {
-        nicknameField.setDisable(false);
-        connectButton.setDisable(false);
-        statusLabel.setText(errorMessage);
-        statusLabel.setStyle("-fx-text-fill: #d93025;"); // Red color for errors
+    private void showErrorMessage(String message) {
+        Platform.runLater(() -> {
+            errorLabel.setText(message);
+            errorLabel.setVisible(true);
+        });
     }
 }

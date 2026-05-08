@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.LoginViewController"
+      styleClass="root">
+
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+
+    <Label text="MESOS" styleClass="title-text"/>
+    <Label text="Connect to the prehistoric world" styleClass="subtitle-text"/>
+
+    <VBox spacing="10.0" styleClass="game-panel" maxWidth="400">
+        <Label text="Server Address:"/>
+        <TextField fx:id="addressField" promptText="e.g. 127.0.0.1" text="localhost"/>
+
+        <Label text="Server Port:"/>
+        <TextField fx:id="portField" promptText="e.g. 1099" text="1099"/>
+
+        <Label text="Nickname:"/>
+        <TextField fx:id="usernameField" promptText="Enter your name..."/>
+
+        <HBox spacing="10.0" alignment="CENTER_RIGHT">
+            <padding>
+                <Insets top="10.0"/>
+            </padding>
+            <Button text="Connect" onAction="#handleConnect" defaultButton="true"/>
+        </HBox>
+    </VBox>
+
+    <Label fx:id="errorLabel" styleClass="error-text" visible="false"/>
+</VBox>

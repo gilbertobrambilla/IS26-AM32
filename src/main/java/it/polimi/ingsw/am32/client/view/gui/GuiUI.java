@@ -33,7 +33,7 @@ public class GuiUI implements UI {
             if (event.isSuccess()) {
                 System.out.println("[GUI] Connection successful!");
                 // Switch to the Main Menu scene
-                SceneManager.switchScene("/fxml/menu-view.fxml");
+                SceneManager.switchScene("/fxml/lobby-view.fxml");
             } else {
                 System.err.println("[GUI] Connection failed: " + event.getMessage());
                 // Show a standard JavaFX Error Alert

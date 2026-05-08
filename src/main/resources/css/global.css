@@ -1,0 +1,101 @@
+/* --- MESOS GLOBAL STYLESHEET --- */
+
+.root {
+    /* --- COLOR PALETTE (Mesolithic Theme) --- */
+    -fx-bg-dark: #1a1a1a;            /* Main window background */
+    -fx-bg-panel: #2d2d2d;           /* Sidebar and cards area background */
+    -fx-bg-accent: #4a5d23;          /* Dark moss green for primary actions */
+    -fx-bg-accent-light: #6b8e23;    /* Olive green for hover states */
+
+    /* --- TEXT COLORS --- */
+    -fx-text-main: #f0f0f0;          /* High contrast text */
+    -fx-text-dim: #a0a0a0;           /* Subtle labels and descriptions */
+    -fx-text-gold: #ffcc00;          /* Prestige Points and highlights */
+    -fx-error-red: #ff4444;          /* Validation errors */
+
+    /* --- TYPOGRAPHY --- */
+    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    -fx-font-size-base: 14px;
+    -fx-font-size-lg: 18px;
+    -fx-font-size-xl: 32px;
+
+    /* --- LAYOUT CONSTANTS --- */
+    -fx-spacing-sm: 5px;
+    -fx-spacing-md: 10px;
+    -fx-spacing-lg: 20px;
+    -fx-border-radius-std: 8px;
+
+    /* Applied to the scene root */
+    -fx-background-color: -fx-bg-dark;
+    -fx-font-family: -fx-font-family;
+    -fx-font-size: -fx-font-size-base;
+    -fx-text-fill: -fx-text-main;
+}
+
+/* --- REUSABLE COMPONENT CLASSES --- */
+
+/* Main Containers */
+.game-panel {
+    -fx-background-color: -fx-bg-panel;
+    -fx-background-radius: -fx-border-radius-std;
+    -fx-padding: -fx-spacing-lg;
+    -fx-border-color: #444444;
+    -fx-border-width: 1px;
+    -fx-border-radius: -fx-border-radius-std;
+}
+
+/* Typography Classes */
+.title-text {
+    -fx-font-size: -fx-font-size-xl;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-main;
+}
+
+.subtitle-text {
+    -fx-font-size: -fx-font-size-lg;
+    -fx-text-fill: -fx-text-dim;
+}
+
+/* Standard Buttons */
+.button {
+    -fx-background-color: -fx-bg-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: -fx-bg-accent-light;
+}
+
+.button:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+/* Input Fields */
+.text-field {
+    -fx-background-color: #3d3d3d;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #808080;
+    -fx-border-color: #555555;
+    -fx-border-width: 0 0 2 0; /* Bottom border only for a modern look */
+    -fx-padding: 5px;
+}
+
+.text-field:focused {
+    -fx-border-color: -fx-bg-accent-light;
+    -fx-background-color: #454545;
+}
+
+/* Custom Card Placeholder (Until we use Custom Nodes) */
+.card-placeholder {
+    -fx-min-width: 120px;
+    -fx-min-height: 180px;
+    -fx-background-color: #3e3e3e;
+    -fx-border-color: #666666;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+}
