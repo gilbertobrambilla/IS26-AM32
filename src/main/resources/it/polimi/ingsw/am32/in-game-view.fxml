@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.InGameViewController"
+            styleClass="root" prefWidth="1280.0" prefHeight="800.0">
+
+    <top>
+        <HBox fx:id="statusBar" spacing="40.0" alignment="CENTER" styleClass="mesos-panel">
+            <padding>
+                <Insets top="10.0" bottom="10.0"/>
+            </padding>
+            <HBox spacing="10.0" alignment="CENTER">
+                <Label text="ERA:" styleClass="subtitle-text"/>
+                <Label fx:id="eraLabel" text="I" styleClass="title-text" style="-fx-text-fill: -fx-text-gold;"/>
+            </HBox>
+            <HBox spacing="10.0" alignment="CENTER">
+                <Label text="ROUND:" styleClass="subtitle-text"/>
+                <Label fx:id="roundLabel" text="1" styleClass="title-text"/>
+            </HBox>
+            <HBox spacing="10.0" alignment="CENTER">
+                <Label text="PHASE:" styleClass="subtitle-text"/>
+                <Label fx:id="phaseLabel" text="TOTEM PLACEMENT" styleClass="title-text"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <right>
+        <ScrollPane vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" styleClass="mesos-panel" prefWidth="250.0">
+            <VBox fx:id="opponentsContainer" spacing="15.0" alignment="TOP_CENTER">
+                <padding>
+                    <Insets top="10.0" bottom="10.0" left="10.0" right="10.0"/>
+                </padding>
+                <Label text="OPPONENTS" styleClass="subtitle-text"/>
+            </VBox>
+        </ScrollPane>
+    </right>
+
+    <center>
+        <VBox spacing="20.0" alignment="CENTER">
+            <padding>
+                <Insets top="20.0" bottom="20.0" left="20.0" right="20.0"/>
+            </padding>
+
+            <HBox spacing="20.0" alignment="CENTER">
+                <VBox fx:id="turnOrderContainer" alignment="CENTER" styleClass="game-panel" minWidth="200" minHeight="100">
+                    <Label text="TURN ORDER" styleClass="subtitle-text"/>
+                </VBox>
+                <VBox fx:id="eventContainer" alignment="CENTER" styleClass="game-panel" minWidth="150" minHeight="100">
+                    <Label text="CURRENT EVENT" styleClass="subtitle-text"/>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="10.0" alignment="CENTER" styleClass="game-panel" VBox.vgrow="ALWAYS">
+                <Label text="OFFER TILES" styleClass="subtitle-text"/>
+                <HBox fx:id="offersContainer" spacing="15.0" alignment="CENTER" />
+            </VBox>
+
+            <VBox spacing="10.0" alignment="CENTER" styleClass="game-panel" VBox.vgrow="ALWAYS">
+                <Label text="AVAILABLE CARDS" styleClass="subtitle-text"/>
+                <HBox fx:id="availableCardsContainer" spacing="10.0" alignment="CENTER" />
+            </VBox>
+        </VBox>
+    </center>
+
+    <bottom>
+        <VBox styleClass="mesos-panel" spacing="10.0">
+            <padding>
+                <Insets top="10.0" bottom="10.0" left="20.0" right="20.0"/>
+            </padding>
+            <HBox spacing="20.0" alignment="CENTER_LEFT">
+                <VBox fx:id="myStatsContainer" minWidth="180.0" spacing="5.0">
+                    <Label text="YOUR RESOURCES" styleClass="subtitle-text"/>
+                </VBox>
+
+                <Separator orientation="VERTICAL" />
+
+                <VBox HBox.hgrow="ALWAYS" spacing="5.0">
+                    <Label text="YOUR ACQUIRED CARDS" styleClass="subtitle-text"/>
+                    <ScrollPane vbarPolicy="NEVER" hbarPolicy="AS_NEEDED" style="-fx-background-color: transparent;">
+                        <HBox fx:id="myCardsContainer" spacing="10.0" alignment="CENTER_LEFT" minHeight="180.0"/>
+                    </ScrollPane>
+                </VBox>
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

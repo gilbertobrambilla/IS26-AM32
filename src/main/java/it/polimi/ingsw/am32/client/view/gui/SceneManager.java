@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.client.view.gui;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.client.view.gui.controllers.ViewController;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -19,6 +20,7 @@ public class SceneManager {
 
     private static Stage primaryStage;
     private static ClientController clientController;
+    private static ViewController currentController;
 
     /**
      * Initializes the SceneManager with the primary stage and the main controller.
@@ -36,68 +38,56 @@ public class SceneManager {
      * Loads an FXML file, instantiates its controller (injecting dependencies),
      * and switches the primary stage to the new scene.
      *
-     * @param fxmlPath the absolute path to the FXML file within the resources folder (e.g., "/fxml/login-view.fxml").
+     * @param viewPath the absolute path to the FXML file within the resources folder (e.g., "/fxml/login-view.fxml").
      */
-    public static void switchScene(String fxmlPath) {
+    public static void switchScene(ViewPaths viewPath) {
         if (primaryStage == null || clientController == null) {
             throw new IllegalStateException("SceneManager has not been initialized yet.");
         }
 
-        // --- CRITICAL ARCHITECTURE RULE ---
-        // Network events trigger UI changes. We MUST route this to the JavaFX Application Thread.
-        Platform.runLater(() -> {
-            try {
-                FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(fxmlPath));
+        try {
+            FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(viewPath.getPath()));
 
-                /*
-                 * CUSTOM CONTROLLER FACTORY
-                 * Instead of letting JavaFX use the default no-args constructor, we intercept
-                 * the controller creation and force the injection of the ClientController via constructor.
-                 */
-                loader.setControllerFactory(controllerClass -> {
-                    try {
-                        // Look for a constructor that accepts a ClientController parameter and instantiate it
-                        return controllerClass.getConstructor(ClientController.class).newInstance(clientController);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Failed to instantiate controller: " + controllerClass.getName() +
-                                ". Ensure it has a constructor accepting ClientController.", e);
-                    }
-                });
-
-                Parent root = loader.load();
-
-                // --- OPTIMIZATION: Reuse existing scene if possible ---
-                Scene currentScene = primaryStage.getScene();
-                if (currentScene == null) {
-                    currentScene = new Scene(root);
-                    primaryStage.setScene(currentScene);
-                } else {
-                    currentScene.setRoot(root); // Swap only the root node for better performance
+            loader.setControllerFactory(controllerClass -> {
+                try {
+                    return controllerClass.getConstructor(ClientController.class).newInstance(clientController);
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to instantiate controller: " + controllerClass.getName() +
+                            ". Ensure it has a constructor accepting ClientController.", e);
                 }
+            });
 
-                // --- APPLY GLOBAL CSS ---
-                URL cssResource = SceneManager.class.getResource("/css/global.css");
+            Parent root = loader.load();
+            currentController = loader.getController();
 
-                if (cssResource != null) {
-                    String cssUrl = cssResource.toExternalForm();
-                    // Only add the stylesheet if it's not already present in the scene
-                    if (!currentScene.getStylesheets().contains(cssUrl)) {
-                        currentScene.getStylesheets().add(cssUrl);
-                    }
-                } else {
-                    // Log a warning if the file is missing to help debugging
-                    System.err.println("[GUI WARNING] Style resource not found: /css/global.css");
-                }
-
-                // Ensure the stage is visible
-                primaryStage.show();
-
-                System.out.println("[GUI] Switched to scene: " + fxmlPath);
-
-            } catch (IOException e) {
-                System.err.println("[GUI ERROR] Failed to load FXML file: " + fxmlPath);
-                e.printStackTrace();
+            Scene currentScene = primaryStage.getScene();
+            if (currentScene == null) {
+                currentScene = new Scene(root);
+                primaryStage.setScene(currentScene);
+            } else {
+                currentScene.setRoot(root);
             }
-        });
+
+            URL cssResource = SceneManager.class.getResource("/css/global.css");
+            if (cssResource != null) {
+                String cssUrl = cssResource.toExternalForm();
+                if (!currentScene.getStylesheets().contains(cssUrl)) {
+                    currentScene.getStylesheets().add(cssUrl);
+                }
+            } else {
+                System.err.println("[GUI WARNING] Style resource not found: /css/global.css");
+            }
+
+            primaryStage.show();
+            System.out.println("[GUI] Switched to scene: " + viewPath.name());
+
+        } catch (IOException e) {
+            System.err.println("[GUI ERROR] Failed to load FXML file: " + viewPath.getPath());
+            e.printStackTrace();
+        }
+    }
+
+    public static ViewController getCurrentController() {
+        return currentController;
     }
 }

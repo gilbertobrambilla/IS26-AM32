@@ -16,13 +16,10 @@
     <Label text="MESOS" styleClass="title-text"/>
     <Label text="Connect to the prehistoric world" styleClass="subtitle-text"/>
 
+    <!-- Server address is read-only: connection was established before GUI launch. -->
+    <Label fx:id="serverInfoLabel" styleClass="text-dim"/>
+
     <VBox spacing="10.0" styleClass="game-panel" maxWidth="400">
-        <Label text="Server Address:"/>
-        <TextField fx:id="addressField" promptText="e.g. 127.0.0.1" text="localhost"/>
-
-        <Label text="Server Port:"/>
-        <TextField fx:id="portField" promptText="e.g. 1099" text="1099"/>
-
         <Label text="Nickname:"/>
         <TextField fx:id="usernameField" promptText="Enter your name..."/>
 
@@ -35,4 +32,5 @@
     </VBox>
 
     <Label fx:id="errorLabel" styleClass="error-text" visible="false"/>
+
 </VBox>

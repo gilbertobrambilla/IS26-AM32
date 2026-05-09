@@ -17,6 +17,10 @@ public class GuiApp extends Application {
      */
     private static ClientController pendingController;
 
+
+    private static String pendingServerAddress;
+
+
     /**
      * sets the ClientController before launching the JavaFX application.
      * this must be called before Application.launch().
@@ -26,6 +30,16 @@ public class GuiApp extends Application {
     public static void setController(ClientController controller) {
         pendingController = controller;
     }
+
+
+    public static void setServerAddress(String address) {
+        pendingServerAddress = address;
+    }
+
+    public static String getServerAddress() {
+        return pendingServerAddress != null ? pendingServerAddress : "unknown";
+    }
+
 
     /**
      * the main entry point for all JavaFX applications.
@@ -55,12 +69,22 @@ public class GuiApp extends Application {
 
         // ensure all network threads and the JVM shut down cleanly when the window is closed
         primaryStage.setOnCloseRequest(event -> {
-            System.out.println("[GUI] Window closed by user. Terminating application...");
+            System.out.println("[GUI] Window close requested.");
             Platform.exit();
-            System.exit(0);
         });
 
-        // load the very first scene (Login/Connection Phase)
-        SceneManager.switchScene("/fxml/login-view.fxml");
+        SceneManager.switchScene(ViewPaths.LOGIN);
+    }
+
+    /**
+     *  Called when the application is about to stop, either by user action or programmatically.
+     */
+    @Override
+    public void stop() {
+        System.out.println("[GUI] Executing graceful shutdown...");
+        if (pendingController != null) {
+            pendingController.shutdown();
+        }
+        System.out.println("[GUI] All services stopped. Goodbye.");
     }
 }

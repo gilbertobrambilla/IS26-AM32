@@ -11,6 +11,8 @@ import it.polimi.ingsw.am32.network.client.VirtualServer;
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Controller handling incoming network events and outgoing user requests.
@@ -22,6 +24,8 @@ public class ClientController {
     private LightGameState lightGameState;
     private String myNickname;
 
+    private final ExecutorService networkExecutor;
+
     /**
      * Client controller is instantiated.
      *
@@ -30,6 +34,7 @@ public class ClientController {
     public ClientController(VirtualServer virtualServer) {
         this.virtualServer = virtualServer;
         this.dispatcher = new MessageDispatcher(this);
+        this.networkExecutor = Executors.newSingleThreadExecutor();
     }
 
     /**
@@ -41,7 +46,6 @@ public class ClientController {
         this.ui = ui;
     }
 
-    // outbound commands (ui -> controller -> network)
 
     /**
      * Connection is requested.
@@ -51,8 +55,7 @@ public class ClientController {
     public void requestConnect(String nickname) {
         this.myNickname = nickname;
         this.lightGameState = new LightGameState(nickname);
-        // connection is forwarded to virtual server
-        virtualServer.connect(nickname);
+        networkExecutor.submit(() -> virtualServer.connect(nickname));
     }
 
     /**
@@ -62,8 +65,7 @@ public class ClientController {
      */
     public void requestCreateGame(int numOfPlayers) {
         CreateGameCommand cmd = new CreateGameCommand(numOfPlayers);
-        // command is sent
-        virtualServer.sendLobbyCommand(cmd, myNickname);
+        networkExecutor.submit(() -> virtualServer.sendLobbyCommand(cmd, myNickname));
     }
 
     /**
@@ -73,19 +75,7 @@ public class ClientController {
      */
     public void requestJoinGame(int gameId) {
         JoinGameCommand cmd = new JoinGameCommand(gameId);
-        // command is sent
-        virtualServer.sendLobbyCommand(cmd, myNickname);
-    }
-
-    /**
-     * Lobby error event is processed.
-     * * @param event the lobby error event.
-     */
-    public void onLobbyError(LobbyErrorEvent event) {
-        runOnUIThread(() -> {
-            // ui is updated
-            if (ui != null) ui.showLobbyError(event);
-        });
+        networkExecutor.submit(() -> virtualServer.sendLobbyCommand(cmd, myNickname));
     }
 
     /**
@@ -95,8 +85,7 @@ public class ClientController {
      */
     public void requestPlaceTotem(String tileId) {
         PlaceTotemCommand cmd = new PlaceTotemCommand(tileId);
-        // command is sent
-        virtualServer.sendGameCommand(cmd, myNickname);
+        networkExecutor.submit(() -> virtualServer.sendGameCommand(cmd, myNickname));
     }
 
     /**
@@ -107,8 +96,7 @@ public class ClientController {
      */
     public void requestResolveAction(List<String> characters, List<String> buildings) {
         ResolveActionCommand cmd = new ResolveActionCommand(characters, buildings);
-        // command is sent
-        virtualServer.sendGameCommand(cmd, myNickname);
+        networkExecutor.submit(() -> virtualServer.sendGameCommand(cmd, myNickname));
     }
 
     /**
@@ -117,13 +105,11 @@ public class ClientController {
      * @param nickname the player nickname, or null to clear focus.
      */
     public void requestPlayerFocus(String nickname) {
-        // focus request is dispatched to ui thread
         runOnUIThread(() -> {
             if (ui != null) ui.showPlayerFocus(nickname);
         });
     }
 
-    // inbound events (network -> controller -> ui)
 
     /**
      * Generic message is processed.
@@ -131,143 +117,122 @@ public class ClientController {
      * @param message the network message.
      */
     public void onMessageReceived(MessageDTO message) {
-        // double dispatch is triggered
         message.accept(this.dispatcher);
+    }
+
+    public void onLobbyError(LobbyErrorEvent event) {
+        runOnUIThread(() -> {
+            if (ui != null) ui.showLobbyError(event);
+        });
     }
 
     public void onConnectionResult(ConnectionResultEvent event) {
         runOnUIThread(() -> {
-            // ui is updated
             if (ui != null) ui.showConnectionResult(event);
         });
     }
 
     public void onAvailableGamesListUpdate(AvailableLobbiesEvent event) {
         runOnUIThread(() -> {
-            // ui is updated
             if (ui != null) ui.updateAvailableGames(event);
         });
     }
 
     public void onLobbyRoomUpdated(LobbyStateUpdatedEvent event) {
         runOnUIThread(() -> {
-            // ui is updated
             if (ui != null) ui.updateLobbyRoom(event);
         });
     }
 
     public void onGameStarted(GameStartedEvent event) {
         runOnUIThread(() -> {
-            // state is initialized
             lightGameState.initializeFromDTO(event.getGameState());
-            // ui is updated
             if (ui != null) ui.showGameStarted(event);
         });
     }
 
     public void onGameStateUpdate(GameStateEvent event) {
         runOnUIThread(() -> {
-            // state is initialized
             lightGameState.initializeFromDTO(event.getGameState());
-            // ui is updated
             if (ui != null) ui.restoreGameState(event);
         });
     }
 
     public void onGamePhaseChanged(GamePhaseChangedEvent event) {
         runOnUIThread(() -> {
-            // state is updated
             lightGameState.updatePhaseChange(event.getPhase(), event.getNextPlayer());
-            // ui is updated
             if (ui != null) ui.updateGamePhase(event);
         });
     }
 
     public void onRoundEnded(RoundEndedEvent event) {
         runOnUIThread(() -> {
-            // ui is updated
             if (ui != null) ui.showRoundSummary(event);
         });
     }
 
     public void onGameEnded(GameEndedEvent event) {
         runOnUIThread(() -> {
-            // ui is updated
             if (ui != null) ui.showGameResults(event);
         });
     }
 
     public void onTotemPlaced(TotemPlacedEvent event) {
         runOnUIThread(() -> {
-            // state is updated
             lightGameState.updateTotemPlacement(event.getPlayer(), event.getOfferTileId(), event.getNextPlayer());
-            // ui is updated
             if (ui != null) ui.showTotemPlaced(event);
         });
     }
 
     public void onActionResolved(ActionResolvedEvent event) {
         runOnUIThread(() -> {
-            // state is updated
             lightGameState.updateActionResolution(event.getPlayer(), event.getAcquiredCharacterCardIds(), event.getAcquiredBuildingCardIds(), event.getStatsChanges(), event.getNextPlayer());
-            // ui is updated
             if (ui != null) ui.showActionResolved(event);
         });
     }
 
     public void onEventResolved(EventResolvedEvent event) {
         runOnUIThread(() -> {
-            // state is updated
             lightGameState.updateStats(event.getStatsChanges());
-            // ui is updated
             if (ui != null) ui.showEventResolved(event);
         });
     }
 
     public void onExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent event) {
         runOnUIThread(() -> {
-            // state is updated
             lightGameState.updateStats(event.getStatsChanges());
-            // ui is updated
             if (ui != null) ui.showExtraAcquisition(event);
         });
     }
 
     public void onInvalidAction(GameErrorEvent event) {
         runOnUIThread(() -> {
-            // ui is updated
             if (ui != null) ui.showError(event);
         });
     }
 
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
         runOnUIThread(() -> {
-            // state is updated
             lightGameState.updatePlayerConnection(event.getPlayer(), false);
-            // ui is updated
             if (ui != null) ui.showPlayerDisconnected(event);
         });
     }
 
     public void onPlayerReconnected(PlayerReconnectedEvent event) {
         runOnUIThread(() -> {
-            // state is updated
             lightGameState.updatePlayerConnection(event.getPlayer(), true);
-            // ui is updated
             if (ui != null) ui.showPlayerReconnected(event);
         });
     }
 
     public void onGameSuspended(GameSuspendedEvent event) {
         runOnUIThread(() -> {
-            // ui is updated
             if (ui != null) ui.showGameSuspended(event);
         });
     }
 
     public void onGameResumed(GameResumedEvent event) {
         runOnUIThread(() -> {
-            // ui is updated
             if (ui != null) ui.showGameResumed(event);
         });
     }
@@ -278,27 +243,20 @@ public class ClientController {
      * @param task the runnable task.
      */
     private void runOnUIThread(Runnable task) {
-        // task is executed synchronously
         task.run();
     }
 
-    /**
-     * Light game state is retrieved.
-     *
-     * @return the current light game state.
-     */
     public LightGameState getLightGameState() {
-        // light game state is returned
         return this.lightGameState;
     }
 
-    /**
-     * Local player nickname is retrieved.
-     *
-     * @return the local player nickname.
-     */
     public String getMyNickname() {
-        // my nickname is returned
         return this.myNickname;
+    }
+
+    public void shutdown() {
+        if (networkExecutor != null && !networkExecutor.isShutdown()) {
+            networkExecutor.shutdownNow();
+        }
     }
 }

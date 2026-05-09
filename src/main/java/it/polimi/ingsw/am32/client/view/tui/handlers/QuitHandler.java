@@ -11,7 +11,8 @@ public class QuitHandler implements InputHandler {
     public void execute(ClientController controller, String[] args) throws IllegalArgumentException {
         // notification is printed
         System.out.println("disconnecting and closing application...");
-
+        // client is disconnected
+        controller.shutdown();
         // system is terminated
         System.exit(0);
     }

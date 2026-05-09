@@ -1,19 +1,19 @@
 package it.polimi.ingsw.am32.client.view.gui.controllers;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.AvailableLobbiesEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyErrorEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.LobbyInfoDTO;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-
-import java.util.List;
 
 /**
  * Controller for the Menu/Lobby view.
  * Manages game creation and joining available lobbies.
  */
-public class LobbyViewController {
+public class LobbyViewController implements ViewController {
 
     private final ClientController clientController;
 
@@ -60,6 +60,7 @@ public class LobbyViewController {
     private void handleCreateGame() {
         int players = playerCountSpinner.getValue();
         statusLabel.setText("Creating game for " + players + " players...");
+
         clientController.requestCreateGame(players);
     }
 
@@ -76,19 +77,23 @@ public class LobbyViewController {
         }
 
         statusLabel.setText("Joining game #" + selectedLobby.getGameId() + "...");
+
         clientController.requestJoinGame(selectedLobby.getGameId());
     }
 
-    /**
-     * Updates the UI list with available games received from the network.
-     * This method should be called via GuiUI (UI interface) and Platform.runLater().
-     *
-     * @param lobbies The list of available lobbies.
-     */
-    public void updateLobbyList(List<LobbyInfoDTO> lobbies) {
-        Platform.runLater(() -> {
-            lobbyListView.setItems(FXCollections.observableArrayList(lobbies));
-            statusLabel.setText("Lobby list updated.");
-        });
+    @Override
+    public void onAvailableGamesUpdated(AvailableLobbiesEvent event) {
+        lobbyListView.setItems(FXCollections.observableArrayList(event.getLobbies()));
+        statusLabel.setText("Lobby list updated.");
+    }
+
+    @Override
+    public void onLobbyRoomUpdated(LobbyStateUpdatedEvent event) {
+        statusLabel.setText("In lobby room. Waiting for other players...");
+    }
+
+    @Override
+    public void onLobbyError(LobbyErrorEvent event) {
+        statusLabel.setText("Error: " + event.getErrorMessage());
     }
 }
