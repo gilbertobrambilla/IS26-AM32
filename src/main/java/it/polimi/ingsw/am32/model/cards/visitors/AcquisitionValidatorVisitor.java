@@ -5,7 +5,7 @@ import it.polimi.ingsw.am32.model.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.model.cards.acquirable.characters.CharacterCard;
 import it.polimi.ingsw.am32.model.cards.events.EventCard;
 import it.polimi.ingsw.am32.model.enums.GameErrorReason;
-import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
+import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
 
 import java.util.List;
 import java.util.Objects;
@@ -24,7 +24,7 @@ public class AcquisitionValidatorVisitor implements CardVisitor {
         Objects.requireNonNull(card, "card cannot be null");
 
         // exception is thrown immediately to prevent event acquisition
-        throw new InvalidActionException(
+        throw new InvalidGameActionException(
                 GameErrorReason.EVENT_CARD_NOT_ALLOWED,
                 "event cards cannot be selected"
         );

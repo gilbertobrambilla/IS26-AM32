@@ -2,10 +2,10 @@ package it.polimi.ingsw.am32.model.exceptions;
 
 import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 
-public class InvalidActionException extends RuntimeException {
+public class InvalidGameActionException extends RuntimeException {
     private final GameErrorReason reason;
 
-    public InvalidActionException(GameErrorReason reason, String message) {
+    public InvalidGameActionException(GameErrorReason reason, String message) {
         super(message);
         this.reason = reason;
     }

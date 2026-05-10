@@ -6,6 +6,6 @@ package it.polimi.ingsw.am32.model.enums;
 public enum LobbyErrorReason {
     GAME_FULL_OR_STARTED,
     GAME_NOT_FOUND,
-//    INVALID_PLAYER_COUNT,
-//    GENERIC_ERROR
+    INVALID_PLAYER_COUNT,
+    JOIN_FAILED
 }
