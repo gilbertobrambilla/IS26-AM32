@@ -11,6 +11,7 @@ public class ScreenManager {
     private final Terminal terminal;
     private LineReader lineReader;
     private Scene activeScene;
+    private String currentPrompt = "> ";
 
     /**
      * The screen manager is instantiated with the given terminal.
@@ -42,6 +43,16 @@ public class ScreenManager {
     }
 
     /**
+     * The dynamic prompt string is stored and updated for the input area.
+     *
+     * @param prompt the current prompt string.
+     */
+    public void setPrompt(String prompt) {
+        // dynamic prompt is updated
+        this.currentPrompt = prompt;
+    }
+
+    /**
      * The entire screen is recalculated and the active scene is rendered.
      */
     public synchronized void render() {
@@ -62,10 +73,10 @@ public class ScreenManager {
         // screen is cleared
         terminal.puts(InfoCmp.Capability.clear_screen);
 
-        if (width < 60 || height < 15) {
+        if (width < 60 || height < 30) {
             // warning is printed for insufficient terminal size
             terminal.writer().print("\033[" + (height / 2) + ";" + (Math.max(1, width / 2 - 15)) + "H");
-            terminal.writer().print("terminal too small. please resize.");
+            terminal.writer().print("Terminal too small. Please resize");
         } else {
             // active scene is drawn
             activeScene.draw(terminal, width, height);
@@ -96,13 +107,13 @@ public class ScreenManager {
     private void restoreInputArea(int terminalHeight) {
         // cursor is moved to the bottom row using the jline writer
         terminal.writer().print("\033[" + terminalHeight + ";1H");
+
         // row is cleared to ensure clean prompt rendering
         terminal.writer().print("\033[2K");
 
         if (lineReader != null && lineReader.isReading()) {
-            // prompt is redrawn
-            lineReader.callWidget(LineReader.REDRAW_LINE);
-            // line is redisplayed
+            // manual prompt printing is removed to avoid double prompt artifacts
+            // line buffer is redisplayed by jline
             lineReader.callWidget(LineReader.REDISPLAY);
         }
     }
