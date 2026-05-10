@@ -15,4 +15,18 @@ public interface InputHandler {
      * @throws IllegalArgumentException if the provided arguments are invalid.
      */
     void execute(ClientController controller, String[] args) throws IllegalArgumentException;
+
+    /**
+     * The syntax of the command is retrieved.
+     *
+     * @return the command syntax.
+     */
+    String getSyntax();
+
+    /**
+     * The short description of the command is retrieved.
+     *
+     * @return the command description.
+     */
+    String getDescription();
 }

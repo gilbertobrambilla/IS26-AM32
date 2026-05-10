@@ -12,25 +12,42 @@ public class StatsHandler implements InputHandler {
         // target nickname is determined
         String targetNickname;
 
-        if (args.length == 1 || "me".equalsIgnoreCase(args[1])) {
-            // local player nickname is used
-            targetNickname = controller.getMyNickname();
-        } else if ("clear".equalsIgnoreCase(args[1])) {
-            // focus is cleared
+        // focus is cleared if no arguments are provided
+        if (args.length == 1) {
             controller.requestPlayerFocus(null);
             return;
+        } else if ("me".equalsIgnoreCase(args[1])) {
+            // local player nickname is used
+            targetNickname = controller.getMyNickname();
         } else {
             // provided nickname is used
             targetNickname = args[1];
         }
 
+        // game state existence is verified locally
+        if (controller.getLightGameState() == null) {
+            throw new IllegalArgumentException("Game state is not currently available.");
+        }
+
         // existence of player is validated locally
         if (!controller.getLightGameState().getPlayers().containsKey(targetNickname)) {
             // exception is thrown if player is not found
-            throw new IllegalArgumentException("player not found in the current game");
+            throw new IllegalArgumentException("Player '" + targetNickname + "' not found in the current game.");
         }
 
         // visual focus is requested
         controller.requestPlayerFocus(targetNickname);
+    }
+
+    @Override
+    public String getSyntax() {
+        // syntax string is returned
+        return "stats [me|player]";
+    }
+
+    @Override
+    public String getDescription() {
+        // description string is returned
+        return "shows player stats";
     }
 }
