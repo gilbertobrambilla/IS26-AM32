@@ -1,5 +1,6 @@
-package it.polimi.ingsw.am32.client.view.tui.components;
+package it.polimi.ingsw.am32.client.view.tui.components.global;
 
+import it.polimi.ingsw.am32.client.view.tui.components.TuiComponent;
 import org.jline.terminal.Terminal;
 
 /**

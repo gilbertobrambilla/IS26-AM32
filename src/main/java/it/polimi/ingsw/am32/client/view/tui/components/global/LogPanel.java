@@ -1,4 +1,4 @@
-package it.polimi.ingsw.am32.client.view.tui.components;
+package it.polimi.ingsw.am32.client.view.tui.components.global;
 
 import org.jline.terminal.Terminal;
 import java.util.LinkedList;

@@ -1,7 +1,8 @@
-package it.polimi.ingsw.am32.client.view.tui.components;
+package it.polimi.ingsw.am32.client.view.tui.components.ingame;
 
 import it.polimi.ingsw.am32.client.model.LightGameState;
 import it.polimi.ingsw.am32.client.model.LightOfferTile;
+import it.polimi.ingsw.am32.client.view.tui.components.global.AbstractTuiPanel;
 import org.jline.terminal.Terminal;
 
 /**
