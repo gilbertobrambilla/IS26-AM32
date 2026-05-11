@@ -1,37 +1,50 @@
 package it.polimi.ingsw.am32.model.tiles;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class TileTest {
 
+    //create a dummy concrete class to test the abstract tile class
     private static class DummyTile extends Tile {
+
+        //constructor that calls the superclass constructor
         public DummyTile(String id, int requiredPlayers) {
             super(id, requiredPlayers);
         }
     }
 
-    private DummyTile tile;
+    @Test
+    void constructorShouldSetValuesCorrectly() {
+        //arrange: create a valid dummy tile
+        Tile tile = new DummyTile("T_01", 3);
 
-    @BeforeEach
-    void setUp() {
-        tile = new DummyTile("tile_01", 3);
+        //act and assert: verify that getters return the correct values
+        assertEquals("T_01", tile.getId());
+        assertEquals(3, tile.getRequiredPlayers());
     }
 
     @Test
     void constructorShouldThrowExceptionIfIdIsNull() {
-        assertThrows(NullPointerException.class, () -> new DummyTile(null, 3));
+        //arrange, act and assert: verify that a null pointer exception is thrown
+        assertThrows(NullPointerException.class, () -> {
+            new DummyTile(null, 4);
+        });
     }
 
     @Test
     void constructorShouldThrowExceptionIfRequiredPlayersIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> new DummyTile("tile_err", -1));
+        //arrange, act and assert: verify exception for negative required players
+        assertThrows(IllegalArgumentException.class, () -> {
+            new DummyTile("T_02", -1);
+        });
     }
 
     @Test
-    void constructorShouldNotThrowExceptionIfRequiredPlayersIsZero() {
-        assertDoesNotThrow(() -> new DummyTile("tile_zero", 0));
+    void constructorShouldAllowZeroRequiredPlayers() {
+        //arrange, act and assert: verify zero is accepted as it is not negative
+        assertDoesNotThrow(() -> {
+            new DummyTile("T_03", 0);
+        });
     }
 }

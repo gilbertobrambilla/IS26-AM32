@@ -57,7 +57,7 @@ public class SustenanceEvent extends EventCard {
                     postPrestige - prePrestige,
                     postFood,
                     postPrestige,
-                    StatChangeReason.SHAMANIC_RITUAL.toString()
+                    StatChangeReason.SUSTENANCE.toString()
             ));
         }
         return receipts;

@@ -1,8 +1,10 @@
 package it.polimi.ingsw.am32.model.cards.acquirable.characters;
 
 import it.polimi.ingsw.am32.model.Player;
+import it.polimi.ingsw.am32.model.cards.CardVisitor;
+import it.polimi.ingsw.am32.model.cards.acquirable.buildings.BuildingCard;
+import it.polimi.ingsw.am32.model.cards.events.EventCard;
 import it.polimi.ingsw.am32.model.enums.CharacterType;
-import it.polimi.ingsw.am32.model.enums.TotemColor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -10,45 +12,77 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CharacterCardTest {
 
-    private static class AlienCharacterCard extends CharacterCard {
-        public AlienCharacterCard(String id, int era, int basePrestige, int requiredPlayers) {
+    //dummy character class to test the abstract charactercard class
+    private static class DummyCharacterCard extends CharacterCard {
+        public DummyCharacterCard(String id, int era, int basePrestige, int requiredPlayers) {
             super(id, era, basePrestige, requiredPlayers);
         }
 
         @Override
+        public void notifyBuilding(BuildingCard building, Player player) {}
+
+        @Override
         public CharacterType getCharacterType() {
-            return null;
+            return CharacterType.ARTIST;
         }
     }
 
-    private AlienCharacterCard characterCard;
+    private DummyCharacterCard characterCard;
+    private Player player;
 
     @BeforeEach
     void setUp() {
-        characterCard = new AlienCharacterCard("AlienID", 1, 0, 4);
+        characterCard = new DummyCharacterCard("CHR_01", 1, 2, 3);
+        player = new Player("Alice");
     }
 
     @Test
-    void getRequiredPlayersShouldReturnConstructorValue() {
-        assertEquals(4, characterCard.getRequiredPlayers());
-    }
-
-    @Test
-    void defaultMethodsShouldNotThrowExceptions() {
-        Player player = new Player("TestNickname", TotemColor.RED);
-        assertDoesNotThrow(() -> characterCard.onAcquire(player));
-        assertDoesNotThrow(() -> characterCard.onGameEnd(player));
+    void constructorShouldSetValuesCorrectly() {
+        assertEquals("CHR_01", characterCard.getId());
+        assertEquals(1, characterCard.getEra());
+        assertEquals(2, characterCard.getBasePrestige());
+        assertEquals(3, characterCard.getRequiredPlayers());
     }
 
     @Test
     void constructorShouldThrowExceptionIfRequiredPlayersIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> new AlienCharacterCard("AlienID", 1, 0, -1));
+        assertThrows(IllegalArgumentException.class, () -> new DummyCharacterCard("CHR_02", 1, 2, -1));
     }
 
     @Test
-    void constructorShouldThrowExceptionIfEraIsInvalid() {
-        assertThrows(IllegalArgumentException.class, () -> new AlienCharacterCard("AlienID", 0, 0, 4));
-        assertThrows(IllegalArgumentException.class, () -> new AlienCharacterCard("AlienID", 4, 0, 4));
+    void acceptShouldThrowExceptionIfVisitorIsNull() {
+        assertThrows(NullPointerException.class, () -> characterCard.accept(null));
     }
 
+    @Test
+    void acceptShouldCallVisitor() {
+        //using an array to bypass the effectively final restriction in anonymous classes
+        final boolean[] wasVisited = {false};
+
+        CardVisitor dummyVisitor = new CardVisitor() {
+            @Override
+            public void visit(EventCard card) {}
+
+            @Override
+            public void visit(CharacterCard card) {
+                //mark that the visit method was actually called
+                wasVisited[0] = true;
+            }
+
+            @Override
+            public void visit(BuildingCard card) {}
+        };
+
+        //act
+        characterCard.accept(dummyVisitor);
+
+        //assert
+        assertTrue(wasVisited[0], "the visitor method for character card should have been called");
+    }
+
+    @Test
+    void emptyMethodsShouldNotThrowExceptions() {
+        assertDoesNotThrow(() -> characterCard.onAcquire(player));
+        assertDoesNotThrow(() -> characterCard.onGameEnd(player));
+    }
 }

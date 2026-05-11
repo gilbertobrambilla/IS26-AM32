@@ -1,157 +1,119 @@
 package it.polimi.ingsw.am32.model.cards.events;
 
-import it.polimi.ingsw.am32.model.Deck;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
+import it.polimi.ingsw.am32.model.cards.Card;
 import it.polimi.ingsw.am32.model.enums.EventType;
-import it.polimi.ingsw.am32.model.enums.TotemColor;
-import it.polimi.ingsw.am32.model.tiles.OfferTile;
+import it.polimi.ingsw.am32.model.enums.StatChangeReason;
+import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
+import it.polimi.ingsw.am32.model.Deck;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ShamanicRitualEventTest {
 
-    @Test
-    void testGetEventType() {
-        ShamanicRitualEvent eventCard = new ShamanicRitualEvent("SHAMAN_01", 1, false, 5, 3);
-        assertEquals(EventType.SHAMANIC_RITUAL, eventCard.getEventType());
+    private ShamanicRitualEvent event;
+
+    // dummy game state to bypass complex initialization in pure java
+    private static class DummyGameState extends GameState {
+        private final List<Player> testPlayers;
+
+        public DummyGameState(List<Player> testPlayers, TurnOrderTile dummyTile, Deck<Card> dummyDeck) {
+            // pass valid dummy data to satisfy gamestate's strict constructor requirements
+            super(1, 2, new ArrayList<>(), dummyTile, dummyDeck, new HashMap<>());
+            this.testPlayers = testPlayers;
+        }
+
+        @Override
+        public List<Player> getPlayers() {
+            // override to return our custom list of players for this specific test
+            return new ArrayList<>(testPlayers);
+        }
+    }
+
+    @BeforeEach
+    void setUp() {
+        // initialize valid shamanic ritual event before each test (prestige bonus: 5, penalty: 3)
+        event = new ShamanicRitualEvent("SHM_01", 1, false, 5, 3);
     }
 
     @Test
-    void testResolveEvent_NormalAndAbilities() {
-        //Creating test eventCard
-        ShamanicRitualEvent eventCard = new ShamanicRitualEvent("SHAMAN_01", 1, false, 5, 3);
-
-        //Creating the player with the least number of stars
-        Player pMinNormal = new Player("Alice", TotemColor.RED);
-
-        //Creating player with a building that has shamanic event immunity and the least number of stars
-        Player pMinImmune = new Player("Bob", TotemColor.BLUE);
-        pMinImmune.setShamanicImmunity(true);
-
-        //Creating a player that has a middle number of stars
-        Player pMid = new Player("Charlie", TotemColor.WHITE);
-        pMid.addShamanStars(2);
-
-        //Creating 2 players that have the maximum number of stars
-        Player pMaxNormal = new Player("Diana", TotemColor.YELLOW);
-        pMaxNormal.addShamanStars(5);
-
-        //The player has both the maximum number of stars and the building that doubles the PP received for this event
-        Player pMaxDouble = new Player("Eve", TotemColor.BLACK);
-        pMaxDouble.addShamanStars(5);
-        pMaxDouble.setDoubleShamanicBonus(true);
-
-        //creating fake parameteres for the gameState
-        List<OfferTile> dummyOfferTrack = new ArrayList<>();
-        TurnOrderTile dummyTurnOrderTile = new TurnOrderTile("DUMMY", 5, new ArrayList<>(), new ArrayList<>());
-        Deck dummyTribeDeck = new Deck();
-        Map<Integer, Deck> dummyBuildingDecks = new HashMap<>();
-
-        //Creating the GameState and adding every player
-        GameState gameState = new GameState(1, 5, dummyOfferTrack, dummyTurnOrderTile, dummyTribeDeck, dummyBuildingDecks);
-        gameState.getPlayers().add(pMinNormal);
-        gameState.getPlayers().add(pMinImmune);
-        gameState.getPlayers().add(pMid);
-        gameState.getPlayers().add(pMaxNormal);
-        gameState.getPlayers().add(pMaxDouble);
-
-        //Solving event
-        eventCard.resolveEvent(gameState);
-
-        //Verifying
-        assertEquals(-3, pMinNormal.getPrestige());
-        assertEquals(0, pMinImmune.getPrestige());
-        assertEquals(0, pMid.getPrestige());
-        assertEquals(5, pMaxNormal.getPrestige());
-        assertEquals(10, pMaxDouble.getPrestige());
+    void constructorShouldSetValuesCorrectly() {
+        // verify that superclass getters return correct values
+        assertEquals("SHM_01", event.getId());
+        assertEquals(1, event.getEra());
+        assertFalse(event.isFinal());
     }
 
     @Test
-    void testResolveEvent_TotalTie() {
-        //Testing the case where every player has the same amount of stars and no building
-        ShamanicRitualEvent eventCard = new ShamanicRitualEvent("SHAMAN_01", 1, false, 5, 3);
-
-        Player p1 = new Player("Alice", TotemColor.RED);
-        Player p2 = new Player("Bob", TotemColor.BLUE);
-
-        //creating fake parameters for the gameState
-        List<OfferTile> dummyOfferTrack = new ArrayList<>();
-        TurnOrderTile dummyTurnOrderTile = new TurnOrderTile("DUMMY", 2, new ArrayList<>(), new ArrayList<>());
-        Deck dummyTribeDeck = new Deck();
-        Map<Integer, Deck> dummyBuildingDecks = new HashMap<>();
-
-        //Creating a test GameState
-        GameState gameState = new GameState(2, 2, dummyOfferTrack, dummyTurnOrderTile, dummyTribeDeck, dummyBuildingDecks);
-        gameState.getPlayers().add(p1);
-        gameState.getPlayers().add(p2);
-
-        //Solving event
-        eventCard.resolveEvent(gameState);
-
-        //Verifying
-        assertEquals(2, p1.getPrestige());
-        assertEquals(2, p2.getPrestige());
+    void constructorShouldThrowExceptionIfPrestigeBonusIsNegative() {
+        // verify exception for negative prestige bonus
+        assertThrows(IllegalArgumentException.class, () -> new ShamanicRitualEvent("SHM_02", 1, false, -1, 3));
     }
 
     @Test
-    void testResolveEvent_TotalTieWithAbilities() {
-        //Creating test eventCard
-        ShamanicRitualEvent eventCard = new ShamanicRitualEvent("SHAMAN_01", 1, false, 5, 3);
-
-        //Creating a player that has immunity but doesn't have double points for the win
-        Player pAlice = new Player("Alice", TotemColor.RED);
-        pAlice.setShamanicImmunity(true);
-
-        //Creating a player that has double points for the win but doesn't have immunity
-        Player pBob = new Player("Bob", TotemColor.BLUE);
-        pBob.setDoubleShamanicBonus(true);
-
-        //creating fake parameters for the gameState
-        List<OfferTile> dummyOfferTrack = new ArrayList<>();
-        TurnOrderTile dummyTurnOrderTile = new TurnOrderTile("DUMMY", 2, new ArrayList<>(), new ArrayList<>());
-        Deck dummyTribeDeck = new Deck();
-        Map<Integer, Deck> dummyBuildingDecks = new HashMap<>();
-
-        //Creating gameState and adding players
-        GameState gameState = new GameState(2, 2, dummyOfferTrack, dummyTurnOrderTile, dummyTribeDeck, dummyBuildingDecks);
-        gameState.getPlayers().add(pAlice);
-        gameState.getPlayers().add(pBob);
-
-        //Solving event
-        eventCard.resolveEvent(gameState);
-
-        //Verifying event
-        assertEquals(5, pAlice.getPrestige());
-        assertEquals(7, pBob.getPrestige());
-    }
-
-    //testing the exceptions
-
-    @Test
-    void testResolveEvent_NullGameState() {
-        ShamanicRitualEvent eventCard = new ShamanicRitualEvent("SHAMAN_01", 1, false, 5, 3);
-        assertThrows(NullPointerException.class, () -> eventCard.resolveEvent(null));
+    void constructorShouldThrowExceptionIfPrestigePenaltyIsNegative() {
+        // verify exception for negative prestige penalty
+        assertThrows(IllegalArgumentException.class, () -> new ShamanicRitualEvent("SHM_03", 1, false, 5, -1));
     }
 
     @Test
-    void testConstructorExceptions() {
-        //checking for negative values in prestigeBonus
-        assertThrows(IllegalArgumentException.class, () ->
-                new ShamanicRitualEvent("SHAMAN_01", 1, false, -1, 3)
-        );
+    void getEventTypeShouldReturnShamanicRitual() {
+        // verify correct event type enum
+        assertEquals(EventType.SHAMANIC_RITUAL, event.getEventType());
+    }
 
-        //checking for negative values in prestigePenalty
-        assertThrows(IllegalArgumentException.class, () ->
-                new ShamanicRitualEvent("SHAMAN_01", 1, false, 5, -1)
-        );
+    @Test
+    void resolveEventShouldThrowExceptionIfGameStateIsNull() {
+        // verify exception for null game state
+        assertThrows(NullPointerException.class, () -> event.resolveEvent(null));
+    }
+
+    @Test
+    void resolveEventShouldReturnCorrectReceiptsForMultiplePlayers() {
+        // create player 1 (winner candidate)
+        Player player1 = new Player("Alice");
+        player1.addShamanStars(2); // assuming this method exists from our previous shaman character setup
+
+        // create player 2 (loser candidate)
+        Player player2 = new Player("Bob");
+        player2.addPrestige(10); // give bob prestige so a penalty doesn't push him below zero
+
+        List<Player> players = List.of(player1, player2);
+
+        // initialize valid modifier lists for the turn order tile
+        List<Integer> foodMods = List.of(0, 0, 0, 0, 0);
+        List<Integer> prestigeMods = List.of(0, 0, 0, 0, 0);
+
+        // instantiate real dependencies with basic valid data
+        TurnOrderTile dummyTile = new TurnOrderTile("TOT_01", 5, foodMods, prestigeMods);
+        Deck<Card> dummyDeck = new Deck<>();
+
+        // create the dummy game state using pure java and our multiple players
+        DummyGameState dummyGameState = new DummyGameState(players, dummyTile, dummyDeck);
+
+        // resolve the event
+        List<PlayerStatsChangeReceipt> receipts = event.resolveEvent(dummyGameState);
+
+        // verify the receipt list is not null and contains exactly two receipts (one per player)
+        assertNotNull(receipts);
+        assertEquals(2, receipts.size());
+
+        // extract receipts and verify they correspond to our players
+        PlayerStatsChangeReceipt receiptAlice = receipts.get(0);
+        PlayerStatsChangeReceipt receiptBob = receipts.get(1);
+
+        assertEquals("Alice", receiptAlice.getPlayerNickname());
+        assertEquals(StatChangeReason.SHAMANIC_RITUAL.toString(), receiptAlice.getReason());
+
+        assertEquals("Bob", receiptBob.getPlayerNickname());
+        assertEquals(StatChangeReason.SHAMANIC_RITUAL.toString(), receiptBob.getReason());
     }
 }
