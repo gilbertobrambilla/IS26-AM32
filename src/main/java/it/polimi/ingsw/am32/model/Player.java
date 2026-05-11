@@ -6,7 +6,7 @@ import it.polimi.ingsw.am32.model.enums.CharacterType;
 import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.model.enums.InventionType;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
-import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
+import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
 
 import java.util.*;
 
@@ -133,10 +133,15 @@ public class Player implements Comparable<Player> {
 
     public void removeFood(int amount) {
         if (amount < 0) {
+            // exception is thrown if amount is negative
             throw new IllegalArgumentException("amount cannot be negative");
         }
         if (this.food < amount) {
-            throw new IllegalStateException("not enough food to perform the removal");
+            // exception is thrown if food is insufficient
+            throw new InvalidGameActionException(
+                    GameErrorReason.NOT_ENOUGH_FOOD,
+                    "not enough food to perform the removal"
+            );
         }
         this.food -= amount;
     }
@@ -218,7 +223,7 @@ public class Player implements Comparable<Player> {
 
         // food availability is verified
         if (this.food < totalCost) {
-            throw new InvalidActionException(
+            throw new InvalidGameActionException(
                     GameErrorReason.NOT_ENOUGH_FOOD,
                     "not enough food to buy the selected buildings"
             );

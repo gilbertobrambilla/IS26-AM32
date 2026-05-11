@@ -11,7 +11,7 @@ import it.polimi.ingsw.am32.model.enums.GamePhase;
 import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.model.enums.StatChangeReason;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
-import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
+import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
 import it.polimi.ingsw.am32.model.receipts.*;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
@@ -137,23 +137,55 @@ public class GameState {
         this.currentPlayer = this.turnOrderTile.getTurnOrder().getFirst();
     }
 
+    /**
+     * Validates if the specified player is the current player.
+     *
+     * @param playerNickname the nickname of the player to validate.
+     * @throws InvalidGameActionException if it is not the player's turn.
+     */
+    private void validateTurn(String playerNickname) {
+        if (this.currentPlayer == null || !this.currentPlayer.getNickname().equals(playerNickname)) {
+            // exception is thrown if it is not the player's turn
+            throw new InvalidGameActionException(
+                    GameErrorReason.NOT_YOUR_TURN,
+                    "it is not player " + playerNickname + "'s turn"
+            );
+        }
+    }
 
+    /**
+     * Validates if the current phase matches one of the expected phases.
+     *
+     * @param expectedPhases the allowed phases for the action.
+     * @throws InvalidGameActionException if the current phase is not allowed.
+     */
+    private void validatePhase(GamePhase[] expectedPhases) {
+        for (GamePhase phase : expectedPhases) {
+            if (this.currentPhase == phase) {
+                // execution is returned if phase matches
+                return;
+            }
+        }
+
+        // exception is thrown if phase is not matching any expected phase
+        throw new InvalidGameActionException(
+                GameErrorReason.INVALID_PHASE,
+                "action not allowed in current phase: " + this.currentPhase
+        );
+    }
 
     // core gameplay phases
 
     public void placeTotem(String playerNickname, String selectedOfferTileId) {
-        Objects.requireNonNull(playerNickname, "player cannot be null");
+        Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
         Objects.requireNonNull(selectedOfferTileId, "selectedOfferTileId cannot be null");
 
+        // player is validated
+        validateTurn(playerNickname);
+        // phase is validated
+        validatePhase(new GamePhase[]{GamePhase.PLACE_TOTEMS});
+
         Player player = getPlayerByNickname(playerNickname);
-
-        if (!player.equals(this.currentPlayer)) {
-            throw new IllegalStateException("cannot place totem: it is not player " + player.getNickname() + "'s turn");
-        }
-
-        if (this.currentPhase != GamePhase.PLACE_TOTEMS) {
-            throw new IllegalStateException("cannot place totem: current phase is " + this.currentPhase);
-        }
 
         OfferTile targetTile = null;
         for (OfferTile tile : offerTrack) {
@@ -165,7 +197,7 @@ public class GameState {
 
         // tile existence is verified
         if (targetTile == null) {
-            throw new InvalidActionException(
+            throw new InvalidGameActionException(
                     GameErrorReason.OFFER_TILE_NOT_FOUND,
                     "offer tile " + selectedOfferTileId + " does not exist"
             );
@@ -201,22 +233,19 @@ public class GameState {
      * @param chosenCharacterCardsIds the list of character card IDs chosen by the player
      * @param chosenBuildingCardsIds  the list of building card IDs chosen by the player
      * @return an ActionReceipt containing the detailed breakdown of the action
-     * @throws InvalidActionException if the action is invalid or the player cannot afford it
+     * @throws InvalidGameActionException if the action is invalid or the player cannot afford it
      */
     public ActionReceipt resolveAction(String playerNickname, List<String> chosenCharacterCardsIds, List<String> chosenBuildingCardsIds) {
-        Objects.requireNonNull(playerNickname, "player cannot be null");
+        Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
         Objects.requireNonNull(chosenCharacterCardsIds, "chosenCharacterCardsIds cannot be null");
         Objects.requireNonNull(chosenBuildingCardsIds, "chosenBuildingCardsIds cannot be null");
 
+        // player is validated
+        validateTurn(playerNickname);
+        // phase is validated
+        validatePhase(new GamePhase[]{GamePhase.RESOLVE_ACTIONS, GamePhase.EXTRA_ACQUISITION});
+
         Player player = getPlayerByNickname(playerNickname);
-
-        if (!player.equals(this.currentPlayer)) {
-            throw new IllegalStateException("cannot place totem: it is not player " + player.getNickname() + "'s turn");
-        }
-
-        if (this.currentPhase != GamePhase.RESOLVE_ACTIONS && this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
-            throw new IllegalStateException("cannot resolve action: current phase is " + this.currentPhase);
-        }
 
         OfferTile targetTile = null;
 
@@ -230,7 +259,7 @@ public class GameState {
 
         // target tile existence is verified
         if (targetTile == null) {
-            throw new InvalidActionException(
+            throw new InvalidGameActionException(
                     GameErrorReason.PLAYER_NOT_ON_TILE,
                     "player is not occupying any offer tile"
             );
@@ -252,7 +281,7 @@ public class GameState {
             // upper row is searched
             for (Card c : this.upperTribeRow) {
                 if (c.getId().equals(id)) {
-                    // double dispatch is utilized to safely populate the typed collection or reject invalid cards
+                    // double dispatch is used to safely populate the typed collection or reject invalid cards
                     c.accept(visitor);
                     requestedUpper++;
                     found = true;
@@ -264,7 +293,7 @@ public class GameState {
             // lower row is searched
             for (Card c : this.lowerTribeRow) {
                 if (c.getId().equals(id)) {
-                    // double dispatch is utilized to safely populate the typed collection or reject invalid cards
+                    // double dispatch is used to safely populate the typed collection or reject invalid cards
                     c.accept(visitor);
                     requestedLower++;
                     found = true;
@@ -272,7 +301,7 @@ public class GameState {
                 }
             }
             if (!found) {
-                throw new InvalidActionException(
+                throw new InvalidGameActionException(
                         GameErrorReason.CARD_NOT_FOUND,
                         "character card " + id + " is not available on the board"
                 );
@@ -301,7 +330,7 @@ public class GameState {
                 }
             }
             if (!found) {
-                throw new InvalidActionException(
+                throw new InvalidGameActionException(
                         GameErrorReason.CARD_NOT_FOUND,
                         "building card " + id + " is not available on the board"
                 );
@@ -313,7 +342,7 @@ public class GameState {
         int totalLowerSize = this.lowerTribeRow.size() + this.lowerBuildingRow.size();
 
         if (!targetTile.isValidSelection(requestedUpper, requestedLower, totalUpperSize, totalLowerSize)) {
-            throw new InvalidActionException(
+            throw new InvalidGameActionException(
                     GameErrorReason.INVALID_SELECTION_AMOUNT,
                     "selected cards do not match offer tile constraints"
             );
@@ -445,13 +474,14 @@ public class GameState {
      * @return an ActionReceipt containing only the totem repositioning details
      */
     public ActionReceipt forfeitAction(String playerNickname) {
-        Objects.requireNonNull(playerNickname, "player cannot be null");
-        Player player = getPlayerByNickname(playerNickname);
+        Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
 
-        // phase is verified
-        if (this.currentPhase != GamePhase.RESOLVE_ACTIONS && this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
-            throw new IllegalStateException("cannot forfeit action: current phase is " + this.currentPhase);
-        }
+        // player is validated
+        validateTurn(playerNickname);
+        // phase is validated
+        validatePhase(new GamePhase[]{GamePhase.RESOLVE_ACTIONS, GamePhase.EXTRA_ACQUISITION});
+
+        Player player = getPlayerByNickname(playerNickname);
 
         OfferTile targetTile = null;
         // player occupied tile is identified
@@ -464,7 +494,7 @@ public class GameState {
 
         // tile existence is verified
         if (targetTile == null) {
-            throw new InvalidActionException(
+            throw new InvalidGameActionException(
                     GameErrorReason.PLAYER_NOT_ON_TILE,
                     "player is not occupying any offer tile"
             );
@@ -541,18 +571,15 @@ public class GameState {
      * @return an ExtraAcquisitionReceipt detailing the costs and bonuses of the acquisition
      */
     public ExtraAcquisitionReceipt resolveExtraAcquisition(String playerNickname, String cardId) {
-        Objects.requireNonNull(playerNickname, "player cannot be null");
+        Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
         Objects.requireNonNull(cardId, "cardId cannot be null");
 
-        Player player = getPlayerByNickname(playerNickname);
+        // player is validated
+        validateTurn(playerNickname);
+        // phase is validated
+        validatePhase(new GamePhase[]{GamePhase.EXTRA_ACQUISITION});
 
-        // phase and turn are verified
-        if (this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
-            throw new IllegalStateException("cannot resolve extra acquisition: current phase is " + this.currentPhase);
-        }
-        if (!player.equals(this.currentPlayer)) {
-            throw new IllegalStateException("cannot perform extra acquisition: it is not player " + playerNickname + "'s turn");
-        }
+        Player player = getPlayerByNickname(playerNickname);
 
         Card targetCard = null;
         boolean isCharacter = false;
@@ -578,7 +605,7 @@ public class GameState {
 
         // card existence is verified
         if (targetCard == null) {
-            throw new InvalidActionException(
+            throw new InvalidGameActionException(
                     GameErrorReason.CARD_NOT_FOUND,
                     "card " + cardId + " is not available in the upper row"
             );
@@ -633,9 +660,8 @@ public class GameState {
      * @throws IllegalStateException if the current phase is not resolve_events
      */
     public List<EventResolutionReceipt> resolveEvents() {
-        if (this.currentPhase != GamePhase.RESOLVE_EVENTS) {
-            throw new IllegalStateException("cannot resolve events: current phase is " + this.currentPhase);
-        }
+        // phase is validated
+        validatePhase(new GamePhase[]{GamePhase.RESOLVE_EVENTS});
 
         EventCollectorVisitor visitor = new EventCollectorVisitor();
 
@@ -666,9 +692,8 @@ public class GameState {
     }
 
     public void endRound() {
-        if (this.currentPhase != GamePhase.END_ROUND) {
-            throw new IllegalStateException("cannot end round: current phase is " + this.currentPhase);
-        }
+        // phase is validated
+        validatePhase(new GamePhase[]{GamePhase.END_ROUND});
 
         this.currentRound++;
 
@@ -769,7 +794,7 @@ public class GameState {
     }
 
     public void removePlayer(String playerNickname) {
-        Objects.requireNonNull(playerNickname, "player cannot be null");
+        Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
 
         Player player = getPlayerByNickname(playerNickname);
 

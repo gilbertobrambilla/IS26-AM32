@@ -167,9 +167,9 @@ CREATE TABLE `event_cards` (
 --
 
 INSERT INTO `event_cards` (`id`, `era`, `event_type`, `event_params`) VALUES
-('event_01', 1, 'CAVE_PAINTINGS', '{\"cave_prestige_bonus\": 1, \"cave_bonus_threshold\": 1, \"cave_prestige_penalty\": 2, \"cave_penalty_threshold\": 0}'),
-('event_02', 2, 'CAVE_PAINTINGS', '{\"cave_prestige_bonus\": 2, \"cave_bonus_threshold\": 2, \"cave_prestige_penalty\": 2, \"cave_penalty_threshold\": 1}'),
-('event_03', 3, 'CAVE_PAINTINGS', '{\"cave_prestige_bonus\": 3, \"cave_bonus_threshold\": 3, \"cave_prestige_penalty\": 2, \"cave_penalty_threshold\": 2}'),
+('event_01', 1, 'CAVE_PAINTINGS', '{\"cave_prestige_bonus\": 1, \"cave_bonus_threshold\": 1, \"cave_prestige_penalty\": 2}'),
+('event_02', 2, 'CAVE_PAINTINGS', '{\"cave_prestige_bonus\": 2, \"cave_bonus_threshold\": 2, \"cave_prestige_penalty\": 2}'),
+('event_03', 3, 'CAVE_PAINTINGS', '{\"cave_prestige_bonus\": 3, \"cave_bonus_threshold\": 3, \"cave_prestige_penalty\": 2}'),
 ('event_04', 1, 'HUNT', '{\"hunt_food_bonus\": 1, \"hunt_prestige_bonus\": 1}'),
 ('event_05', 2, 'HUNT', '{\"hunt_food_bonus\": 1, \"hunt_prestige_bonus\": 2}'),
 ('event_06', 3, 'HUNT', '{\"hunt_food_bonus\": 1, \"hunt_prestige_bonus\": 3}'),

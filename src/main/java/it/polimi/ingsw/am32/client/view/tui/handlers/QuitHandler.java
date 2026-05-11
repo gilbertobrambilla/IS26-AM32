@@ -11,8 +11,19 @@ public class QuitHandler implements InputHandler {
     public void execute(ClientController controller, String[] args) throws IllegalArgumentException {
         // notification is printed
         System.out.println("disconnecting and closing application...");
+        // app termination is requested via controller
+        controller.requestExit();
+    }
 
-        // system is terminated
-        System.exit(0);
+    @Override
+    public String getSyntax() {
+        // syntax string is returned
+        return "quit";
+    }
+
+    @Override
+    public String getDescription() {
+        // description string is returned
+        return "exits the game";
     }
 }

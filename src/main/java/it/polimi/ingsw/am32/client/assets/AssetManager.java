@@ -12,23 +12,42 @@ import java.util.Map;
  * Asset manager is implemented to store and provide game assets.
  */
 public class AssetManager {
+    private static AssetManager instance;
 
     private final Map<String, BuildingCardDTO> buildingCards;
     private final Map<String, CharacterCardDTO> characterCards;
     private final Map<String, EventCardDTO> eventCards;
     private final Map<String, OfferTileDTO> offerTiles;
     private final Map<String, TurnOrderTileDTO> turnOrderTiles;
+    private final Map<String, String> uiAssets;
+    private final Map<String, String> cardBacks;
 
     /**
      * Asset manager is instantiated.
      */
-    public AssetManager() {
+    private AssetManager() {
         // internal maps are initialized
         this.buildingCards = new HashMap<>();
         this.characterCards = new HashMap<>();
         this.eventCards = new HashMap<>();
         this.offerTiles = new HashMap<>();
         this.turnOrderTiles = new HashMap<>();
+        this.uiAssets = new HashMap<>();
+        this.cardBacks = new HashMap<>();
+    }
+
+    /**
+     * Singleton instance is retrieved.
+     *
+     * @return the asset manager instance.
+     */
+    public static AssetManager getInstance() {
+        // instance is created if null
+        if (instance == null) {
+            instance = new AssetManager();
+        }
+        // instance is returned
+        return instance;
     }
 
     /**
@@ -42,18 +61,19 @@ public class AssetManager {
         // unknown properties are ignored
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        try {
-            // input stream is opened from resources
-            InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath);
-            if (is != null) {
-                // json is deserialized into the root object
-                GameAssetsRoot root = mapper.readValue(is, GameAssetsRoot.class);
-                // maps are populated
-                populateMaps(root);
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
+            // stream is checked for null
+            if (is == null) {
+                // exception is thrown
+                throw new RuntimeException("asset file not found");
             }
+            // json is deserialized into the root object
+            GameAssetsRoot root = mapper.readValue(is, GameAssetsRoot.class);
+            // maps are populated
+            populateMaps(root);
         } catch (Exception e) {
-            // exception is ignored or logged safely
-            System.err.println("assets could not be loaded");
+            // exception is thrown to fail fast
+            throw new RuntimeException("failed to load assets", e);
         }
     }
 
@@ -82,6 +102,14 @@ public class AssetManager {
         // turn order tiles are mapped
         if (root.getTurnOrderTiles() != null) {
             root.getTurnOrderTiles().forEach(tile -> turnOrderTiles.put(tile.getId(), tile));
+        }
+        // ui assets are mapped
+        if (root.getUiAssets() != null) {
+            uiAssets.putAll(root.getUiAssets());
+        }
+        // card backs are mapped
+        if (root.getCardBacks() != null) {
+            cardBacks.putAll(root.getCardBacks());
         }
     }
 
@@ -138,5 +166,27 @@ public class AssetManager {
     public TurnOrderTileDTO getTurnOrderTile(String id) {
         // tile is returned
         return turnOrderTiles.get(id);
+    }
+
+    /**
+     * Ui asset path is retrieved by its key.
+     *
+     * @param key the ui asset key.
+     * @return the relative path.
+     */
+    public String getUiAsset(String key) {
+        // path is returned
+        return uiAssets.get(key);
+    }
+
+    /**
+     * Card back path is retrieved by its key.
+     *
+     * @param key the card back key.
+     * @return the relative path.
+     */
+    public String getCardBack(String key) {
+        // path is returned
+        return cardBacks.get(key);
     }
 }

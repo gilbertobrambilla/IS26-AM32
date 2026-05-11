@@ -2,6 +2,7 @@ package it.polimi.ingsw.am32.client.controller;
 
 import it.polimi.ingsw.am32.client.model.LightGameState;
 import it.polimi.ingsw.am32.client.view.UI;
+import it.polimi.ingsw.am32.client.view.tui.TuiUI;
 import it.polimi.ingsw.am32.controller.commands.game.*;
 import it.polimi.ingsw.am32.controller.commands.lobby.*;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
@@ -11,6 +12,8 @@ import it.polimi.ingsw.am32.network.client.VirtualServer;
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Controller handling incoming network events and outgoing user requests.
@@ -21,6 +24,7 @@ public class ClientController {
     private UI ui;
     private LightGameState lightGameState;
     private String myNickname;
+    private final ExecutorService uiExecutor;
 
     /**
      * Client controller is instantiated.
@@ -30,6 +34,14 @@ public class ClientController {
     public ClientController(VirtualServer virtualServer) {
         this.virtualServer = virtualServer;
         this.dispatcher = new MessageDispatcher(this);
+
+        // ui executor is initialized as a single thread daemon
+        this.uiExecutor = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+            // thread is set as daemon
+            t.setDaemon(true);
+            return t;
+        });
     }
 
     /**
@@ -63,7 +75,7 @@ public class ClientController {
     public void requestCreateGame(int numOfPlayers) {
         CreateGameCommand cmd = new CreateGameCommand(numOfPlayers);
         // command is sent
-        virtualServer.sendLobbyCommand(cmd, myNickname);
+        virtualServer.sendLobbyCommand(cmd);
     }
 
     /**
@@ -74,12 +86,13 @@ public class ClientController {
     public void requestJoinGame(int gameId) {
         JoinGameCommand cmd = new JoinGameCommand(gameId);
         // command is sent
-        virtualServer.sendLobbyCommand(cmd, myNickname);
+        virtualServer.sendLobbyCommand(cmd);
     }
 
     /**
      * Lobby error event is processed.
-     * * @param event the lobby error event.
+     *
+     * @param event the lobby error event.
      */
     public void onLobbyError(LobbyErrorEvent event) {
         runOnUIThread(() -> {
@@ -96,7 +109,7 @@ public class ClientController {
     public void requestPlaceTotem(String tileId) {
         PlaceTotemCommand cmd = new PlaceTotemCommand(tileId);
         // command is sent
-        virtualServer.sendGameCommand(cmd, myNickname);
+        virtualServer.sendGameCommand(cmd);
     }
 
     /**
@@ -108,7 +121,7 @@ public class ClientController {
     public void requestResolveAction(List<String> characters, List<String> buildings) {
         ResolveActionCommand cmd = new ResolveActionCommand(characters, buildings);
         // command is sent
-        virtualServer.sendGameCommand(cmd, myNickname);
+        virtualServer.sendGameCommand(cmd);
     }
 
     /**
@@ -135,7 +148,17 @@ public class ClientController {
         message.accept(this.dispatcher);
     }
 
+    /**
+     * Connection result event is processed.
+     *
+     * @param event the connection result event.
+     */
     public void onConnectionResult(ConnectionResultEvent event) {
+        if (event.isSuccess()) {
+            // liveness routine is started on successful connection
+            this.virtualServer.startLivenessRoutine();
+        }
+
         runOnUIThread(() -> {
             // ui is updated
             if (ui != null) ui.showConnectionResult(event);
@@ -273,13 +296,25 @@ public class ClientController {
     }
 
     /**
+     * Fatal error is processed.
+     *
+     * @param message the error message.
+     */
+    public void onFatalError(String message) {
+        runOnUIThread(() -> {
+            // ui is notified of the disconnection
+            if (ui != null) ui.notifyDisconnection(message);
+        });
+    }
+
+    /**
      * Task is executed on the ui thread.
      *
      * @param task the runnable task.
      */
     private void runOnUIThread(Runnable task) {
-        // task is executed synchronously
-        task.run();
+        // task is submitted to the ui executor queue
+        this.uiExecutor.submit(task);
     }
 
     /**
@@ -300,5 +335,36 @@ public class ClientController {
     public String getMyNickname() {
         // my nickname is returned
         return this.myNickname;
+    }
+
+    /**
+     * The user requests application termination.
+     */
+    public void requestExit() {
+        runOnUIThread(() -> {
+            // exit is triggered if ui is tui
+            if (ui instanceof TuiUI) {
+                ((TuiUI) ui).triggerUserQuit();
+            } else {
+                // fallback is executed for gui
+                shutdown();
+                System.exit(0);
+            }
+        });
+    }
+
+    /**
+     * Resources are released and the connection is gracefully closed.
+     */
+    public void shutdown() {
+        // ui executor is shut down
+        if (this.uiExecutor != null && !this.uiExecutor.isShutdown()) {
+            this.uiExecutor.shutdownNow();
+        }
+
+        // graceful disconnect is forwarded
+        if (this.virtualServer != null) {
+            this.virtualServer.disconnectGracefully();
+        }
     }
 }
