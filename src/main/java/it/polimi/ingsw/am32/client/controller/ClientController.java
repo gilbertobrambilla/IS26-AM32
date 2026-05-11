@@ -26,8 +26,6 @@ public class ClientController {
     private String myNickname;
     private final ExecutorService uiExecutor;
 
-    private final ExecutorService networkExecutor;
-
     /**
      * Client controller is instantiated.
      *
@@ -36,9 +34,6 @@ public class ClientController {
     public ClientController(VirtualServer virtualServer) {
         this.virtualServer = virtualServer;
         this.dispatcher = new MessageDispatcher(this);
-<<<<<<< feature-gui
-        this.networkExecutor = Executors.newSingleThreadExecutor();
-=======
 
         // ui executor is initialized as a single thread daemon
         this.uiExecutor = Executors.newSingleThreadExecutor(r -> {
@@ -47,7 +42,6 @@ public class ClientController {
             t.setDaemon(true);
             return t;
         });
->>>>>>> master
     }
 
     /**
@@ -59,6 +53,7 @@ public class ClientController {
         this.ui = ui;
     }
 
+    // outbound commands (ui -> controller -> network)
 
     /**
      * Connection is requested.
@@ -68,7 +63,8 @@ public class ClientController {
     public void requestConnect(String nickname) {
         this.myNickname = nickname;
         this.lightGameState = new LightGameState(nickname);
-        networkExecutor.submit(() -> virtualServer.connect(nickname));
+        // connection is forwarded to virtual server
+        virtualServer.connect(nickname);
     }
 
     /**
@@ -78,12 +74,8 @@ public class ClientController {
      */
     public void requestCreateGame(int numOfPlayers) {
         CreateGameCommand cmd = new CreateGameCommand(numOfPlayers);
-<<<<<<< feature-gui
-        networkExecutor.submit(() -> virtualServer.sendLobbyCommand(cmd, myNickname));
-=======
         // command is sent
         virtualServer.sendLobbyCommand(cmd);
->>>>>>> master
     }
 
     /**
@@ -93,9 +85,6 @@ public class ClientController {
      */
     public void requestJoinGame(int gameId) {
         JoinGameCommand cmd = new JoinGameCommand(gameId);
-<<<<<<< feature-gui
-        networkExecutor.submit(() -> virtualServer.sendLobbyCommand(cmd, myNickname));
-=======
         // command is sent
         virtualServer.sendLobbyCommand(cmd);
     }
@@ -110,7 +99,6 @@ public class ClientController {
             // ui is updated
             if (ui != null) ui.showLobbyError(event);
         });
->>>>>>> master
     }
 
     /**
@@ -120,12 +108,8 @@ public class ClientController {
      */
     public void requestPlaceTotem(String tileId) {
         PlaceTotemCommand cmd = new PlaceTotemCommand(tileId);
-<<<<<<< feature-gui
-        networkExecutor.submit(() -> virtualServer.sendGameCommand(cmd, myNickname));
-=======
         // command is sent
         virtualServer.sendGameCommand(cmd);
->>>>>>> master
     }
 
     /**
@@ -136,12 +120,8 @@ public class ClientController {
      */
     public void requestResolveAction(List<String> characters, List<String> buildings) {
         ResolveActionCommand cmd = new ResolveActionCommand(characters, buildings);
-<<<<<<< feature-gui
-        networkExecutor.submit(() -> virtualServer.sendGameCommand(cmd, myNickname));
-=======
         // command is sent
         virtualServer.sendGameCommand(cmd);
->>>>>>> master
     }
 
     /**
@@ -150,11 +130,13 @@ public class ClientController {
      * @param nickname the player nickname, or null to clear focus.
      */
     public void requestPlayerFocus(String nickname) {
+        // focus request is dispatched to ui thread
         runOnUIThread(() -> {
             if (ui != null) ui.showPlayerFocus(nickname);
         });
     }
 
+    // inbound events (network -> controller -> ui)
 
     /**
      * Generic message is processed.
@@ -162,23 +144,15 @@ public class ClientController {
      * @param message the network message.
      */
     public void onMessageReceived(MessageDTO message) {
+        // double dispatch is triggered
         message.accept(this.dispatcher);
     }
 
-<<<<<<< feature-gui
-    public void onLobbyError(LobbyErrorEvent event) {
-        runOnUIThread(() -> {
-            if (ui != null) ui.showLobbyError(event);
-        });
-    }
-
-=======
     /**
      * Connection result event is processed.
      *
      * @param event the connection result event.
      */
->>>>>>> master
     public void onConnectionResult(ConnectionResultEvent event) {
         if (event.isSuccess()) {
             // liveness routine is started on successful connection
@@ -186,111 +160,137 @@ public class ClientController {
         }
 
         runOnUIThread(() -> {
+            // ui is updated
             if (ui != null) ui.showConnectionResult(event);
         });
     }
 
     public void onAvailableGamesListUpdate(AvailableLobbiesEvent event) {
         runOnUIThread(() -> {
+            // ui is updated
             if (ui != null) ui.updateAvailableGames(event);
         });
     }
 
     public void onLobbyRoomUpdated(LobbyStateUpdatedEvent event) {
         runOnUIThread(() -> {
+            // ui is updated
             if (ui != null) ui.updateLobbyRoom(event);
         });
     }
 
     public void onGameStarted(GameStartedEvent event) {
         runOnUIThread(() -> {
+            // state is initialized
             lightGameState.initializeFromDTO(event.getGameState());
+            // ui is updated
             if (ui != null) ui.showGameStarted(event);
         });
     }
 
     public void onGameStateUpdate(GameStateEvent event) {
         runOnUIThread(() -> {
+            // state is initialized
             lightGameState.initializeFromDTO(event.getGameState());
+            // ui is updated
             if (ui != null) ui.restoreGameState(event);
         });
     }
 
     public void onGamePhaseChanged(GamePhaseChangedEvent event) {
         runOnUIThread(() -> {
+            // state is updated
             lightGameState.updatePhaseChange(event.getPhase(), event.getNextPlayer());
+            // ui is updated
             if (ui != null) ui.updateGamePhase(event);
         });
     }
 
     public void onRoundEnded(RoundEndedEvent event) {
         runOnUIThread(() -> {
+            // ui is updated
             if (ui != null) ui.showRoundSummary(event);
         });
     }
 
     public void onGameEnded(GameEndedEvent event) {
         runOnUIThread(() -> {
+            // ui is updated
             if (ui != null) ui.showGameResults(event);
         });
     }
 
     public void onTotemPlaced(TotemPlacedEvent event) {
         runOnUIThread(() -> {
+            // state is updated
             lightGameState.updateTotemPlacement(event.getPlayer(), event.getOfferTileId(), event.getNextPlayer());
+            // ui is updated
             if (ui != null) ui.showTotemPlaced(event);
         });
     }
 
     public void onActionResolved(ActionResolvedEvent event) {
         runOnUIThread(() -> {
+            // state is updated
             lightGameState.updateActionResolution(event.getPlayer(), event.getAcquiredCharacterCardIds(), event.getAcquiredBuildingCardIds(), event.getStatsChanges(), event.getNextPlayer());
+            // ui is updated
             if (ui != null) ui.showActionResolved(event);
         });
     }
 
     public void onEventResolved(EventResolvedEvent event) {
         runOnUIThread(() -> {
+            // state is updated
             lightGameState.updateStats(event.getStatsChanges());
+            // ui is updated
             if (ui != null) ui.showEventResolved(event);
         });
     }
 
     public void onExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent event) {
         runOnUIThread(() -> {
+            // state is updated
             lightGameState.updateStats(event.getStatsChanges());
+            // ui is updated
             if (ui != null) ui.showExtraAcquisition(event);
         });
     }
 
     public void onInvalidAction(GameErrorEvent event) {
         runOnUIThread(() -> {
+            // ui is updated
             if (ui != null) ui.showError(event);
         });
     }
 
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
         runOnUIThread(() -> {
+            // state is updated
             lightGameState.updatePlayerConnection(event.getPlayer(), false);
+            // ui is updated
             if (ui != null) ui.showPlayerDisconnected(event);
         });
     }
 
     public void onPlayerReconnected(PlayerReconnectedEvent event) {
         runOnUIThread(() -> {
+            // state is updated
             lightGameState.updatePlayerConnection(event.getPlayer(), true);
+            // ui is updated
             if (ui != null) ui.showPlayerReconnected(event);
         });
     }
 
     public void onGameSuspended(GameSuspendedEvent event) {
         runOnUIThread(() -> {
+            // ui is updated
             if (ui != null) ui.showGameSuspended(event);
         });
     }
 
     public void onGameResumed(GameResumedEvent event) {
         runOnUIThread(() -> {
+            // ui is updated
             if (ui != null) ui.showGameResumed(event);
         });
     }
@@ -313,33 +313,30 @@ public class ClientController {
      * @param task the runnable task.
      */
     private void runOnUIThread(Runnable task) {
-<<<<<<< feature-gui
-        task.run();
-=======
         // task is submitted to the ui executor queue
         this.uiExecutor.submit(task);
->>>>>>> master
     }
 
+    /**
+     * Light game state is retrieved.
+     *
+     * @return the current light game state.
+     */
     public LightGameState getLightGameState() {
+        // light game state is returned
         return this.lightGameState;
     }
 
+    /**
+     * Local player nickname is retrieved.
+     *
+     * @return the local player nickname.
+     */
     public String getMyNickname() {
+        // my nickname is returned
         return this.myNickname;
     }
 
-<<<<<<< feature-gui
-    public void shutdown() {
-        if (networkExecutor != null && !networkExecutor.isShutdown()) {
-            networkExecutor.shutdownNow();
-        }
-
-        // virtual server is disconnected gracefully so the server detects a clean exit
-        // rather than a crash, which is relevant for the resilience FA
-        if (virtualServer != null) {
-            virtualServer.disconnectGracefully();
-=======
     /**
      * The user requests application termination.
      */
@@ -368,7 +365,6 @@ public class ClientController {
         // graceful disconnect is forwarded
         if (this.virtualServer != null) {
             this.virtualServer.disconnectGracefully();
->>>>>>> master
         }
     }
 }
