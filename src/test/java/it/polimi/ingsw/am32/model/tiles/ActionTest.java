@@ -1,98 +1,101 @@
 package it.polimi.ingsw.am32.model.tiles;
 
-import it.polimi.ingsw.am32.model.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-
 class ActionTest {
+
     private Action action;
-    private OfferTile offerTile;
-    private Player player;
-    private int requestedUpper;
-    private int requestedLower;
-    private int availableUpper;
-    private int availableLower;
-    private boolean isValidSelection;
-    private int drawsFormUpperRow;
-    private int drawsFormLowerRow;
-    private int foodBonus;
 
     @BeforeEach
     void setUp() {
-        action = new Action(1,1,1);
-        isValidSelection = true;
-        requestedUpper = 1;
-        requestedLower = 1;
-        availableUpper = 1;
-        availableLower = 1;
-        drawsFormUpperRow = 1;
-        drawsFormLowerRow = 1;
-        foodBonus = 1;
-        offerTile = new OfferTile("OfferTIleId",2,action);
+        //creo una action standard prima di ogni test (può pescare max 2 sopra, max 1 sotto, dà 3 cibo)
+        action = new Action(2, 1, 3);
     }
+
     @Test
-    void constructorShouldThrowExceptionWhenDrawsFromUpperRowAreNegative() {
-        assertThrows(IllegalArgumentException.class, () -> new Action(-1, -1, -1));
-    }
-    @Test
-    void constructorShouldThrowExceptionWhenDrawsFromLowerRowAreNegative() {
-        assertThrows(IllegalArgumentException.class, () -> new Action(1, -1, -1));
-    }
-    @Test
-    void constructorShouldThrowExceptionWhenFoodBonusIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> new Action(1, 1, -1));
-    }
-    @Test
-    void isValisdSelectionShouldThrowExceptionWhenRequestedUpperRowIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> {action.isValidSelection(-1,1,1,1);});
-    }
-    @Test
-    void isValisdSelectionShouldThrowExceptionWhenRequestedLowerRowIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> {action.isValidSelection(1,-1,1,1);});
-    }
-    @Test
-    void isValisdSelectionShouldThrowExceptionWhenAvailableUpperRowIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> {action.isValidSelection(1,1,-1,1);});
-    }
-    @Test
-    void isValisdSelectionShouldThrowExceptionWhenAvailableLowerRowIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> {action.isValidSelection(1,1,1,-1);});
-    }
-    @Test
-    void isValidSelectionShouldReturnTrueWhenIsValidSelection() {
-        assertTrue(action.isValidSelection(requestedUpper,requestedLower,availableUpper,availableLower));
-    }
-    @Test
-    void isValidSelectionShouldReturnFalseIfIsUpperValid() {
-        availableUpper = 0;
-        assertFalse(action.isValidSelection(requestedUpper, requestedLower, availableUpper, availableLower));
-    }
-    @Test
-    void isValidSelectionShouldReturnFalseIfIsLowerValid() {
-        availableLower = 0;
-        assertFalse(action.isValidSelection(requestedUpper, requestedLower, availableUpper, availableLower));
-    }
-    //manca da testare penso la questione in cui quei booleani ritornino true?
-    @Test
-    void isValidSelectionShouldReturnIsUpperValidAndIsLowerValid() {
-        action.isValidSelection(requestedUpper,requestedLower,availableUpper,availableLower);
-        assertTrue(action.isValidSelection(requestedUpper,requestedLower,availableUpper,availableLower));
-    }
-    @Test
-    void getDrawsFormUpperRowShouldReturnDrawsFormUpperRow() {
-        assertEquals(1, action.getDrawsFromUpperRow());
-    }
-    @Test
-    void getDrawsFormLowerRowShouldReturnDrawsFormLowerRow() {
+    void constructorShouldSetValuesCorrectly() {
+        //act and assert: verifico che i getter restituiscano i valori inseriti nel setup
+        assertEquals(2, action.getDrawsFromUpperRow());
         assertEquals(1, action.getDrawsFromLowerRow());
+        assertEquals(3, action.getFoodBonus());
     }
+
     @Test
-    void getFoodBonusShouldReturnFoodBonus() {
-        assertEquals(1, action.getFoodBonus());
+    void constructorShouldThrowExceptionIfDrawsFromUpperRowIsNegative() {
+        //arrange, act and assert: eccezione se la pescata superiore è negativa
+        assertThrows(IllegalArgumentException.class, () -> {
+            new Action(-1, 1, 3);
+        });
     }
 
+    @Test
+    void constructorShouldThrowExceptionIfDrawsFromLowerRowIsNegative() {
+        //arrange, act and assert: eccezione se la pescata inferiore è negativa
+        assertThrows(IllegalArgumentException.class, () -> {
+            new Action(2, -1, 3);
+        });
+    }
 
+    @Test
+    void constructorShouldThrowExceptionIfFoodBonusIsNegative() {
+        //arrange, act and assert: eccezione se il bonus cibo è negativo
+        assertThrows(IllegalArgumentException.class, () -> {
+            new Action(2, 1, -3);
+        });
+    }
+
+    @Test
+    void isValidSelectionShouldReturnTrueForValidRequests() {
+        //act and assert: valido se chiedo esattamente il massimo consentito e disponibile
+        assertTrue(action.isValidSelection(2, 1, 5, 5));
+
+        //act and assert: valido se chiedo meno del massimo consentito
+        assertTrue(action.isValidSelection(1, 0, 2, 2));
+
+        //act and assert: valido se chiedo 0 (se permesso dal gioco)
+        assertTrue(action.isValidSelection(0, 0, 0, 0));
+    }
+
+    @Test
+    void isValidSelectionShouldReturnFalseIfRequestedExceedsAllowed() {
+        //act and assert: falso se chiedo 3 carte sopra ma ne sono permesse solo 2
+        assertFalse(action.isValidSelection(3, 1, 5, 5));
+
+        //act and assert: falso se chiedo 2 carte sotto ma ne è permessa solo 1
+        assertFalse(action.isValidSelection(2, 2, 5, 5));
+    }
+
+    @Test
+    void isValidSelectionShouldReturnFalseIfRequestedExceedsAvailable() {
+        //act and assert: falso se chiedo 2 carte sopra ma ce n'è solo 1 disponibile sul tavolo
+        assertFalse(action.isValidSelection(2, 1, 1, 5));
+
+        //act and assert: falso se chiedo 1 carta sotto ma il tavolo è vuoto sotto
+        assertFalse(action.isValidSelection(2, 1, 5, 0));
+    }
+
+    @Test
+    void isValidSelectionShouldThrowExceptionForNegativeParameters() {
+        //arrange, act and assert: eccezione per requestedUpper negativo
+        assertThrows(IllegalArgumentException.class, () -> {
+            action.isValidSelection(-1, 0, 0, 0);
+        });
+
+        //arrange, act and assert: eccezione per requestedLower negativo
+        assertThrows(IllegalArgumentException.class, () -> {
+            action.isValidSelection(0, -1, 0, 0);
+        });
+
+        //arrange, act and assert: eccezione per availableUpper negativo
+        assertThrows(IllegalArgumentException.class, () -> {
+            action.isValidSelection(0, 0, -1, 0);
+        });
+
+        //arrange, act and assert: eccezione per availableLower negativo
+        assertThrows(IllegalArgumentException.class, () -> {
+            action.isValidSelection(0, 0, 0, -1);
+        });
+    }
 }

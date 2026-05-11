@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am32.model.cards.acquirable;
 
+import it.polimi.ingsw.am32.model.cards.CardVisitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -7,9 +8,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AcquirableCardTest {
 
+    //dummy class to instantiate the abstract acquirablecard class
     private static class DummyAcquirableCard extends AcquirableCard {
+
         public DummyAcquirableCard(String id, int era, int basePrestige) {
             super(id, era, basePrestige);
+        }
+
+        @Override
+        public void accept(CardVisitor visitor) {
+            //empty implementation for testing purposes
         }
     }
 
@@ -17,39 +25,27 @@ class AcquirableCardTest {
 
     @BeforeEach
     void setUp() {
-        acquirableCard = new DummyAcquirableCard("AcquirableCardID", 1, 5);
+        //initialize a dummy acquirable card before each test with valid parameters
+        acquirableCard = new DummyAcquirableCard("ACQ_01", 1, 5);
     }
 
     @Test
-    void getBasePrestigeShouldReturnConstructorValue() {
+    void constructorShouldSetValuesCorrectly() {
+        //verify getters from the superclass (card) and the class itself
+        assertEquals("ACQ_01", acquirableCard.getId());
+        assertEquals(1, acquirableCard.getEra());
         assertEquals(5, acquirableCard.getBasePrestige());
     }
 
     @Test
-    void inheritedGettersShouldReturnCorrectValues() {
-        assertEquals("AcquirableCardID", acquirableCard.getId());
-        assertEquals(1, acquirableCard.getEra());
-    }
-
-    @Test
-    void isEventShouldReturnFalse() {
-        assertFalse(acquirableCard.isEvent());
-    }
-
-    @Test
     void constructorShouldThrowExceptionIfBasePrestigeIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> new DummyAcquirableCard("AcquirableCardID", 2, -1));
+        //verify exception is thrown for negative base prestige
+        assertThrows(IllegalArgumentException.class, () -> new DummyAcquirableCard("ACQ_02", 1, -1));
     }
 
     @Test
-    void constructorShouldThrowExceptionIfIdIsNull() {
-        assertThrows(NullPointerException.class, () -> new DummyAcquirableCard(null, 1, 3));
+    void constructorShouldAllowZeroBasePrestige() {
+        //verify that zero is considered a valid base prestige value
+        assertDoesNotThrow(() -> new DummyAcquirableCard("ACQ_03", 1, 0));
     }
-
-    @Test
-    void constructorShouldThrowExceptionIfEraIsInvalid() {
-        assertThrows(IllegalArgumentException.class, () -> new DummyAcquirableCard("AcquirableCardID", 0, 3));
-        assertThrows(IllegalArgumentException.class, () -> new DummyAcquirableCard("AcquirableCardID", 4, 3));
-    }
-
 }

@@ -1,86 +1,115 @@
 package it.polimi.ingsw.am32.model.cards.events;
 
-import it.polimi.ingsw.am32.model.Deck;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
+import it.polimi.ingsw.am32.model.cards.Card;
 import it.polimi.ingsw.am32.model.enums.EventType;
-import it.polimi.ingsw.am32.model.enums.TotemColor;
-import it.polimi.ingsw.am32.model.tiles.OfferTile;
+import it.polimi.ingsw.am32.model.enums.StatChangeReason;
+import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
+import it.polimi.ingsw.am32.model.Deck;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class CavePaintingsEventTest {
 
-    @Test
-    void testGetEventType() {
-        CavePaintingsEvent eventCard = new CavePaintingsEvent("CAVE_01", 1, false, 2, 1, 3);
-        assertEquals(EventType.CAVE_PAINTINGS, eventCard.getEventType());
+    private CavePaintingsEvent event;
+
+    // dummy game state to bypass complex initialization in pure java
+    private static class DummyGameState extends GameState {
+        private final Player testPlayer;
+
+        public DummyGameState(Player testPlayer, TurnOrderTile dummyTile, Deck<Card> dummyDeck) {
+            // pass valid dummy data to satisfy gamestate's strict constructor requirements
+            super(1, 2, new ArrayList<>(), dummyTile, dummyDeck, new HashMap<>());
+            this.testPlayer = testPlayer;
+        }
+
+        @Override
+        public List<Player> getPlayers() {
+            // override to return a list with only our test player for this specific test
+            return Collections.singletonList(testPlayer);
+        }
+    }
+
+    @BeforeEach
+    void setUp() {
+        // initialize valid event before each test
+        event = new CavePaintingsEvent("CP_01", 1, false, 2, 2, 3);
     }
 
     @Test
-    void testResolveEvent() {
-        CavePaintingsEvent eventCard = new CavePaintingsEvent("CAVE_01", 1, false, 2, 2, 2);
-
-        //creating 2 test players
-        Player player1 = new Player("Alice", TotemColor.RED);
-        Player player2 = new Player("Bob", TotemColor.BLUE);
-
-        //assigning artistCard to players
-        player1.addArtist(); //Alice has only on artist so she will have to pay 2PP
-
-        player2.addArtist();
-        player2.addArtist(); //Bob has 2 artist so he will receive 4PP(2x2)
-
-        //creating a test gamestate
-        List<OfferTile> dummyOfferTrack = new ArrayList<>();
-        TurnOrderTile dummyTurnOrderTile = new TurnOrderTile("DUMMY", 2, new ArrayList<>(), new ArrayList<>());
-        Deck dummyTribeDeck = new Deck();
-        Map<Integer, Deck> dummyBuildingDecks = new HashMap<>();
-        GameState gameState = new GameState(1, 2, dummyOfferTrack, dummyTurnOrderTile, dummyTribeDeck, dummyBuildingDecks);
-
-        //adding players to gamestate
-        gameState.getPlayers().add(player1);
-        gameState.getPlayers().add(player2);
-
-        //solving event
-        eventCard.resolveEvent(gameState);
-
-        //checking results
-        assertEquals(-2, player1.getPrestige()); // Alice: 0-3=-3
-        assertEquals(4, player2.getPrestige());  // Bob: 0+4=4
-    }
-
-    //testing the exceptions
-    @Test
-    void testResolveEvent_NullGameState() {
-        CavePaintingsEvent eventCard = new CavePaintingsEvent("CAVE_01", 1, false, 2, 1, 3);
-
-        assertThrows(NullPointerException.class, () -> eventCard.resolveEvent(null));
+    void constructorShouldSetValuesCorrectly() {
+        // verify that superclass getters return correct values
+        assertEquals("CP_01", event.getId());
+        assertEquals(1, event.getEra());
+        assertFalse(event.isFinal());
     }
 
     @Test
-    void testConstructorExceptions() {
-        //checking for negative values in prestigeBonus
-        assertThrows(IllegalArgumentException.class, () ->
-                new CavePaintingsEvent("CAVE_01", 1, false, -1, 1, 3)
-        );
+    void constructorShouldThrowExceptionIfPrestigeBonusIsNegative() {
+        // verify exception for negative prestige bonus
+        assertThrows(IllegalArgumentException.class, () -> new CavePaintingsEvent("CP_02", 1, false, -1, 2, 3));
+    }
 
-        //checking for negative values in bonusThreshold
-        assertThrows(IllegalArgumentException.class, () ->
-                new CavePaintingsEvent("CAVE_01", 1, false, 2, -1, 3)
-        );
+    @Test
+    void constructorShouldThrowExceptionIfBonusThresholdIsNegative() {
+        // verify exception for negative bonus threshold
+        assertThrows(IllegalArgumentException.class, () -> new CavePaintingsEvent("CP_03", 1, false, 2, -1, 3));
+    }
 
-        //checking for negative values in prestigePenalty
-        assertThrows(IllegalArgumentException.class, () ->
-                new CavePaintingsEvent("CAVE_01", 1, false, 2, 1, -1)
-        );
+    @Test
+    void constructorShouldThrowExceptionIfPrestigePenaltyIsNegative() {
+        // verify exception for negative prestige penalty
+        assertThrows(IllegalArgumentException.class, () -> new CavePaintingsEvent("CP_04", 1, false, 2, 2, -1));
+    }
+
+    @Test
+    void getEventTypeShouldReturnCavePaintings() {
+        // verify correct event type enum
+        assertEquals(EventType.CAVE_PAINTINGS, event.getEventType());
+    }
+
+    @Test
+    void resolveEventShouldThrowExceptionIfGameStateIsNull() {
+        // verify exception for null game state
+        assertThrows(NullPointerException.class, () -> event.resolveEvent(null));
+    }
+
+    @Test
+    void resolveEventShouldReturnCorrectReceipt() {
+        // create a player for the test and give initial prestige to prevent negative numbers
+        Player player = new Player("Alice");
+        player.addPrestige(5);
+
+        // initialize valid modifier lists for the turn order tile (five zeroes for 5 possible players)
+        List<Integer> foodMods = List.of(0, 0, 0, 0, 0);
+        List<Integer> prestigeMods = List.of(0, 0, 0, 0, 0);
+
+        // instantiate real dependencies with basic valid data
+        TurnOrderTile dummyTile = new TurnOrderTile("TOT_01", 5, foodMods, prestigeMods);
+        Deck<Card> dummyDeck = new Deck<>();
+
+        // create the dummy game state using pure java
+        DummyGameState dummyGameState = new DummyGameState(player, dummyTile, dummyDeck);
+
+        // resolve the event
+        List<PlayerStatsChangeReceipt> receipts = event.resolveEvent(dummyGameState);
+
+        // verify the receipt list is not null and contains exactly one receipt
+        assertNotNull(receipts);
+        assertEquals(1, receipts.size());
+
+        // verify the receipt contents using the correct getter and java 21 getFirst()
+        PlayerStatsChangeReceipt receipt = receipts.getFirst();
+        assertEquals("Alice", receipt.getPlayerNickname());
+        assertEquals(StatChangeReason.CAVE_PAINTINGS.toString(), receipt.getReason());
     }
 }

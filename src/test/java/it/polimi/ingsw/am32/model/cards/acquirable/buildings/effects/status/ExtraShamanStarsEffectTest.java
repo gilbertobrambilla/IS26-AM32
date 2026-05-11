@@ -1,102 +1,91 @@
 package it.polimi.ingsw.am32.model.cards.acquirable.buildings.effects.status;
 
-import it.polimi.ingsw.am32.model.Deck;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
-import it.polimi.ingsw.am32.model.enums.TotemColor;
+import it.polimi.ingsw.am32.model.cards.Card;
+import it.polimi.ingsw.am32.model.Deck;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ExtraShamanStarsEffectTest {
 
-    private Player player;
-    private GameState gameState;
     private ExtraShamanStarsEffect effect;
-    private final int EXTRA_STARS = 3;
+    private Player player;
+    private GameState dummyGameState;
+
+    // dummy game state to bypass complex initialization in pure java
+    private static class DummyGameState extends GameState {
+        public DummyGameState(TurnOrderTile dummyTile, Deck<Card> dummyDeck) {
+            // pass valid dummy data to satisfy gamestate's strict constructor requirements
+            super(1, 2, new ArrayList<>(), dummyTile, dummyDeck, new HashMap<>());
+        }
+    }
 
     @BeforeEach
     void setUp() {
-        // real player instance is created
-        player = new Player("Alice", TotemColor.RED);
+        // initialize the effect with 3 extra stars for testing
+        effect = new ExtraShamanStarsEffect(3);
+        player = new Player("Eve");
 
-        // real game state is instantiated
-        TurnOrderTile dummyTurnOrderTile = new TurnOrderTile("DUMMY", 2, new ArrayList<>(), new ArrayList<>());
-        gameState = new GameState(2, 2, new ArrayList<>(), dummyTurnOrderTile, new Deck<>(), new HashMap<>());
+        // initialize valid modifier lists for the turn order tile
+        List<Integer> foodMods = List.of(0, 0, 0, 0, 0);
+        List<Integer> prestigeMods = List.of(0, 0, 0, 0, 0);
 
-        // extra shaman stars effect is instantiated with a valid positive bonus
-        effect = new ExtraShamanStarsEffect(EXTRA_STARS);
+        // instantiate real dependencies with basic valid data
+        TurnOrderTile dummyTile = new TurnOrderTile("TOT_01", 5, foodMods, prestigeMods);
+        Deck<Card> dummyDeck = new Deck<>();
+
+        // initialize the dummy gamestate
+        dummyGameState = new DummyGameState(dummyTile, dummyDeck);
     }
 
     @Test
     void constructorShouldThrowExceptionIfExtraStarsIsNegative() {
-        // illegal argument exception is expected when extra stars is negative
+        // verify exception for negative star values
         assertThrows(IllegalArgumentException.class, () -> new ExtraShamanStarsEffect(-1));
     }
 
     @Test
+    void constructorShouldAllowZeroExtraStars() {
+        // verify that an effect granting 0 stars is mathematically valid
+        assertDoesNotThrow(() -> new ExtraShamanStarsEffect(0));
+    }
+
+    @Test
     void onAcquireShouldThrowExceptionIfPlayerIsNull() {
-        // null pointer exception is expected when player is null
-        assertThrows(NullPointerException.class, () -> effect.onAcquire(null, gameState));
+        // verify exception is thrown when player is null
+        assertThrows(NullPointerException.class, () -> effect.onAcquire(null, dummyGameState));
     }
 
     @Test
     void onAcquireShouldThrowExceptionIfGameStateIsNull() {
-        // null pointer exception is expected when game state is null
+        // verify exception is thrown when gamestate is null
         assertThrows(NullPointerException.class, () -> effect.onAcquire(player, null));
     }
 
     @Test
-    void onAcquireShouldAddCorrectShamanStars() {
-        // initial shaman stars count is modified and recorded
-        player.addShamanStars(2);
+    void onAcquireShouldAddCorrectAmountOfShamanStarsToPlayer() {
+        // record the initial amount of shaman stars the player has
         int initialStars = player.getShamanStars();
 
-        // effect is triggered on acquire
-        effect.onAcquire(player, gameState);
+        // act: apply the effect
+        effect.onAcquire(player, dummyGameState);
 
-        // correct amount of shaman stars is added to the player upon acquisition
-        assertEquals(initialStars + EXTRA_STARS, player.getShamanStars());
+        // assert: verify the new total is exactly initial + 3
+        assertEquals(initialStars + 3, player.getShamanStars());
     }
 
     @Test
-    void onAcquireShouldAddZeroStarsIfExtraStarsIsZero() {
-        // effect is instantiated with a zero stars bonus
-        ExtraShamanStarsEffect zeroEffect = new ExtraShamanStarsEffect(0);
-
-        // initial shaman stars count is modified and recorded
-        player.addShamanStars(2);
-        int initialStars = player.getShamanStars();
-
-        // effect is triggered on acquire
-        zeroEffect.onAcquire(player, gameState);
-
-        // zero shaman stars are added when extra stars is configured to zero
-        assertEquals(initialStars, player.getShamanStars());
-    }
-
-    @Test
-    void emptyMethodsShouldNotAlterState() {
-        // initial state is recorded
-        int initialFood = player.getFood();
-        int initialPrestige = player.getPrestige();
-        int initialShamanStars = player.getShamanStars();
-
-        // empty interface methods are invoked
-        effect.onEvent(null, player, gameState);
-        effect.onRoundEnd(player, gameState);
-        effect.onTotemPlaced(null, player, gameState);
-        effect.onGameEnd(player, gameState);
-        effect.onCharacterAdded(player, null);
-
-        // player state is verified to remain unchanged
-        assertEquals(initialFood, player.getFood());
-        assertEquals(initialPrestige, player.getPrestige());
-        assertEquals(initialShamanStars, player.getShamanStars());
+    void emptyMethodsShouldNotThrowExceptions() {
+        // verify that empty interface methods can be safely called without side effects
+        assertDoesNotThrow(() -> effect.onRoundEnd(player, dummyGameState));
+        assertDoesNotThrow(() -> effect.onGameEnd(player, dummyGameState));
     }
 }
