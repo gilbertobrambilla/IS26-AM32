@@ -1,4 +1,4 @@
-package it.polimi.ingsw.am32.network.rmi;
+package it.polimi.ingsw.am32.network.rmi.client;
 
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.network.client.VirtualServer;
@@ -8,14 +8,13 @@ import java.rmi.RemoteException;
 /**
  * Implementation of the rmi client remote interface.
  */
-public class RMIClientImpl implements RMIClient {
-
+public class RMIClientCallback implements RMIClient {
     private VirtualServer virtualServer;
 
     /**
      * Constructs a new rmi client implementation.
      */
-    public RMIClientImpl() {
+    public RMIClientCallback() {
     }
 
     /**
@@ -29,7 +28,9 @@ public class RMIClientImpl implements RMIClient {
 
     @Override
     public void ping() throws RemoteException {
-        // liveness check is received
+        if (this.virtualServer != null) {
+            this.virtualServer.notifyPingReceived();
+        }
     }
 
     @Override

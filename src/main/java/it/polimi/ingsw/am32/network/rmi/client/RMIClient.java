@@ -1,4 +1,4 @@
-package it.polimi.ingsw.am32.network.rmi;
+package it.polimi.ingsw.am32.network.rmi.client;
 
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 

@@ -1,16 +1,16 @@
-package it.polimi.ingsw.am32.network.rmi;
+package it.polimi.ingsw.am32.network.rmi.server;
 
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.network.ClientNode;
 import it.polimi.ingsw.am32.network.exceptions.NetworkException;
+import it.polimi.ingsw.am32.network.rmi.client.RMIClient;
 
 import java.rmi.RemoteException;
 
 /**
  * Adapter class mapping the client node interface to the rmi client stub.
  */
-public class RMIClientAdapter implements ClientNode {
-
+public class RMIClientProxy implements ClientNode {
     private final RMIClient clientStub;
 
     /**
@@ -18,7 +18,7 @@ public class RMIClientAdapter implements ClientNode {
      *
      * @param clientStub The rmi client stub.
      */
-    public RMIClientAdapter(RMIClient clientStub) {
+    public RMIClientProxy(RMIClient clientStub) {
         this.clientStub = clientStub;
     }
 
