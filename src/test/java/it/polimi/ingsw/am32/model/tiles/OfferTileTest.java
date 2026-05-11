@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.model.tiles;
 
 import it.polimi.ingsw.am32.model.Player;
-import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
+import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -73,7 +73,7 @@ class OfferTileTest {
         offerTile.placePlayer(new Player("Alice"));
 
         //act and assert: piazzarne un altro deve lanciare eccezione
-        assertThrows(InvalidActionException.class, () -> {
+        assertThrows(InvalidGameActionException.class, () -> {
             offerTile.placePlayer(new Player("Bob"));
         });
     }

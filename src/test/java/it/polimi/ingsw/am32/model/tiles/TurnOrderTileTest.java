@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.model.tiles;
 
 import it.polimi.ingsw.am32.model.Player;
-import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
+import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
 import it.polimi.ingsw.am32.model.receipts.TurnOrderPlacementReceipt;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,7 +87,7 @@ class TurnOrderTileTest {
         tile.placePlayer(new Player("P3"));
 
         //act and assert: placing a 4th player should throw invalid action exception
-        assertThrows(InvalidActionException.class, () -> {
+        assertThrows(InvalidGameActionException.class, () -> {
             tile.placePlayer(new Player("P4"));
         });
     }
