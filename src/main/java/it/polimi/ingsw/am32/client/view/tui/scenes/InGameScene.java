@@ -1,10 +1,11 @@
 package it.polimi.ingsw.am32.client.view.tui.scenes;
 
-import it.polimi.ingsw.am32.client.view.tui.components.BoardPanel;
-import it.polimi.ingsw.am32.client.view.tui.components.HeaderPanel;
-import it.polimi.ingsw.am32.client.view.tui.components.LogPanel;
-import it.polimi.ingsw.am32.client.view.tui.components.SidePanel;
-import it.polimi.ingsw.am32.client.view.tui.components.LegendPanel;
+import it.polimi.ingsw.am32.client.model.LightGameState;
+import it.polimi.ingsw.am32.client.view.tui.components.ingame.BoardPanel;
+import it.polimi.ingsw.am32.client.view.tui.components.ingame.HeaderPanel;
+import it.polimi.ingsw.am32.client.view.tui.components.global.LogPanel;
+import it.polimi.ingsw.am32.client.view.tui.components.ingame.SidePanel;
+import it.polimi.ingsw.am32.client.view.tui.components.global.LegendPanel;
 import org.jline.terminal.Terminal;
 
 /**
@@ -34,16 +35,31 @@ public class InGameScene implements Scene {
         this.legendPanel = legendPanel;
     }
 
+    /**
+     * The game state is injected into the child panels.
+     *
+     * @param state the current light game state.
+     */
+    public void updateData(LightGameState state) {
+        // game state components are extracted and forwarded
+        if (state != null) {
+            String phase = state.getCurrentPhase() != null ? state.getCurrentPhase().name() : "WAITING";
+            headerPanel.updateData(phase, state.getCurrentRound(), state.getCurrentEra());
+            boardPanel.updateData(state);
+            sidePanel.updateData(state);
+        }
+    }
+
     @Override
     public void draw(Terminal terminal, int width, int height) {
         // fixed layout bounds are defined
         int headerHeight = 3;
         int inputHeight = 2;
-        int sideWidth = Math.min(35, width / 3);
+        int sideWidth = Math.min(45, width / 3);
         int boardWidth = width - sideWidth;
 
-        // log panel height is fixed and increased
-        int logHeight = 6;
+        // log panel height is increased to 8 to accommodate the help command and borders
+        int logHeight = 8;
 
         // main height is calculated dynamically
         int mainHeight = height - headerHeight - logHeight - inputHeight;

@@ -11,7 +11,7 @@ public class JoinGameHandler implements InputHandler {
     public void execute(ClientController controller, String[] args) throws IllegalArgumentException {
         // argument length is validated
         if (args.length != 2) {
-            throw new IllegalArgumentException("invalid arguments. usage: join <id>");
+            throw new IllegalArgumentException("Invalid arguments for command. Expected usage: join <id>.");
         }
 
         try {
@@ -21,7 +21,19 @@ public class JoinGameHandler implements InputHandler {
             controller.requestJoinGame(gameId);
         } catch (NumberFormatException e) {
             // exception is thrown for invalid number format
-            throw new IllegalArgumentException("argument must be a valid number");
+            throw new IllegalArgumentException("Argument must be a valid number.");
         }
+    }
+
+    @Override
+    public String getSyntax() {
+        // syntax string is returned
+        return "join <id>";
+    }
+
+    @Override
+    public String getDescription() {
+        // description string is returned
+        return "joins an existing game";
     }
 }

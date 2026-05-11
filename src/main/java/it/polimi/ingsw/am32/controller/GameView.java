@@ -25,4 +25,10 @@ public interface GameView {
     void notifyEventResolved(EventResolvedEvent dto);
     void notifyRoundEnded(RoundEndedEvent dto);
     void notifyGamePhaseChanged(GamePhaseChangedEvent dto);
+
+    /**
+     * Retrieves the unique identifier associated with this connection.
+     * @return the unique connection id.
+     */
+    String getConnectionID();
 }

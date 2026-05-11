@@ -2,9 +2,16 @@ package it.polimi.ingsw.am32.client.view.tui;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.client.view.UI;
+import it.polimi.ingsw.am32.client.view.tui.components.global.LegendPanel;
+import it.polimi.ingsw.am32.client.view.tui.components.global.LogPanel;
+import it.polimi.ingsw.am32.client.view.tui.components.ingame.BoardPanel;
+import it.polimi.ingsw.am32.client.view.tui.components.ingame.HeaderPanel;
+import it.polimi.ingsw.am32.client.view.tui.components.ingame.SidePanel;
 import it.polimi.ingsw.am32.client.view.tui.handlers.*;
-import it.polimi.ingsw.am32.client.view.tui.components.*;
 import it.polimi.ingsw.am32.client.view.tui.scenes.*;
+import it.polimi.ingsw.am32.log.LogLevel;
+import it.polimi.ingsw.am32.log.LogManager;
+import it.polimi.ingsw.am32.log.LogObserver;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 import org.jline.reader.EndOfFileException;
@@ -15,14 +22,13 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Text user interface implementation handling both sequential and fullscreen interaction.
+ * Text user interface implementation handling fully drawn scenes and interaction.
  */
-public class TuiUI implements UI {
+public class TuiUI implements UI, LogObserver {
     private final ClientController controller;
     private boolean isRunning;
     private boolean isConnected;
@@ -32,15 +38,28 @@ public class TuiUI implements UI {
     private TuiState currentState;
     private final Map<TuiState, Map<String, InputHandler>> commandRegistry;
 
-    // tui components
+    // global tui components
     private ScreenManager screenManager;
-    private HeaderPanel headerPanel;
     private LogPanel logPanel;
-    private BoardPanel boardPanel;
-    private SidePanel sidePanel;
     private LegendPanel legendPanel;
+
+    // scenes
+    private MenuScene menuScene;
+    private LobbyScene lobbyScene;
     private InGameScene inGameScene;
     private EndGameScene endGameScene;
+
+    /**
+     * Enumeration representing the possible reasons for tui termination.
+     */
+    public enum ExitReason {
+        USER_QUIT,
+        CONNECTION_LOST
+    }
+
+    private ExitReason exitReason = null;
+    private Thread mainUiThread;
+    private final AtomicBoolean forceRefreshPrompt = new AtomicBoolean(false);
 
     /**
      * The tui ui is instantiated.
@@ -77,6 +96,7 @@ public class TuiUI implements UI {
         inGameRegistry.put("take", new TakeHandler());
         inGameRegistry.put("stats", new StatsHandler());
         inGameRegistry.put("quit", quit);
+        // help handler is omitted pending future implementation
 
         commandRegistry.put(TuiState.MENU, menuRegistry);
         commandRegistry.put(TuiState.LOBBY, Map.of("quit", quit));
@@ -89,6 +109,9 @@ public class TuiUI implements UI {
      * Main ui loop is started and jline components are initialized.
      */
     public void start() {
+        // main thread reference is saved
+        this.mainUiThread = Thread.currentThread();
+
         try {
             // terminal is built
             this.terminal = TerminalBuilder.builder().system(true).build();
@@ -100,33 +123,38 @@ public class TuiUI implements UI {
             return;
         }
 
-        // fullscreen components are initialized
+        // observer is registered with log manager
+        LogManager.getInstance().addObserver(this);
+
+        // global components are initialized
         this.screenManager = new ScreenManager(terminal);
         this.screenManager.setLineReader(lineReader);
-        this.headerPanel = new HeaderPanel();
-        this.logPanel = new LogPanel(3);
-        this.boardPanel = new BoardPanel();
-        this.sidePanel = new SidePanel();
+        this.logPanel = new LogPanel(6);
         this.legendPanel = new LegendPanel();
 
-        // legend panel is injected into scene
+        // specific game components are initialized
+        HeaderPanel headerPanel = new HeaderPanel();
+        BoardPanel boardPanel = new BoardPanel();
+        SidePanel sidePanel = new SidePanel();
+
+        // scenes are constructed with shared components
+        this.menuScene = new MenuScene(logPanel, legendPanel);
+        this.lobbyScene = new LobbyScene(logPanel, legendPanel);
         this.inGameScene = new InGameScene(headerPanel, boardPanel, sidePanel, logPanel, legendPanel);
         this.endGameScene = new EndGameScene();
+
         this.isRunning = true;
 
         while (isRunning) {
             try {
                 if (!isConnected) {
-                    // nickname is requested directly
+                    // nickname is requested sequentially before scene take-over
                     String nickname = lineReader.readLine("Insert your nickname: ").trim();
-
                     if (!nickname.isEmpty()) {
                         // wait flag is set
                         isWaitingResponse = true;
-
                         // connection is requested
                         controller.requestConnect(nickname);
-
                         // thread is paused if response is still pending
                         synchronized (this) {
                             if (isWaitingResponse) {
@@ -139,11 +167,9 @@ public class TuiUI implements UI {
                     String prompt = getDynamicPrompt();
                     // user input is read
                     String input = lineReader.readLine(prompt).trim();
-
                     if (!input.isEmpty()) {
                         // command is parsed and executed
                         parseCommand(input);
-
                         // ui thread is paused if waiting for server response
                         synchronized (this) {
                             if (isWaitingResponse) {
@@ -153,10 +179,28 @@ public class TuiUI implements UI {
                     }
                 }
             } catch (UserInterruptException | EndOfFileException e) {
-                // termination is triggered
+                // programmatic interrupt for prompt refresh is handled atomically
+                if (this.forceRefreshPrompt.compareAndSet(true, false)) {
+                    // terminal is wiped and redrawn cleanly before the next readLine
+                    screenManager.render();
+                    continue;
+                }
+
+                // exit reason is preserved if already set by network drop
+                if (this.exitReason == null) {
+                    // exit reason is set to user quit
+                    this.exitReason = ExitReason.USER_QUIT;
+                }
+                // loop is terminated
                 this.isRunning = false;
             } catch (InterruptedException e) {
-                // thread interruption is safely ignored
+                // programmatic interrupt during wait is handled safely
+                if (this.forceRefreshPrompt.compareAndSet(true, false)) {
+                    // terminal is wiped and redrawn cleanly before the next readLine
+                    screenManager.render();
+                    continue;
+                }
+                // thread interruption is restored for unexpected interrupts
                 Thread.currentThread().interrupt();
             }
         }
@@ -168,9 +212,7 @@ public class TuiUI implements UI {
      * @return the formatted prompt string.
      */
     private String getDynamicPrompt() {
-        if (currentState == null) {
-            return "> ";
-        }
+        if (currentState == null) return "> ";
         switch (currentState) {
             case MENU: return "[MENU] > ";
             case LOBBY: return "[LOBBY] > ";
@@ -189,10 +231,12 @@ public class TuiUI implements UI {
     private void parseCommand(String input) {
         String[] tokens = input.split("\\s+");
         String commandKeyword = tokens[0].toLowerCase();
+
         Map<String, InputHandler> currentRegistry = commandRegistry.get(currentState);
 
         if (currentRegistry == null || !currentRegistry.containsKey(commandKeyword)) {
-            printOrLog("[ERROR] command not recognized in this state.");
+            // error for unknown command is logged
+            LogManager.getInstance().log(LogLevel.ERROR, "[INPUT] Command not found: " + commandKeyword);
             return;
         }
 
@@ -207,41 +251,150 @@ public class TuiUI implements UI {
         } catch (IllegalArgumentException e) {
             // wait flag is cleared if local validation fails
             isWaitingResponse = false;
-            printOrLog("[ERROR] " + e.getMessage());
+            // handler exception message is logged
+            LogManager.getInstance().log(LogLevel.ERROR, "[INPUT] " + e.getMessage());
         }
     }
 
     /**
-     * Message is intelligently printed sequentially or routed to the log panel.
+     * Internal state is updated and the screen is triggered to re-render.
      *
-     * @param message the text to be displayed.
+     * @param newState the target application state.
      */
-    private void printOrLog(String message) {
-        if (currentState == null || currentState == TuiState.MENU || currentState == TuiState.LOBBY) {
-            // sequential print is executed for cli states
+    private void updateStateAndScene(TuiState newState) {
+        // boolean flag evaluates if the prompt text actually needs to change
+        boolean promptWillChange = (this.currentState != newState);
+        this.currentState = newState;
+
+        // legend is updated with active handlers
+        Map<String, InputHandler> currentRegistry = commandRegistry.get(currentState);
+        if (currentRegistry != null) {
+            legendPanel.updateCommands(currentRegistry.values());
+        }
+
+        // active scene is assigned
+        switch (currentState) {
+            case MENU:
+                screenManager.setActiveScene(menuScene);
+                break;
+            case LOBBY:
+                screenManager.setActiveScene(lobbyScene);
+                break;
+            case IN_GAME:
+                // game state is injected into the scene
+                inGameScene.updateData(controller.getLightGameState());
+                screenManager.setActiveScene(inGameScene);
+                break;
+            case SUSPENDED:
+                // suspended state is handled safely
+                break;
+            case END_GAME:
+                screenManager.setActiveScene(endGameScene);
+                break;
+        }
+
+        // dynamic prompt is updated in the screen manager
+        screenManager.setPrompt(getDynamicPrompt());
+
+        if (promptWillChange && mainUiThread != null && mainUiThread != Thread.currentThread()) {
+            // flag is set to distinguish programmatic interrupt from user quit
+            this.forceRefreshPrompt.set(true);
+            // main ui thread is interrupted to break current readLine and apply new prompt
+            mainUiThread.interrupt();
+        } else {
+            // screen is safely redrawn inline if prompt text hasn't changed
+            safeRender();
+        }
+    }
+
+    /**
+     * Screen is safely rendered avoiding conflicts with active line reader.
+     */
+    private synchronized void safeRender() {
+        if (lineReader != null && lineReader.isReading()) {
+            // screen is cleared and rendered over the active prompt
+            lineReader.callWidget(LineReader.CLEAR);
+            screenManager.render();
+            lineReader.callWidget(LineReader.REDRAW_LINE);
+            lineReader.callWidget(LineReader.REDISPLAY);
+            terminal.writer().flush();
+        } else {
+            // screen is rendered normally
+            screenManager.render();
+        }
+    }
+
+    @Override
+    public void onNewLog(LogLevel level, String message) {
+        // ansi color is applied based on severity
+        String coloredMessage = LogManager.getAnsiColor(level) + message + "\033[0m";
+
+        if (currentState == null) {
+            // message is printed above prompt during setup phase
             if (lineReader != null && lineReader.isReading()) {
-                lineReader.printAbove(message);
+                lineReader.printAbove(coloredMessage);
             } else {
-                System.out.println(message);
+                System.out.println(coloredMessage);
             }
         } else {
-            // message is pushed to log panel for fullscreen states
-            logPanel.addMessage(message);
-            screenManager.render();
+            // message is pushed directly to log panel
+            logPanel.addMessage(coloredMessage);
+            // screen is safely redrawn
+            safeRender();
+        }
+    }
+
+    /**
+     * The reason for the interface termination is retrieved.
+     *
+     * @return the exit reason.
+     */
+    public ExitReason getExitReason() {
+        // exit reason is returned
+        return exitReason;
+    }
+
+    /**
+     * Voluntary user quit is triggered.
+     */
+    public void triggerUserQuit() {
+        // exit reason is set
+        this.exitReason = ExitReason.USER_QUIT;
+        // loop is terminated
+        this.isRunning = false;
+
+        // waiting threads are unblocked
+        synchronized (this) {
+            isWaitingResponse = false;
+            notifyAll();
         }
     }
 
     // UI interface implementation
 
+    /**
+     * Connection result is processed and displayed on the terminal.
+     *
+     * @param event the connection result event.
+     */
     @Override
     public void showConnectionResult(ConnectionResultEvent event) {
         if (event.isSuccess()) {
-            // state is updated
-            this.currentState = TuiState.MENU;
+            // connection status is set
             this.isConnected = true;
-            printOrLog("Connection successful. Welcome!");
+
+            if (event.isReconnecting()) {
+                // reconnection message is logged without changing scene
+                LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Reconnecting to game...");
+            } else {
+                // welcome message is logged
+                LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] " + event.getMessage());
+                // state and scene are updated to menu
+                updateStateAndScene(TuiState.MENU);
+            }
         } else {
-            printOrLog("Connection failed: " + event.getMessage());
+            // error message is logged
+            LogManager.getInstance().log(LogLevel.ERROR, "[NETWORK] Connection failed: " + event.getMessage());
         }
 
         // wait flag is cleared and thread is notified
@@ -253,20 +406,39 @@ public class TuiUI implements UI {
 
     @Override
     public void updateAvailableGames(AvailableLobbiesEvent event) {
-        printOrLog("=== AVAILABLE GAMES ===");
-        event.getLobbies().forEach(g -> printOrLog("ID: " + g.getGameId() + " | Players: " + g.getCurrentPlayersCount() + "/" + g.getTargetPlayers()));
+        // data list is initialized
+        List<MenuScene.MenuLobbyData> lobbyData = new ArrayList<>();
+
+        // event data is mapped to local dtos
+        event.getLobbies().forEach(g -> lobbyData.add(
+                new MenuScene.MenuLobbyData(g.getGameId(), g.getCurrentPlayersCount(), g.getTargetPlayers())
+        ));
+
+        // available games are injected into the menu scene
+        menuScene.setAvailableGames(lobbyData);
+
+        // screen is redrawn if the user is in the menu state
+        if (currentState == TuiState.MENU) {
+            safeRender();
+        }
     }
 
     @Override
     public void updateLobbyRoom(LobbyStateUpdatedEvent event) {
-        // state is updated
-        this.currentState = TuiState.LOBBY;
-
         // info dto is extracted
         var info = event.getLobbyInfo();
 
-        // formatted string is printed using the info dto
-        printOrLog("Game ID: " + info.getGameId() + " | Players: " + info.getCurrentPlayersCount() + "/" + info.getTargetPlayers());
+        // data is injected into the lobby scene including the player list
+        lobbyScene.setLobbyData(
+                info.getGameId(),
+                info.getCurrentPlayersCount(),
+                info.getTargetPlayers(),
+                info.getCurrentPlayers(),
+                controller.getMyNickname()
+        );
+
+        // state and scene are updated
+        updateStateAndScene(TuiState.LOBBY);
 
         // wait flag is cleared and thread is notified
         synchronized (this) {
@@ -277,74 +449,74 @@ public class TuiUI implements UI {
 
     @Override
     public void showPlayerFocus(String nickname) {
-        // focus is updated on the side panel
-        sidePanel.setFocus(nickname);
-        // screen is re-rendered
-        screenManager.render();
+        // focus is updated conceptually, screen triggers will be resolved in specific panels
+        LogManager.getInstance().log(LogLevel.INFO, "[VIEW] Focus set to: " + (nickname == null ? "none" : nickname));
     }
 
+    /**
+     * Game start is shown.
+     *
+     * @param event the game started event.
+     */
     @Override
     public void showGameStarted(GameStartedEvent event) {
-        // state is updated
-        this.currentState = TuiState.IN_GAME;
+        // start message is logged
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Game started. Turn of " + event.getNextPlayer() + ".");
+        // state and scene are updated
+        updateStateAndScene(TuiState.IN_GAME);
 
-        var state = controller.getLightGameState();
-        // panel data is populated
-        headerPanel.updateData(state.getCurrentPhase().toString(), state.getCurrentRound(), state.getCurrentEra());
-        boardPanel.updateData(state);
-        sidePanel.updateData(state);
-
-        // scene is activated and rendered
-        screenManager.setActiveScene(inGameScene);
-        printOrLog("Game started. Turn of " + event.getNextPlayer() + ".");
+        // wait flag is cleared and thread is notified
+        synchronized (this) {
+            isWaitingResponse = false;
+            notifyAll();
+        }
     }
 
+    /**
+     * Game state is restored and rendered on the terminal.
+     *
+     * @param event the game state event.
+     */
     @Override
     public void restoreGameState(GameStateEvent event) {
-        // state is updated
-        this.currentState = TuiState.IN_GAME;
+        // state and scene are updated
+        updateStateAndScene(TuiState.IN_GAME);
 
-        var state = controller.getLightGameState();
-        // panel data is populated
-        headerPanel.updateData(state.getCurrentPhase().toString(), state.getCurrentRound(), state.getCurrentEra());
-        boardPanel.updateData(state);
-        sidePanel.updateData(state);
+        // message is logged
+        LogManager.getInstance().log(LogLevel.INFO, "[GAME] Game state restored.");
 
-        // scene is activated and rendered
-        screenManager.setActiveScene(inGameScene);
-        printOrLog("Game state restored.");
+        // wait flag is cleared and thread is notified
+        synchronized (this) {
+            isWaitingResponse = false;
+            notifyAll();
+        }
     }
 
     @Override
     public void updateGamePhase(GamePhaseChangedEvent event) {
-        var state = controller.getLightGameState();
-        // header is updated
-        headerPanel.updateData(event.getPhase().toString(), state.getCurrentRound(), state.getCurrentEra());
-        printOrLog("Phase changed to " + event.getPhase() + ". Turn of " + event.getNextPlayer() + ".");
+        // phase change is logged
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Phase changed to " + event.getPhase() + ". Turn of " + event.getNextPlayer() + ".");
+        // state and scene are updated to refresh all panels
+        updateStateAndScene(TuiState.IN_GAME);
     }
 
     @Override
     public void showRoundSummary(RoundEndedEvent event) {
-        printOrLog("Round " + event.getRound() + " ended.");
+        // round summary is logged
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Round " + event.getRound() + " ended.");
     }
 
     @Override
     public void showGameResults(GameEndedEvent event) {
-        // state is updated
-        this.currentState = TuiState.END_GAME;
-
-        // winners are passed to the end game scene
+        // state and scene are updated
         endGameScene.setWinners(event.getResults().getWinners());
-
-        // scene is switched and rendered
-        screenManager.setActiveScene(endGameScene);
-        screenManager.render();
+        updateStateAndScene(TuiState.END_GAME);
     }
 
     @Override
     public void showLobbyError(LobbyErrorEvent event) {
-        // error message is formatted and printed in red
-        printOrLog("\033[31m[ERROR] " + event.getReason() + ": " + event.getErrorMessage() + "\033[0m");
+        // error is logged
+        LogManager.getInstance().log(LogLevel.ERROR, "[LOBBY] " + event.getReason() + ": " + event.getErrorMessage());
         // wait flag is cleared and thread is notified
         synchronized (this) {
             isWaitingResponse = false;
@@ -354,71 +526,89 @@ public class TuiUI implements UI {
 
     @Override
     public void showTotemPlaced(TotemPlacedEvent event) {
-        // message is printed in green
-        printOrLog("\033[32mTotem placed by " + event.getPlayer() + " on tile " + event.getOfferTileId() + ".\033[0m");
+        // totem placement is logged
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Totem placed by " + event.getPlayer() + " on tile " + event.getOfferTileId() + ".");
     }
 
     @Override
     public void showActionResolved(ActionResolvedEvent event) {
-        // message is printed in cyan
-        printOrLog("\033[36mAction resolved by " + event.getPlayer() + ".\033[0m");
+        // action resolution is logged
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Action resolved by " + event.getPlayer() + ".");
     }
 
     @Override
     public void showEventResolved(EventResolvedEvent event) {
-        // message is printed in cyan
-        printOrLog("\033[36mEvent " + event.getEventCardId() + " resolved.\033[0m");
+        // event resolution is logged
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Event " + event.getEventCardId() + " resolved.");
     }
 
     @Override
     public void showExtraAcquisition(ExtraAcquisitionResolvedEvent event) {
-        // message is printed in cyan
-        printOrLog("\033[36mExtra card acquired by " + event.getPlayer() + ".\033[0m");
+        // extra acquisition is logged
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Extra card acquired by " + event.getPlayer() + ".");
     }
 
     @Override
     public void showError(GameErrorEvent event) {
-        // error message is printed in red
-        printOrLog("\033[31m[ERROR] " + event.getErrorMessage() + "\033[0m");
+        // error is logged
+        LogManager.getInstance().log(LogLevel.ERROR, "[GAME] " + event.getErrorMessage());
     }
 
     @Override
     public void showPlayerDisconnected(PlayerDisconnectedEvent event) {
-        // message is printed in yellow
-        printOrLog("\033[33mPlayer disconnected: " + event.getPlayer() + "\033[0m");
+        // disconnection warning is logged
+        LogManager.getInstance().log(LogLevel.WARNING, "[GAME] Player disconnected: " + event.getPlayer());
     }
 
     @Override
     public void showPlayerReconnected(PlayerReconnectedEvent event) {
-        // message is printed in green
-        printOrLog("\033[32mPlayer reconnected: " + event.getPlayer() + "\033[0m");
+        // reconnection is logged
+        LogManager.getInstance().log(LogLevel.INFO, "[GAME] Player reconnected: " + event.getPlayer());
     }
 
     @Override
     public void showGameSuspended(GameSuspendedEvent event) {
-        // state is updated
-        this.currentState = TuiState.SUSPENDED;
-        // message is printed in yellow
-        printOrLog("\033[33mGame suspended. Waiting for players...\033[0m");
+        // suspension warning is logged
+        LogManager.getInstance().log(LogLevel.WARNING, "[GAME] Game suspended. Waiting for players...");
+        // state and scene are updated
+        updateStateAndScene(TuiState.SUSPENDED);
     }
 
     @Override
     public void showGameResumed(GameResumedEvent event) {
-        // state is updated
-        this.currentState = TuiState.IN_GAME;
-        printOrLog("Game resumed.");
+        // resumption is logged
+        LogManager.getInstance().log(LogLevel.INFO, "[GAME] Game resumed.");
+        // state and scene are updated
+        updateStateAndScene(TuiState.IN_GAME);
     }
 
     @Override
     public void notifyDisconnection(String message) {
-        // message is printed in red
-        printOrLog("\033[31mConnection lost: " + message + "\033[0m");
-        // termination is requested
+        // critical error is logged
+        LogManager.getInstance().log(LogLevel.ERROR, "[NETWORK] Connection lost: " + message);
+
+        // exit reason is set
+        this.exitReason = ExitReason.CONNECTION_LOST;
+        // loop is terminated
         this.isRunning = false;
+
         // wait flag is cleared and thread is notified
         synchronized (this) {
             isWaitingResponse = false;
             notifyAll();
+        }
+
+        // delay is added for better user experience before returning to setup
+        try {
+            Thread.sleep(2500);
+        } catch (InterruptedException e) {
+            // interruption is safely ignored
+            Thread.currentThread().interrupt();
+        }
+
+        // main ui thread is interrupted to break line reader blocking
+        if (this.mainUiThread != null) {
+            this.mainUiThread.interrupt();
         }
     }
 }

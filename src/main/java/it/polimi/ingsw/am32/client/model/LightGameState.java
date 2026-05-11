@@ -28,8 +28,22 @@ public class LightGameState {
      */
     public LightGameState(String myNickname) {
         this.myNickname = myNickname;
+        // players map is initialized
         this.players = new HashMap<>();
+        // offer track is initialized
         this.offerTrack = new ArrayList<>();
+        // current player is initialized to a safe placeholder
+        this.currentPlayer = "WAITING";
+        // primitive values are initialized
+        this.currentRound = 0;
+        this.currentEra = 0;
+        this.tribeDeckSize = 0;
+        this.tribeDeckTopCardEra = 0;
+        // card rows are initialized to empty lists to prevent ui crashes
+        this.upperTribeRow = new ArrayList<>();
+        this.lowerTribeRow = new ArrayList<>();
+        this.upperBuildingRow = new ArrayList<>();
+        this.lowerBuildingRow = new ArrayList<>();
     }
 
     /**
@@ -69,55 +83,84 @@ public class LightGameState {
 
     /**
      * Updates the state when a totem is placed.
+     * @param nickname The nickname of the player.
+     * @param tileId The id of the offer tile.
+     * @param nextPlayer The nickname of the next player.
      */
     public void updateTotemPlacement(String nickname, String tileId, String nextPlayer) {
         for (LightOfferTile tile : offerTrack) {
             if (tile.getId().equals(tileId)) {
+                // occupying player is updated
                 tile.setOccupyingPlayer(nickname);
                 break;
             }
         }
+        // current player is updated
         this.currentPlayer = nextPlayer;
     }
 
     /**
      * Updates the state when an action is resolved.
+     * @param nickname The nickname of the player.
+     * @param characters The list of character card ids.
+     * @param buildings The list of building card ids.
+     * @param stats The list of stat changes.
+     * @param nextPlayer The nickname of the next player.
      */
     public void updateActionResolution(String nickname, List<String> characters, List<String> buildings, List<PlayerStatsChangedDTO> stats, String nextPlayer) {
         LightPlayer p = players.get(nickname);
         if (p != null) {
+            // character cards are added
             characters.forEach(p::addCharacterCard);
+            // building cards are added
             buildings.forEach(p::addBuildingCard);
         }
+        // stats are updated
         updateStats(stats);
+        // current player is updated
         this.currentPlayer = nextPlayer;
     }
 
     /**
      * Updates the state when player statistics change.
+     * @param statsList The list of stat changes.
      */
     public void updateStats(List<PlayerStatsChangedDTO> statsList) {
         for (PlayerStatsChangedDTO s : statsList) {
             LightPlayer p = players.get(s.getPlayer());
-            if (p != null) p.updateStats(s.getFood(), s.getPrestige());
+            if (p != null) {
+                // stats are updated for specific player
+                p.updateStats(s.getFood(), s.getPrestige());
+            }
         }
     }
 
     /**
      * Updates the state during phase changes.
+     * @param nextPhase The new game phase.
+     * @param nextPlayer The nickname of the next player.
      */
     public void updatePhaseChange(GamePhase nextPhase, String nextPlayer) {
+        // current phase is updated
         this.currentPhase = nextPhase;
+        // current player is updated
         this.currentPlayer = nextPlayer;
     }
 
     /**
      * Updates the connection status of a player.
+     * @param nickname The nickname of the player.
+     * @param isConnected The boolean connection status.
      */
     public void updatePlayerConnection(String nickname, boolean isConnected) {
         LightPlayer p = players.get(nickname);
-        if (p != null) p.setConnected(isConnected);
+        if (p != null) {
+            // connection status is updated
+            p.setConnected(isConnected);
+        }
     }
+
+    // getters
 
     public String getMyNickname() {
         return myNickname;

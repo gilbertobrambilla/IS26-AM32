@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import it.polimi.ingsw.am32.dto.setup.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Game assets root is defined to map the main json file.
@@ -24,6 +25,12 @@ public class GameAssetsRoot {
 
     @JsonProperty("turn_order_tiles")
     private List<TurnOrderTileDTO> turnOrderTiles;
+
+    @JsonProperty("ui_assets")
+    private Map<String, String> uiAssets;
+
+    @JsonProperty("card_backs")
+    private Map<String, String> cardBacks;
 
     /**
      * Game assets root is instantiated.
@@ -80,5 +87,25 @@ public class GameAssetsRoot {
     public List<TurnOrderTileDTO> getTurnOrderTiles() {
         // list is returned
         return turnOrderTiles;
+    }
+
+    /**
+     * Ui assets are retrieved.
+     *
+     * @return the map of ui assets.
+     */
+    public Map<String, String> getUiAssets() {
+        // map is returned
+        return uiAssets;
+    }
+
+    /**
+     * Card backs are retrieved.
+     *
+     * @return the map of card backs.
+     */
+    public Map<String, String> getCardBacks() {
+        // map is returned
+        return cardBacks;
     }
 }

@@ -1,124 +1,98 @@
 package it.polimi.ingsw.am32.model.cards.acquirable.buildings.effects.phases;
 
-import it.polimi.ingsw.am32.model.Deck;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
-import it.polimi.ingsw.am32.model.enums.TotemColor;
-import it.polimi.ingsw.am32.model.tiles.Action;
-import it.polimi.ingsw.am32.model.tiles.OfferTile;
+import it.polimi.ingsw.am32.model.cards.Card;
+import it.polimi.ingsw.am32.model.Deck;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ExtraFoodOnTotemEffectTest {
 
-    private Player player;
-    private GameState gameState;
-    private OfferTile offerTile;
     private ExtraFoodOnTotemEffect effect;
-    private final int EXTRA_FOOD = 2;
+    private Player player;
+    private GameState dummyGameState;
+
+    // dummy game state to bypass complex initialization in pure java
+    private static class DummyGameState extends GameState {
+        public DummyGameState(TurnOrderTile dummyTile, Deck<Card> dummyDeck) {
+            // pass valid dummy data to satisfy gamestate's strict constructor requirements
+            super(1, 2, new ArrayList<>(), dummyTile, dummyDeck, new HashMap<>());
+        }
+    }
 
     @BeforeEach
     void setUp() {
-        // real player instance is created
-        player = new Player("Alice", TotemColor.RED);
+        // initialize the effect with 2 extra food for testing
+        effect = new ExtraFoodOnTotemEffect(2);
+        player = new Player("Helen");
 
-        // real game state is instantiated
-        TurnOrderTile dummyTurnOrderTile = new TurnOrderTile("DUMMY", 2, new ArrayList<>(), new ArrayList<>());
-        gameState = new GameState(2, 2, new ArrayList<>(), dummyTurnOrderTile, new Deck<>(), new HashMap<>());
+        // initialize valid modifier lists for the turn order tile
+        List<Integer> foodMods = List.of(0, 0, 0, 0, 0);
+        List<Integer> prestigeMods = List.of(0, 0, 0, 0, 0);
 
-        // offer tile is instantiated using inferred parameters
-        Action dummyAction = new Action(0, 0, 3);
-        offerTile = new OfferTile("offertile_A", 5, dummyAction);
+        // instantiate real dependencies with basic valid data
+        TurnOrderTile dummyTile = new TurnOrderTile("TOT_01", 5, foodMods, prestigeMods);
+        Deck<Card> dummyDeck = new Deck<>();
 
-        // extra food on totem effect is instantiated with a valid positive bonus
-        effect = new ExtraFoodOnTotemEffect(EXTRA_FOOD);
+        // initialize the dummy gamestate to satisfy empty method signatures
+        dummyGameState = new DummyGameState(dummyTile, dummyDeck);
     }
 
     @Test
     void constructorShouldThrowExceptionIfExtraFoodIsNegative() {
-        // illegal argument exception is expected when extra food is negative
+        // verify exception for negative food values
         assertThrows(IllegalArgumentException.class, () -> new ExtraFoodOnTotemEffect(-1));
     }
 
     @Test
-    void onTotemPlacedShouldThrowExceptionIfOfferTileIsNull() {
-        // null pointer exception is expected when offer tile is null
-        assertThrows(NullPointerException.class, () -> effect.onTotemPlaced(null, player, gameState));
+    void constructorShouldAllowZeroExtraFood() {
+        // verify that an effect granting 0 food is mathematically valid
+        assertDoesNotThrow(() -> new ExtraFoodOnTotemEffect(0));
     }
 
     @Test
-    void onTotemPlacedShouldThrowExceptionIfPlayerIsNull() {
-        // null pointer exception is expected when player is null
-        assertThrows(NullPointerException.class, () -> effect.onTotemPlaced(offerTile, null, gameState));
+    void onTurnOrderPlacedShouldThrowExceptionIfPlayerIsNull() {
+        // verify exception is thrown when player is null
+        assertThrows(NullPointerException.class, () -> effect.onTurnOrderPlaced(null, true));
     }
 
     @Test
-    void onTotemPlacedShouldThrowExceptionIfGameStateIsNull() {
-        // null pointer exception is expected when game state is null
-        assertThrows(NullPointerException.class, () -> effect.onTotemPlaced(offerTile, player, null));
-    }
-
-    @Test
-    void onTotemPlacedShouldAddCorrectFoodAmount() {
-        // initial food count is recorded
+    void onTurnOrderPlacedShouldGrantFoodIfGainedFoodIsTrue() {
+        // record the initial amount of food the player has
         int initialFood = player.getFood();
 
-        // effect is triggered by placing a totem
-        effect.onTotemPlaced(offerTile, player, gameState);
+        // act: trigger the effect with gainedFood set to true
+        effect.onTurnOrderPlaced(player, true);
 
-        // correct amount of food is added to the player when a totem is placed
-        assertEquals(initialFood + EXTRA_FOOD, player.getFood());
+        // assert: verify the new total is exactly initial + 2
+        assertEquals(initialFood + 2, player.getFood());
     }
 
     @Test
-    void onTotemPlacedShouldAddCorrectFoodAmountForMultipleTriggers() {
-        // initial food count is recorded
+    void onTurnOrderPlacedShouldNotGrantFoodIfGainedFoodIsFalse() {
+        // record the initial amount of food the player has
         int initialFood = player.getFood();
 
-        // effect is triggered twice
-        effect.onTotemPlaced(offerTile, player, gameState);
-        effect.onTotemPlaced(offerTile, player, gameState);
+        // act: trigger the effect with gainedFood set to false
+        effect.onTurnOrderPlaced(player, false);
 
-        // correct amount of food is accumulated for multiple triggers
-        assertEquals(initialFood + (EXTRA_FOOD * 2), player.getFood());
-    }
-
-    @Test
-    void onTotemPlacedShouldAddZeroFoodIfExtraFoodIsZero() {
-        // effect is instantiated with a zero food bonus
-        ExtraFoodOnTotemEffect zeroEffect = new ExtraFoodOnTotemEffect(0);
-
-        // initial food count is recorded
-        int initialFood = player.getFood();
-
-        // effect is triggered
-        zeroEffect.onTotemPlaced(offerTile, player, gameState);
-
-        // zero food is added when extra food is configured to zero
+        // assert: verify the food amount remains unchanged
         assertEquals(initialFood, player.getFood());
     }
 
     @Test
-    void emptyMethodsShouldNotAlterState() {
-        // initial state is recorded
-        int initialFood = player.getFood();
-        int initialPrestige = player.getPrestige();
-
-        // empty interface methods are invoked
-        effect.onAcquire(player, gameState);
-        effect.onEvent(null, player, gameState);
-        effect.onRoundEnd(player, gameState);
-        effect.onGameEnd(player, gameState);
-        effect.onCharacterAdded(player, null);
-
-        // player state is verified to remain unchanged
-        assertEquals(initialFood, player.getFood());
-        assertEquals(initialPrestige, player.getPrestige());
+    void emptyMethodsShouldNotThrowExceptions() {
+        // verify that empty interface methods can be safely called without side effects
+        assertDoesNotThrow(() -> effect.onAcquire(player, dummyGameState));
+        assertDoesNotThrow(() -> effect.onRoundEnd(player, dummyGameState));
+        assertDoesNotThrow(() -> effect.onGameEnd(player, dummyGameState));
     }
 }

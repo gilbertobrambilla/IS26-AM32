@@ -7,13 +7,16 @@ import it.polimi.ingsw.am32.dto.messages.lobby.events.ConnectionResultEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyErrorEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.LobbyInfoDTO;
+import it.polimi.ingsw.am32.log.LogLevel;
+import it.polimi.ingsw.am32.log.LogManager;
 import it.polimi.ingsw.am32.model.GameResult;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.enums.GamePhase;
 import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.model.enums.LobbyErrorReason;
-import it.polimi.ingsw.am32.model.exceptions.InvalidActionException;
+import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
+import it.polimi.ingsw.am32.model.exceptions.InvalidLobbyActionException;
 import it.polimi.ingsw.am32.model.receipts.*;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 
@@ -102,14 +105,18 @@ public class GameController implements Runnable {
     /**
      * Processes a player disconnection before the game has started.
      *
-     * @param nickname   The nickname of the disconnected player.
-     * @param onComplete The callback to execute after the disconnection is processed.
+     * @param nickname     The nickname of the disconnected player.
+     * @param connectionID The unique identifier of the connection that dropped.
+     * @param onComplete   The callback to execute after the disconnection is processed.
      */
-    public void processPregameDisconnect(String nickname, Runnable onComplete) {
-        // player session is removed
-        PlayerSession session = this.activeClients.remove(nickname);
+    public void processPregameDisconnect(String nickname, String connectionID, Runnable onComplete) {
+        // active session is retrieved safely
+        PlayerSession activeSession = this.activeClients.get(nickname);
 
-        if (session != null) {
+        // connection identity is verified to prevent ghost disconnects
+        if (activeSession != null && activeSession.getView().getConnectionID().equals(connectionID)) {
+            // player session is removed
+            this.activeClients.remove(nickname);
             // player is removed from game state via model method
             this.gameState.removePlayer(nickname);
 
@@ -126,19 +133,40 @@ public class GameController implements Runnable {
     /**
      * Processes a join request from the lobby asynchronously.
      *
-     * @param nickname  The nickname of the joining player.
-     * @param view      The virtual view of the player.
+     * @param nickname The nickname of the joining player.
+     * @param view The virtual view of the player.
      * @param onSuccess The callback to execute if the join is successful.
      */
     public void processJoinRequest(String nickname, VirtualView view, Runnable onSuccess) {
-        // capacity and game state are checked to prevent race conditions
         if (this.getCurrentPlayersCount() < this.getTargetPlayersCount() && !this.isStarted()) {
             // player is instantiated
             Player player = new Player(nickname);
 
             // player is added to active clients and model
             this.activeClients.put(nickname, new PlayerSession(player, view));
-            this.gameState.addPlayer(player);
+
+            try {
+                // player is added to the game model
+                this.gameState.addPlayer(player);
+            } catch (InvalidLobbyActionException e) {
+                // session is removed due to domain logic failure
+                this.activeClients.remove(nickname);
+                // lobby error is notified
+                view.notifyLobbyError(new LobbyErrorEvent(e.getReason(), e.getMessage()));
+                return;
+            } catch (RuntimeException e) {
+                // exception is logged with stack trace
+                LogManager.getInstance().log(
+                        LogLevel.ERROR,
+                        "[GameController - processJoinRequest] critical error during join request for player " + nickname,
+                        e
+                );
+                // session is removed due to unexpected failure
+                this.activeClients.remove(nickname);
+                // internal error is notified
+                view.notifyLobbyError(new LobbyErrorEvent(LobbyErrorReason.JOIN_FAILED, "internal error during join request"));
+                return;
+            }
 
             // success callback is executed
             if (onSuccess != null) {
@@ -181,8 +209,31 @@ public class GameController implements Runnable {
      * Initializes the game and broadcasts the starting snapshot to all players.
      */
     public void startGame() {
-        // game is initialized and started flag is set
-        this.gameState.initGame();
+        try {
+            // game state is initialized
+            this.gameState.initGame();
+        } catch (RuntimeException e) {
+            // exception is logged with stack trace
+            LogManager.getInstance().log(
+                    LogLevel.ERROR,
+                    "[GameController - startGame] critical error during game initialization",
+                    e
+            );
+            // error is notified to all connected clients
+            for (PlayerSession session : this.activeClients.values()) {
+                GameErrorEvent errorDTO = new GameErrorEvent(
+                        session.getPlayer().getNickname(),
+                        GameErrorReason.GAME_INITIALIZATION_FAILED,
+                        "internal error during game initialization"
+                );
+                session.getView().notifyError(errorDTO);
+            }
+            // pregame is destroyed
+            this.destroyPregame();
+            return;
+        }
+
+        // started flag is set
         this.started = true;
         // active client nicknames are extracted
         List<String> activeNicknames = new ArrayList<>(this.activeClients.keySet());
@@ -456,9 +507,19 @@ public class GameController implements Runnable {
                 // game phase is advanced if necessary
                 autoAdvanceGameIfNecessary();
 
-            } catch (InvalidActionException e) {
-                // error dto is built and sent only to the specific client
+            } catch (InvalidGameActionException e) {
+                // domain-specific game error is notified
                 GameErrorEvent errorDTO = new GameErrorEvent(nickname, e.getReason(), e.getMessage());
+                session.getView().notifyError(errorDTO);
+            } catch (RuntimeException e) {
+                // exception is logged with stack trace
+                LogManager.getInstance().log(
+                        LogLevel.ERROR,
+                        "[GameController - processPlaceTotem] critical error while placing totem for player " + nickname,
+                        e
+                );
+                // internal error is notified for unexpected failures
+                GameErrorEvent errorDTO = new GameErrorEvent(nickname, GameErrorReason.INTERNAL_ERROR, "internal error while placing totem");
                 session.getView().notifyError(errorDTO);
             }
         }
@@ -503,9 +564,19 @@ public class GameController implements Runnable {
                 }
                 // game phase is advanced if necessary
                 autoAdvanceGameIfNecessary();
-            } catch (InvalidActionException e) {
-                // error dto is built and sent only to the specific client
+            } catch (InvalidGameActionException e) {
+                // domain-specific game error is notified
                 GameErrorEvent errorDTO = new GameErrorEvent(nickname, e.getReason(), e.getMessage());
+                session.getView().notifyError(errorDTO);
+            } catch (RuntimeException e) {
+                // exception is logged with stack trace
+                LogManager.getInstance().log(
+                        LogLevel.ERROR,
+                        "[GameController - processResolveAction] critical error while resolving action for player " + nickname,
+                        e
+                );
+                // internal error is notified for unexpected failures
+                GameErrorEvent errorDTO = new GameErrorEvent(nickname, GameErrorReason.INTERNAL_ERROR, "internal error while resolving action");
                 session.getView().notifyError(errorDTO);
             }
         }
@@ -514,12 +585,17 @@ public class GameController implements Runnable {
     /**
      * Processes a player disconnection, notifying other players and checking for suspension.
      *
-     * @param nickname the nickname of the disconnected player
+     * @param nickname the nickname of the disconnected player.
+     * @param connectionID the unique identifier of the connection that dropped.
      */
-    public void processDisconnect(String nickname) {
-        // player session is removed and observers are updated
-        PlayerSession session = this.activeClients.remove(nickname);
-        if (session != null) {
+    public void processDisconnect(String nickname, String connectionID) {
+        // active session is retrieved safely
+        PlayerSession activeSession = this.activeClients.get(nickname);
+
+        // connection identity is verified to prevent ghost disconnects
+        if (activeSession != null && activeSession.getView().getConnectionID().equals(connectionID)) {
+            // player session is removed and observers are updated
+            this.activeClients.remove(nickname);
 
             // disconnected event is built
             PlayerDisconnectedEvent disconnectDTO = new PlayerDisconnectedEvent(nickname);
@@ -538,10 +614,21 @@ public class GameController implements Runnable {
     }
 
     /**
-     * Processes a player reconnection, sending them the game state and notifying others.
+     * Checks if a player is currently active in the game.
      *
-     * @param nickname the nickname of the reconnected player
-     * @param newView the new view associated with the reconnected player
+     * @param nickname the player's nickname.
+     * @return true if the player is active, false otherwise.
+     */
+    public boolean isPlayerActive(String nickname) {
+        // player presence is checked in the concurrent map
+        return this.activeClients.containsKey(nickname);
+    }
+
+    /**
+     * Processes a player reconnection, sending them the connection result, the game state and notifying others.
+     *
+     * @param nickname the nickname of the reconnected player.
+     * @param newView the new view associated with the reconnected player.
      */
     public void processReconnect(String nickname, VirtualView newView) {
         // player is retrieved from model to restore session
@@ -551,13 +638,8 @@ public class GameController implements Runnable {
                 .orElse(null);
 
         if (reconnectedPlayer != null) {
-            if (this.activeClients.containsKey(nickname)) {
-                // rejection is notified
-                newView.notifyConnectionResult(new ConnectionResultEvent(false, "nickname is already active in game"));
-                // virtual view is destroyed cleanly
-                newView.destroy();
-                return;
-            }
+            // player reconnection is logged
+            LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Player reconnected: " + nickname);
 
             // session is restored
             PlayerSession session = new PlayerSession(reconnectedPlayer, newView);
@@ -573,12 +655,17 @@ public class GameController implements Runnable {
                     this.isSuspended = false;
                     suspendLock.notifyAll();
 
-                    // game resumed notification is broadcasted
-                    for (PlayerSession s : this.activeClients.values()) {
-                        s.getView().notifyGameResumed();
+                    // game resumed notification is broadcasted only to previously connected players
+                    for (Map.Entry<String, PlayerSession> entry : this.activeClients.entrySet()) {
+                        if (!entry.getKey().equals(nickname)) {
+                            entry.getValue().getView().notifyGameResumed();
+                        }
                     }
                 }
             }
+
+            // connection success is sent to unlock the client waiting thread with reconnecting flag set to true
+            newView.notifyConnectionResult(new ConnectionResultEvent(true, "reconnection successful", true, newView.getConnectionID()));
 
             // game state event is built and sent in unicast
             GameStateEvent currentStateEvent = buildGameStateEvent();
@@ -637,9 +724,19 @@ public class GameController implements Runnable {
                 }
                 // game phase is advanced if necessary
                 autoAdvanceGameIfNecessary();
-            } catch (InvalidActionException e) {
-                // error dto is built and sent only to the specific client
+            } catch (InvalidGameActionException e) {
+                // domain-specific game error is notified
                 GameErrorEvent errorDTO = new GameErrorEvent(nickname, e.getReason(), e.getMessage());
+                session.getView().notifyError(errorDTO);
+            } catch (RuntimeException e) {
+                // exception is logged with stack trace
+                LogManager.getInstance().log(
+                        LogLevel.ERROR,
+                        "[GameController - processExtraAcquisition] critical error during extra acquisition for player " + nickname,
+                        e
+                );
+                // internal error is notified for unexpected failures
+                GameErrorEvent errorDTO = new GameErrorEvent(nickname, GameErrorReason.INTERNAL_ERROR, "internal error during extra acquisition");
                 session.getView().notifyError(errorDTO);
             }
         }
@@ -649,9 +746,17 @@ public class GameController implements Runnable {
      * Handles the scenario where the game ends prematurely due to player abandonment and timeout.
      */
     private void handleForfeitVictory() {
-        if (!isGameSuspended() || this.activeClients.isEmpty()) return;
-        // game end is triggered due to timeout
-        handleGameEnd();
+        if (!isGameSuspended()) return;
+
+        if (this.activeClients.isEmpty()) {
+            // game is aborted due to total abandonment
+            this.lifecycleCallback.abortGame(this.gameId);
+            // command queue is cleared
+            this.commandQueue.clear();
+        } else {
+            // game end is triggered due to timeout
+            handleGameEnd();
+        }
     }
 
     /**

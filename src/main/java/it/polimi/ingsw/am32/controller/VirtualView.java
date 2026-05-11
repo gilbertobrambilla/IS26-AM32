@@ -9,4 +9,11 @@ public interface VirtualView extends LobbyView, GameView {
      * Destroys the virtual view closing the underlying connection cleanly.
      */
     void destroy();
+
+    /**
+     * Retrieves the unique identifier associated with this connection.
+     *
+     * @return the unique connection id.
+     */
+    String getConnectionID();
 }

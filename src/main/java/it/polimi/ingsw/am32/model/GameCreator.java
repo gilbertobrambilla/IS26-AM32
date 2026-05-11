@@ -5,6 +5,8 @@ import it.polimi.ingsw.am32.model.cards.Card;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.model.cards.acquirable.characters.CharacterCard;
 import it.polimi.ingsw.am32.model.cards.events.EventCard;
+import it.polimi.ingsw.am32.model.enums.LobbyErrorReason;
+import it.polimi.ingsw.am32.model.exceptions.InvalidLobbyActionException;
 import it.polimi.ingsw.am32.model.factories.*;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
@@ -26,7 +28,11 @@ public class GameCreator {
 
     public GameState createGame(int numOfPlayers) {
         if (numOfPlayers < 2 || numOfPlayers > 5) {
-            throw new IllegalArgumentException("numOfPlayers must be between 2 and 5");
+            // exception is thrown if player count is out of bounds
+            throw new InvalidLobbyActionException(
+                    LobbyErrorReason.INVALID_PLAYER_COUNT,
+                    "numOfPlayers must be between 2 and 5"
+            );
         }
 
         Connection connection = null;

@@ -2,6 +2,7 @@ package it.polimi.ingsw.am32.client.controller;
 
 import it.polimi.ingsw.am32.client.model.LightGameState;
 import it.polimi.ingsw.am32.client.view.UI;
+import it.polimi.ingsw.am32.client.view.tui.TuiUI;
 import it.polimi.ingsw.am32.controller.commands.game.*;
 import it.polimi.ingsw.am32.controller.commands.lobby.*;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
@@ -23,6 +24,7 @@ public class ClientController {
     private UI ui;
     private LightGameState lightGameState;
     private String myNickname;
+    private final ExecutorService uiExecutor;
 
     private final ExecutorService networkExecutor;
 
@@ -34,7 +36,18 @@ public class ClientController {
     public ClientController(VirtualServer virtualServer) {
         this.virtualServer = virtualServer;
         this.dispatcher = new MessageDispatcher(this);
+<<<<<<< feature-gui
         this.networkExecutor = Executors.newSingleThreadExecutor();
+=======
+
+        // ui executor is initialized as a single thread daemon
+        this.uiExecutor = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+            // thread is set as daemon
+            t.setDaemon(true);
+            return t;
+        });
+>>>>>>> master
     }
 
     /**
@@ -65,7 +78,12 @@ public class ClientController {
      */
     public void requestCreateGame(int numOfPlayers) {
         CreateGameCommand cmd = new CreateGameCommand(numOfPlayers);
+<<<<<<< feature-gui
         networkExecutor.submit(() -> virtualServer.sendLobbyCommand(cmd, myNickname));
+=======
+        // command is sent
+        virtualServer.sendLobbyCommand(cmd);
+>>>>>>> master
     }
 
     /**
@@ -75,7 +93,24 @@ public class ClientController {
      */
     public void requestJoinGame(int gameId) {
         JoinGameCommand cmd = new JoinGameCommand(gameId);
+<<<<<<< feature-gui
         networkExecutor.submit(() -> virtualServer.sendLobbyCommand(cmd, myNickname));
+=======
+        // command is sent
+        virtualServer.sendLobbyCommand(cmd);
+    }
+
+    /**
+     * Lobby error event is processed.
+     *
+     * @param event the lobby error event.
+     */
+    public void onLobbyError(LobbyErrorEvent event) {
+        runOnUIThread(() -> {
+            // ui is updated
+            if (ui != null) ui.showLobbyError(event);
+        });
+>>>>>>> master
     }
 
     /**
@@ -85,7 +120,12 @@ public class ClientController {
      */
     public void requestPlaceTotem(String tileId) {
         PlaceTotemCommand cmd = new PlaceTotemCommand(tileId);
+<<<<<<< feature-gui
         networkExecutor.submit(() -> virtualServer.sendGameCommand(cmd, myNickname));
+=======
+        // command is sent
+        virtualServer.sendGameCommand(cmd);
+>>>>>>> master
     }
 
     /**
@@ -96,7 +136,12 @@ public class ClientController {
      */
     public void requestResolveAction(List<String> characters, List<String> buildings) {
         ResolveActionCommand cmd = new ResolveActionCommand(characters, buildings);
+<<<<<<< feature-gui
         networkExecutor.submit(() -> virtualServer.sendGameCommand(cmd, myNickname));
+=======
+        // command is sent
+        virtualServer.sendGameCommand(cmd);
+>>>>>>> master
     }
 
     /**
@@ -120,13 +165,26 @@ public class ClientController {
         message.accept(this.dispatcher);
     }
 
+<<<<<<< feature-gui
     public void onLobbyError(LobbyErrorEvent event) {
         runOnUIThread(() -> {
             if (ui != null) ui.showLobbyError(event);
         });
     }
 
+=======
+    /**
+     * Connection result event is processed.
+     *
+     * @param event the connection result event.
+     */
+>>>>>>> master
     public void onConnectionResult(ConnectionResultEvent event) {
+        if (event.isSuccess()) {
+            // liveness routine is started on successful connection
+            this.virtualServer.startLivenessRoutine();
+        }
+
         runOnUIThread(() -> {
             if (ui != null) ui.showConnectionResult(event);
         });
@@ -238,12 +296,29 @@ public class ClientController {
     }
 
     /**
+     * Fatal error is processed.
+     *
+     * @param message the error message.
+     */
+    public void onFatalError(String message) {
+        runOnUIThread(() -> {
+            // ui is notified of the disconnection
+            if (ui != null) ui.notifyDisconnection(message);
+        });
+    }
+
+    /**
      * Task is executed on the ui thread.
      *
      * @param task the runnable task.
      */
     private void runOnUIThread(Runnable task) {
+<<<<<<< feature-gui
         task.run();
+=======
+        // task is submitted to the ui executor queue
+        this.uiExecutor.submit(task);
+>>>>>>> master
     }
 
     public LightGameState getLightGameState() {
@@ -254,6 +329,7 @@ public class ClientController {
         return this.myNickname;
     }
 
+<<<<<<< feature-gui
     public void shutdown() {
         if (networkExecutor != null && !networkExecutor.isShutdown()) {
             networkExecutor.shutdownNow();
@@ -263,6 +339,36 @@ public class ClientController {
         // rather than a crash, which is relevant for the resilience FA
         if (virtualServer != null) {
             virtualServer.disconnectGracefully();
+=======
+    /**
+     * The user requests application termination.
+     */
+    public void requestExit() {
+        runOnUIThread(() -> {
+            // exit is triggered if ui is tui
+            if (ui instanceof TuiUI) {
+                ((TuiUI) ui).triggerUserQuit();
+            } else {
+                // fallback is executed for gui
+                shutdown();
+                System.exit(0);
+            }
+        });
+    }
+
+    /**
+     * Resources are released and the connection is gracefully closed.
+     */
+    public void shutdown() {
+        // ui executor is shut down
+        if (this.uiExecutor != null && !this.uiExecutor.isShutdown()) {
+            this.uiExecutor.shutdownNow();
+        }
+
+        // graceful disconnect is forwarded
+        if (this.virtualServer != null) {
+            this.virtualServer.disconnectGracefully();
+>>>>>>> master
         }
     }
 }
