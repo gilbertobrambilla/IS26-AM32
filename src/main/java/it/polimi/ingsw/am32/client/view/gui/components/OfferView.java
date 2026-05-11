@@ -21,7 +21,7 @@ import javafx.util.Duration;
  */
 public class OfferView extends StackPane {
 
-    private final LightOfferTile tileData;
+    private LightOfferTile tileData;
     private final ImageView backgroundImageView;
     private final StackPane totemOverlay;
 
@@ -139,6 +139,17 @@ public class OfferView extends StackPane {
                 scaleOut.playFromStart();
             }
         });
+    }
+
+    /**
+     * Updates the internal data reference and refreshes the visual state.
+     * Necessary for the controller's caching mechanism.
+     *
+     * @param newTile The updated tile data from the server.
+     */
+    public void updateTile(LightOfferTile newTile) {
+        this.tileData = newTile;
+        renderTotemState();
     }
 
     /**

@@ -4,9 +4,9 @@ package it.polimi.ingsw.am32.client.view.gui;
  * This centralizes the management of view paths and makes it easier to maintain and update them.
  */
 public enum ViewPaths {
-    LOGIN("/fxml/login-view.fxml"),
-    LOBBY("/fxml/lobby-view.fxml"),
-    IN_GAME("/fxml/in-game-view.fxml");
+    LOGIN("/it/polimi/ingsw/am32/login-view.fxml"),
+    LOBBY("/it/polimi/ingsw/am32/lobby-view.fxml"),
+    IN_GAME("/it/polimi/ingsw/am32/in-game-view.fxml");
     // ... other views
     private final String path;
 

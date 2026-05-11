@@ -258,5 +258,11 @@ public class ClientController {
         if (networkExecutor != null && !networkExecutor.isShutdown()) {
             networkExecutor.shutdownNow();
         }
+
+        // virtual server is disconnected gracefully so the server detects a clean exit
+        // rather than a crash, which is relevant for the resilience FA
+        if (virtualServer != null) {
+            virtualServer.disconnectGracefully();
+        }
     }
 }

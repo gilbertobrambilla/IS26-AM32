@@ -63,6 +63,9 @@
             <VBox spacing="10.0" alignment="CENTER" styleClass="game-panel" VBox.vgrow="ALWAYS">
                 <Label text="AVAILABLE CARDS" styleClass="subtitle-text"/>
                 <HBox fx:id="availableCardsContainer" spacing="10.0" alignment="CENTER" />
+
+                <Button fx:id="confirmActionButton" text="Confirm Action" onAction="#handleConfirmAction"
+                        styleClass="button-accent" visible="false" managed="${confirmActionButton.visible}"/>
             </VBox>
         </VBox>
     </center>
