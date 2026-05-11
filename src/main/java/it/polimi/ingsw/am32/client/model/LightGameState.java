@@ -191,32 +191,27 @@ public class LightGameState {
     }
 
     public Map<String, LightPlayer> getPlayers() {
-        return Collections.unmodifiableMap(players);
+        return players;
     }
 
     public List<LightOfferTile> getOfferTrack() {
-        if (offerTrack == null) return Collections.emptyList();
-        return Collections.unmodifiableList(offerTrack);
+        return offerTrack;
     }
 
     public List<String> getUpperTribeRow() {
-        if (upperTribeRow == null) return Collections.emptyList();
-        return Collections.unmodifiableList(upperTribeRow);
+        return upperTribeRow;
     }
 
     public List<String> getLowerTribeRow() {
-        if (lowerTribeRow == null) return Collections.emptyList();
-        return Collections.unmodifiableList(lowerTribeRow);
+        return lowerTribeRow;
     }
 
     public List<String> getUpperBuildingRow() {
-        if (upperBuildingRow == null) return Collections.emptyList();
-        return Collections.unmodifiableList(upperBuildingRow);
+        return upperBuildingRow;
     }
 
     public List<String> getLowerBuildingRow() {
-        if (lowerBuildingRow == null) return Collections.emptyList();
-        return Collections.unmodifiableList(lowerBuildingRow);
+        return lowerBuildingRow;
     }
 
     public int getTribeDeckSize() {
