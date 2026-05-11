@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox alignment="TOP_CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.LobbyViewController"
+      styleClass="root">
+
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+
+    <Label text="GAME LOBBY" styleClass="title-text"/>
+
+    <HBox spacing="20.0" VBox.vgrow="ALWAYS">
+        <VBox spacing="10.0" HBox.hgrow="ALWAYS" styleClass="game-panel">
+            <Label text="Available Games" styleClass="subtitle-text"/>
+            <ListView fx:id="lobbyListView" VBox.vgrow="ALWAYS" />
+            <Button text="JOIN SELECTED GAME" onAction="#handleJoinGame"
+                    maxWidth="Infinity" fx:id="joinButton"/>
+        </VBox>
+
+        <VBox spacing="15.0" prefWidth="300" styleClass="game-panel">
+            <Label text="Create New Game" styleClass="subtitle-text"/>
+
+            <VBox spacing="5.0">
+                <Label text="Number of Players:"/>
+                <Spinner fx:id="playerCountSpinner" min="2" max="4" initialValue="3" editable="true"/>
+            </VBox>
+
+            <Button text="CREATE GAME" onAction="#handleCreateGame"
+                    maxWidth="Infinity" styleClass="button-accent"/>
+
+            <Separator />
+
+            <Label fx:id="statusLabel" wrapText="true" styleClass="text-dim"/>
+        </VBox>
+    </HBox>
+</VBox>

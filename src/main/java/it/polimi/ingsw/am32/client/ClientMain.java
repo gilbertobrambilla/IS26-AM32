@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am32.client;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+
+import it.polimi.ingsw.am32.client.view.gui.GuiApp;
 import it.polimi.ingsw.am32.client.view.tui.TuiUI;
 import it.polimi.ingsw.am32.network.client.ServerNode;
 import it.polimi.ingsw.am32.network.client.VirtualServer;
@@ -8,6 +10,7 @@ import it.polimi.ingsw.am32.network.rmi.client.RMIClientCallback;
 import it.polimi.ingsw.am32.network.rmi.server.RMIServer;
 import it.polimi.ingsw.am32.network.rmi.client.RMIServerProxy;
 import it.polimi.ingsw.am32.network.socket.client.SocketServerProxy;
+import javafx.application.Application;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -149,7 +152,16 @@ public class ClientMain {
             } else {
                 // gui framework is launched
                 System.out.println("\nStarting GUI...");
-                // TODO: insert blocking GUI launch here
+
+                // GUI framework is launched
+                System.out.println("[SYSTEM] Starting JavaFX GUI...");
+
+                // pass the instantiated controller to the static context of our JavaFX App
+                GuiApp.setController(clientController);
+
+                // launch the JavaFX Application thread
+                Application.launch(GuiApp.class, args);
+
                 break;
             }
 
