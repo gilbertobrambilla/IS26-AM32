@@ -148,7 +148,17 @@ public class ClientController {
         message.accept(this.dispatcher);
     }
 
+    /**
+     * Connection result event is processed.
+     *
+     * @param event the connection result event.
+     */
     public void onConnectionResult(ConnectionResultEvent event) {
+        if (event.isSuccess()) {
+            // liveness routine is started on successful connection
+            this.virtualServer.startLivenessRoutine();
+        }
+
         runOnUIThread(() -> {
             // ui is updated
             if (ui != null) ui.showConnectionResult(event);
