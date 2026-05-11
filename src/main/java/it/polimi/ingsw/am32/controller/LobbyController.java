@@ -4,11 +4,14 @@ import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.LobbyInfoDTO;
+import it.polimi.ingsw.am32.log.LogLevel;
+import it.polimi.ingsw.am32.log.LogManager;
 import it.polimi.ingsw.am32.model.GameCreator;
 import it.polimi.ingsw.am32.model.GameResult;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.enums.LobbyErrorReason;
+import it.polimi.ingsw.am32.model.exceptions.InvalidLobbyActionException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,22 +42,30 @@ public class LobbyController implements GameLifecycleCallback {
 
     /**
      * Processes a new player connection request.
-     * Uniqueness of the nickname is verified across both the lobby and active games.
+     * The uniqueness of the nickname is verified across both the lobby and active games.
      *
-     * @param nickname The requested nickname.
-     * @param view     The player's connection view.
+     * @param nickname the requested nickname.
+     * @param view the player's connection view.
+     * @return the connection result event.
      */
-    public void connectPlayer(String nickname, VirtualView view) {
+    public ConnectionResultEvent connectPlayer(String nickname, VirtualView view) {
         GameController game;
-        boolean addedToLobby = false;
 
         synchronized (this.lobbyLock) {
             game = this.playerGameMap.get(nickname);
-            if (game == null) {
+
+            if (game != null) {
+                if (game.isPlayerActive(nickname)) {
+                    // rejection result is returned immediately
+                    return new ConnectionResultEvent(false, "nickname already taken", false, null);
+                }
+            } else {
                 // player is added to lobby if absent
                 if (!this.connectedPlayers.containsKey(nickname)) {
                     this.connectedPlayers.put(nickname, view);
-                    addedToLobby = true;
+                } else {
+                    // rejection result is returned immediately
+                    return new ConnectionResultEvent(false, "nickname already taken", false, null);
                 }
             }
         }
@@ -62,23 +73,25 @@ public class LobbyController implements GameLifecycleCallback {
         if (game != null) {
             // reconnect task is enqueued
             game.enqueueSystemTask(() -> game.processReconnect(nickname, view));
-        } else if (addedToLobby) {
-            view.notifyConnectionResult(new ConnectionResultEvent(true, "connection successful"));
+            // reconnecting result is returned
+            return new ConnectionResultEvent(true, "reconnecting to game...", true, view.getConnectionID());
+        } else {
             // available lobby list is sent to the newly connected player
             view.notifyLobbyState(buildAvailableGamesListEvent());
-        } else {
-            // connection rejection is notified
-            view.notifyConnectionResult(new ConnectionResultEvent(false, "nickname is already taken in the lobby"));
-            // virtual view is destroyed cleanly
-            view.destroy();
+
+            // player connection is logged
+            LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Player connected: " + nickname);
+
+            // successful result is returned
+            return new ConnectionResultEvent(true, "connection successful", false, view.getConnectionID());
         }
     }
 
     /**
      * Processes a new game creation request.
      *
-     * @param nickname     The nickname of the creator.
-     * @param view         The player's connection view.
+     * @param nickname The nickname of the creator.
+     * @param view The player's connection view.
      * @param numOfPlayers The targeted number of players for the new game.
      */
     public void createGame(String nickname, VirtualView view, int numOfPlayers) {
@@ -88,9 +101,30 @@ public class LobbyController implements GameLifecycleCallback {
             gameId = this.nextGameId++;
         }
 
-        // game and state are instantiated via creator
+        // game creator is instantiated
         GameCreator gameCreator = new GameCreator(gameId);
-        GameState gameState = gameCreator.createGame(numOfPlayers);
+        GameState gameState;
+
+        try {
+            // game state is instantiated via creator
+            gameState = gameCreator.createGame(numOfPlayers);
+        } catch (InvalidLobbyActionException e) {
+            // domain-specific lobby error is notified
+            view.notifyLobbyError(new LobbyErrorEvent(e.getReason(), e.getMessage()));
+            return;
+        } catch (RuntimeException e) {
+            // exception is logged with stack trace
+            LogManager.getInstance().log(
+                    LogLevel.ERROR,
+                    "[LobbyController - createGame] critical error during game creation",
+                    e
+            );
+            // internal error is notified for unexpected failures
+            view.notifyLobbyError(new LobbyErrorEvent(LobbyErrorReason.JOIN_FAILED, "internal error during game creation"));
+            return;
+        }
+
+        // game controller is instantiated
         GameController gameController = new GameController(gameId, gameState, this);
 
         synchronized (this.lobbyLock) {
@@ -148,32 +182,45 @@ public class LobbyController implements GameLifecycleCallback {
     /**
      * Handles a network drop event by notifying the relevant game or managing an unstarted game.
      *
-     * @param nickname The nickname of the disconnected player.
+     * @param nickname the nickname of the disconnected player.
+     * @param connectionID the unique identifier of the dropped connection.
      */
-    public void handlePlayerNetworkDrop(String nickname) {
+    public void handlePlayerNetworkDrop(String nickname, String connectionID) {
         GameController game;
         synchronized (this.lobbyLock) {
-            // player is removed from lobby
-            this.connectedPlayers.remove(nickname);
-            game = this.playerGameMap.get(nickname);
-            if (game != null && !game.isStarted()) {
-                // player is removed from player game map
-                this.playerGameMap.remove(nickname);
+            // view is retrieved from connected players
+            VirtualView view = this.connectedPlayers.get(nickname);
+
+            // view id is checked to prevent ghost disconnects in the lobby
+            if (view != null && view.getConnectionID().equals(connectionID)) {
+                // player is removed from lobby
+                this.connectedPlayers.remove(nickname);
             }
+
+            // game controller is retrieved from player game map
+            game = this.playerGameMap.get(nickname);
         }
 
         if (game != null) {
             if (!game.isStarted()) {
-                if (game.getCurrentPlayersCount() <= 1) {
-                    // unstarted game is destroyed if empty
-                    destroyUnstartedGame(game);
-                } else {
-                    // pregame disconnect task is enqueued in game controller with callback
-                    game.enqueueSystemTask(() -> game.processPregameDisconnect(nickname, this::broadcastAvailableGamesUpdate));
-                }
+                // pregame disconnect task is enqueued with cleanup callback
+                game.enqueueSystemTask(() -> game.processPregameDisconnect(nickname, connectionID, () -> {
+                    synchronized (this.lobbyLock) {
+                        // player is removed from player game map
+                        this.playerGameMap.remove(nickname);
+                    }
+
+                    if (game.getCurrentPlayersCount() == 0) {
+                        // unstarted game is destroyed if empty
+                        destroyUnstartedGame(game);
+                    } else {
+                        // available games list is updated
+                        broadcastAvailableGamesUpdate();
+                    }
+                }));
             } else {
-                // disconnect task is enqueued in game controller
-                game.enqueueSystemTask(() -> game.processDisconnect(nickname));
+                // disconnect task is enqueued
+                game.enqueueSystemTask(() -> game.processDisconnect(nickname, connectionID));
             }
         }
     }
@@ -182,11 +229,29 @@ public class LobbyController implements GameLifecycleCallback {
      * Processes the termination of a game.
      * Data structures are cleared.
      *
-     * @param gameId The ID of the ended game.
-     * @param result The final result of the game.
+     * @param gameId the ID of the ended game.
+     * @param result the final result of the game.
      */
     @Override
     public void endGame(int gameId, GameResult result) {
+        synchronized (this.lobbyLock) {
+            // game is removed from active games
+            GameController removedGame = this.activeGames.remove(gameId);
+            if (removedGame != null) {
+                // player mappings are cleared
+                this.playerGameMap.entrySet().removeIf(entry -> entry.getValue().equals(removedGame));
+            }
+        }
+    }
+
+    /**
+     * Processes the abortion of an abandoned game.
+     * Data structures are cleared.
+     *
+     * @param gameId the ID of the abandoned game.
+     */
+    @Override
+    public void abortGame(int gameId) {
         synchronized (this.lobbyLock) {
             // game is removed from active games
             GameController removedGame = this.activeGames.remove(gameId);
