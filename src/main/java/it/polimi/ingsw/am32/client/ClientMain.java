@@ -1,6 +1,16 @@
 package it.polimi.ingsw.am32.client;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+<<<<<<< feature-gui
+import it.polimi.ingsw.am32.client.view.gui.GuiApp;
+import it.polimi.ingsw.am32.client.view.tui.TuiUI; // Import is updated to the new TUI implementation.
+import it.polimi.ingsw.am32.network.client.ServerNode;
+import it.polimi.ingsw.am32.network.client.VirtualServer;
+import it.polimi.ingsw.am32.network.rmi.RMIClientImpl;
+import it.polimi.ingsw.am32.network.rmi.RMIServer;
+import it.polimi.ingsw.am32.network.rmi.RMIServerAdapter;
+import javafx.application.Application;
+=======
 import it.polimi.ingsw.am32.client.view.tui.TuiUI;
 import it.polimi.ingsw.am32.network.client.ServerNode;
 import it.polimi.ingsw.am32.network.client.VirtualServer;
@@ -8,6 +18,7 @@ import it.polimi.ingsw.am32.network.rmi.client.RMIClientCallback;
 import it.polimi.ingsw.am32.network.rmi.server.RMIServer;
 import it.polimi.ingsw.am32.network.rmi.client.RMIServerProxy;
 import it.polimi.ingsw.am32.network.socket.client.SocketServerProxy;
+>>>>>>> master
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -153,8 +164,28 @@ public class ClientMain {
                 break;
             }
 
+<<<<<<< feature-gui
+        // mvc components are wired
+        ClientController clientController = new ClientController(virtualServer);
+        virtualServer.setClientController(clientController);
+
+        if (useTui) {
+            // tui ui is instantiated and started
+            TuiUI tui = new TuiUI(clientController); // constructor takes the controller as before
+            tui.start(); // main loop is entered
+        } else {
+            // GUI framework is launched
+            System.out.println("[SYSTEM] Starting JavaFX GUI...");
+
+            // pass the instantiated controller to the static context of our JavaFX App
+            GuiApp.setController(clientController);
+
+            // launch the JavaFX Application thread
+            Application.launch(GuiApp.class, args);
+=======
             // ui closed message is printed
             System.out.println("\nReturning to setup...");
+>>>>>>> master
         }
 
         // scanner is closed
