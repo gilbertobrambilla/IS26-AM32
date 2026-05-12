@@ -8,7 +8,6 @@ import it.polimi.ingsw.am32.client.model.LightTurnOrderTile;
 import it.polimi.ingsw.am32.client.view.gui.components.CardView;
 import it.polimi.ingsw.am32.client.view.gui.components.OpponentView;
 import it.polimi.ingsw.am32.client.view.gui.components.OfferView;
-import it.polimi.ingsw.am32.client.view.gui.components.PlayerStatsView;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.dto.setup.CharacterCardDTO;
@@ -41,10 +40,11 @@ public class InGameViewController implements ViewController {
 
     @FXML private HBox myCardsContainer;
 
-    @FXML private VBox myStatsContainer;
+    @FXML private Label notificationLabel;
+    @FXML private Label myFoodLabel;
+    @FXML private Label myPrestigeLabel;
 
     @FXML private VBox turnOrderContainer;
-    @FXML private VBox eventContainer;
     @FXML private Button confirmActionButton;
 
     // --- Local Selection State ---
@@ -56,7 +56,6 @@ public class InGameViewController implements ViewController {
     private final Map<String, OfferView> offerViewCache = new HashMap<>();
     private final Map<String, CardView> availableCardViewCache = new HashMap<>();
     private final Map<String, CardView> myCardsCache = new HashMap<>();
-    private PlayerStatsView myStatsViewCache;
 
     private static final double CASCADE_SPACING = -150.0;
     private static final String DECK_INFO_NODE_ID = "deck-info";
@@ -92,6 +91,7 @@ public class InGameViewController implements ViewController {
 
     @Override
     public void onGamePhaseUpdated(GamePhaseChangedEvent event) {
+        System.out.println("🚨 [GUI DEBUG] Il Server mi ha detto di cambiare fase in: " + event.getPhase()); // <- AGGIUNGI QUESTA!
         LightGameState state = clientController.getLightGameState();
 
         if (event.getPhase() != GamePhase.RESOLVE_ACTIONS) {
@@ -136,12 +136,8 @@ public class InGameViewController implements ViewController {
     private void renderMyBoard(LightPlayer localPlayer) {
         if (localPlayer == null) return;
 
-        if (myStatsViewCache != null) {
-            myStatsViewCache.updateStats(localPlayer);
-        } else {
-            myStatsViewCache = new PlayerStatsView(localPlayer);
-            myStatsContainer.getChildren().add(myStatsViewCache);
-        }
+        if (myFoodLabel != null) myFoodLabel.setText(String.valueOf(localPlayer.getFood()));
+        if (myPrestigeLabel != null) myPrestigeLabel.setText(String.valueOf(localPlayer.getPrestige()));
 
         List<String> allMyCards = new ArrayList<>();
         allMyCards.addAll(localPlayer.getCharacterCards());
@@ -168,7 +164,6 @@ public class InGameViewController implements ViewController {
         for (Map.Entry<String, List<CardView>> entry : groupedCards.entrySet()) {
             VBox column = new VBox();
             column.setAlignment(Pos.TOP_CENTER);
-
             column.setSpacing(CASCADE_SPACING);
             column.getChildren().addAll(entry.getValue());
 
@@ -224,6 +219,11 @@ public class InGameViewController implements ViewController {
     }
 
     private void handleCardSelection(CardView selectedCard) {
+        if (!isMyTurnAndPhase(GamePhase.RESOLVE_ACTIONS)) {
+            showNotification("⚠️ Non è il tuo turno per prendere le carte!");
+            return;
+        }
+
         selectedCard.getCardId().ifPresent(cardId -> {
             boolean isCharacter = cardId.startsWith("character");
             List<String> targetList = isCharacter ? selectedCharacterIds : selectedBuildingIds;
@@ -292,19 +292,19 @@ public class InGameViewController implements ViewController {
     }
 
     private void renderDeckInfo(int deckSize, int topCardEra) {
-        if (eventContainer == null) return;
-        eventContainer.getChildren().removeIf(node -> DECK_INFO_NODE_ID.equals(node.getId()));
         Label deckLabel = new Label("Tribe Deck: " + deckSize + " cards (Era " + topCardEra + ")");
         deckLabel.setId(DECK_INFO_NODE_ID);
         deckLabel.getStyleClass().add("subtitle-text");
-        eventContainer.getChildren().add(deckLabel);
     }
 
     private void clearAllContainers() {
         opponentsContainer.getChildren().clear();
         opponentViewsCache.clear();
-        myStatsContainer.getChildren().clear();
-        myStatsViewCache = null;
+
+        if (notificationLabel != null) notificationLabel.setVisible(false);
+        if (myFoodLabel != null) myFoodLabel.setText("0");
+        if (myPrestigeLabel != null) myPrestigeLabel.setText("0");
+
         offersContainer.getChildren().clear();
         offerViewCache.clear();
         myCardsContainer.getChildren().clear();
@@ -313,7 +313,6 @@ public class InGameViewController implements ViewController {
         lowerRowCardsContainer.getChildren().clear(); // AGGIORNATO
         availableCardViewCache.clear();
         turnOrderContainer.getChildren().clear();
-        eventContainer.getChildren().clear();
 
         selectedCharacterIds.clear();
         selectedBuildingIds.clear();
@@ -349,14 +348,35 @@ public class InGameViewController implements ViewController {
     }
     public void showNotification(String message) {
         System.out.println("[GUI] " + message);
-        if (eventContainer == null) return;
-        Label notifLabel = new Label("📢 " + message);
-        notifLabel.setWrapText(true);
-        notifLabel.getStyleClass().add("game-notification");
-        eventContainer.getChildren().add(0, notifLabel);
-        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
-        pause.setOnFinished(e -> eventContainer.getChildren().remove(notifLabel));
-        pause.play();
+
+        if (notificationLabel != null) {
+            notificationLabel.setText("📢 " + message);
+            notificationLabel.setVisible(true); // Mostra il banner di errore
+
+            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
+            pause.setOnFinished(e -> notificationLabel.setVisible(false)); // Nascondi dopo 5 secondi
+            pause.play();
+        }
+    }
+
+    @Override
+    public void onActionResolved(ActionResolvedEvent event) {
+        fullRender(clientController.getLightGameState());
+    }
+
+    @Override
+    public void onError(GameErrorEvent event) {
+        showNotification("❌ Azione non valida: " + event.getErrorMessage());
+    }
+
+    @Override
+    public void onEventResolved(EventResolvedEvent event) {
+        fullRender(clientController.getLightGameState());
+    }
+
+    @Override
+    public void onExtraAcquisition(ExtraAcquisitionResolvedEvent event) {
+        fullRender(clientController.getLightGameState());
     }
 
 }

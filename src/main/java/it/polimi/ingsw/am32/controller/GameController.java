@@ -489,6 +489,9 @@ public class GameController implements Runnable {
         PlayerSession session = this.activeClients.get(nickname);
         if (session != null) {
             try {
+                // --- AGGIUNTA: Salviamo la fase PRIMA della mossa ---
+                GamePhase phaseBeforeMove = this.gameState.getCurrentPhase();
+
                 // totem placement is executed on the model
                 this.gameState.placeTotem(session.getPlayer().getNickname(), tileId);
 
@@ -502,6 +505,14 @@ public class GameController implements Runnable {
                 // event is broadcasted to all connected clients
                 for (PlayerSession s : this.activeClients.values()) {
                     s.getView().notifyTotemPlaced(eventDTO);
+                }
+
+                GamePhase phaseAfterMove = this.gameState.getCurrentPhase();
+                if (phaseBeforeMove != phaseAfterMove) {
+                    GamePhaseChangedEvent phaseDTO = new GamePhaseChangedEvent(phaseAfterMove, nextPlayer);
+                    for (PlayerSession s : this.activeClients.values()) {
+                        s.getView().notifyGamePhaseChanged(phaseDTO);
+                    }
                 }
 
                 // game phase is advanced if necessary

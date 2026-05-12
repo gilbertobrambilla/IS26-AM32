@@ -215,6 +215,13 @@ public class GameState {
 
         if (occupiedCount == players.size()) {
             this.currentPhase = GamePhase.RESOLVE_ACTIONS;
+
+            for (OfferTile tile : this.offerTrack) {
+                if (!tile.isFree()) {
+                    this.currentPlayer = tile.getOccupyingPlayer();
+                    break;
+                }
+            }
         } else {
             // current player is updated to the next one on the turn order tile
             List<Player> turnOrder = turnOrderTile.getTurnOrder();
