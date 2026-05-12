@@ -1,36 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/17"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.LoginViewController"
-      styleClass="root">
+<VBox alignment="CENTER" spacing="20.0" style="-fx-background-color: fbb85c;" styleClass="root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.LoginViewController">
 
     <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
 
-    <Label text="MESOS" styleClass="title-text"/>
-    <Label text="Connect to the prehistoric world" styleClass="subtitle-text"/>
+    <Label styleClass="title-text" text="MESOS" textFill="#d71212">
+      <font>
+         <Font name="System Bold" size="30.0" />
+      </font></Label>
+    <Label prefHeight="30.0" prefWidth="171.0" styleClass="subtitle-text" text="Connect to the prehistoric world" />
 
     <!-- Server address is read-only: connection was established before GUI launch. -->
-    <Label fx:id="serverInfoLabel" styleClass="text-dim"/>
+    <Label fx:id="serverInfoLabel" styleClass="text-dim" />
 
-    <VBox spacing="10.0" styleClass="game-panel" maxWidth="400">
-        <Label text="Nickname:"/>
-        <TextField fx:id="usernameField" promptText="Enter your name..."/>
+    <VBox maxWidth="400" spacing="10.0" styleClass="game-panel">
+        <Label text="Nickname:" />
+        <TextField fx:id="usernameField" promptText="Enter your name..." />
 
-        <HBox spacing="10.0" alignment="CENTER_RIGHT">
+        <HBox alignment="CENTER_RIGHT" spacing="10.0">
             <padding>
-                <Insets top="10.0"/>
+                <Insets top="10.0" />
             </padding>
-            <Button text="Connect" onAction="#handleConnect" defaultButton="true"/>
+            <Button defaultButton="true" onAction="#handleConnect" style="-fx-background-color: ef4a23;" text="Connect" />
         </HBox>
     </VBox>
 
-    <Label fx:id="errorLabel" styleClass="error-text" visible="false"/>
+    <Label fx:id="errorLabel" styleClass="error-text" visible="false" />
 
 </VBox>
