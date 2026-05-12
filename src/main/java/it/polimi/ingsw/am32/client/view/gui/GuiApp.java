@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am32.client.view.gui;
 
+import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.client.view.utils.CardFormatter;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
@@ -57,6 +59,15 @@ public class GuiApp extends Application {
             System.exit(1);
         }
 
+        System.out.println("[SYSTEM] Loading game assets...");
+        try {
+            AssetManager.getInstance().loadAssets("assets/assets.json");
+            new CardFormatter().loadDictionary("assets/strings_en.json");
+        } catch (Exception e) {
+            System.err.println("[GUI ERROR] Failed to load assets.json");
+            e.printStackTrace();
+        }
+
         // initialize the UI bridge (links the controller's callbacks to JavaFX)
         GuiUI guiUI = new GuiUI(pendingController);
 
@@ -65,12 +76,12 @@ public class GuiApp extends Application {
 
         // configure the primary stage (the OS window)
         primaryStage.setTitle("Mesos - Digital Edition");
-        primaryStage.setResizable(false); // Fixed size to maintain layout consistency during early development
+        primaryStage.setResizable(true); // Fixed size to maintain layout consistency during early developmentnt
 
         // ensure all network threads and the JVM shut down cleanly when the window is closed
         primaryStage.setOnCloseRequest(event -> {
             System.out.println("[GUI] Window close requested.");
-            Platform.exit();
+            System.exit(0);
         });
 
         SceneManager.switchScene(ViewPaths.LOGIN);

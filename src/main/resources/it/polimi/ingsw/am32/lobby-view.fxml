@@ -28,7 +28,7 @@
 
             <VBox spacing="5.0">
                 <Label text="Number of Players:"/>
-                <Spinner fx:id="playerCountSpinner" min="2" max="4" initialValue="3" editable="true"/>
+                <Spinner fx:id="playerCountSpinner" min="2" max="5" initialValue="3" editable="true"/>
             </VBox>
 
             <Button text="CREATE GAME" onAction="#handleCreateGame"

@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.client.view.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.polimi.ingsw.am32.dto.setup.BuildingCardDTO;
 import it.polimi.ingsw.am32.dto.setup.CharacterCardDTO;
@@ -15,17 +16,16 @@ import java.util.Map;
  */
 public class CardFormatter {
 
-    private final Map<String, String> dictionary;
-    private final ObjectMapper mapper;
+    private static final Map<String, String> dictionary = new HashMap<>();
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    private static boolean isLoaded = false;
 
     /**
      * Card formatter is instantiated.
      */
     public CardFormatter() {
-        // dictionary is initialized
-        this.dictionary = new HashMap<>();
-        // object mapper is instantiated
-        this.mapper = new ObjectMapper();
+
     }
 
     /**
@@ -34,18 +34,37 @@ public class CardFormatter {
      * @param resourcePath the path of the json dictionary file.
      */
     public void loadDictionary(String resourcePath) {
-        try {
-            // input stream is opened from resources
-            InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath);
-            if (is != null) {
-                // json is deserialized into the dictionary map
-                Map<String, String> loadedData = mapper.readValue(is, new TypeReference<Map<String, String>>() {});
-                // dictionary is populated
-                this.dictionary.putAll(loadedData);
+        if (isLoaded) return;
+
+        try (InputStream is = CardFormatter.class.getResourceAsStream("/" + resourcePath)) {
+            if (is == null) {
+                System.err.println("[CardFormatter] Dictionary not found: " + resourcePath);
+                return;
             }
+
+            // root node is read generically to handle nested structure
+            JsonNode rootNode = mapper.readTree(is);
+
+            // all nested entries are flattened into the dictionary
+            flattenInto(rootNode, dictionary);
+            isLoaded = true;
+            System.out.println("[CardFormatter] Dictionary successfully loaded in memory.");
         } catch (Exception e) {
-            // exception is ignored or logged safely
-            System.err.println("dictionary could not be loaded");
+            System.err.println("[CardFormatter] Dictionary could not be loaded: " + e.getMessage());
+        }
+    }
+
+    private void flattenInto(JsonNode node, Map<String, String> target) {
+        if (node.isObject()) {
+            node.fields().forEachRemaining(entry -> {
+                if (entry.getValue().isTextual()) {
+                    // leaf node — add directly to dictionary
+                    target.put(entry.getKey(), entry.getValue().asText());
+                } else {
+                    // nested object — recurse
+                    flattenInto(entry.getValue(), target);
+                }
+            });
         }
     }
 

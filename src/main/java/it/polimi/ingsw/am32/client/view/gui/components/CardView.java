@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.client.view.gui.components;
 
+import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.view.gui.utils.ImageCache;
-import it.polimi.ingsw.am32.dto.messages.game.models.CardDTO;
 import javafx.animation.ScaleTransition;
 import javafx.scene.Cursor;
 import javafx.scene.effect.DropShadow;
@@ -10,7 +10,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-
 import java.util.Optional;
 
 /**
@@ -20,7 +19,6 @@ import java.util.Optional;
  */
 public class CardView extends StackPane {
 
-    private final CardDTO cardData;
     private final ImageView imageView;
     private final Optional<String> cardIdFallback;
 
@@ -35,7 +33,6 @@ public class CardView extends StackPane {
      * @param cardId The DTO containing card information, specifically the ID for image lookup.
      */
     public CardView(String cardId) {
-        this.cardData = null;
         this.cardIdFallback = Optional.ofNullable(cardId);
         this.imageView = new ImageView();
 
@@ -69,21 +66,23 @@ public class CardView extends StackPane {
      * Fetches the image from the singleton ImageCache using the card's ID.
      */
     private void loadCardImage() {
-        Optional<String> targetId = (cardData != null) ? Optional.ofNullable(cardData.getId()) : cardIdFallback;
-
-        targetId.ifPresentOrElse(
+        cardIdFallback.ifPresentOrElse(
                 id -> {
-                    // existing card ID case
-                    Image image = ImageCache.getInstance().getImage(id);
+                    String validId = normalizeId(id);
+                    String resolvedPath = AssetManager.getInstance().getAssetPath(validId);
+                    if (resolvedPath == null) {
+                        System.err.println("[CardView] No asset path for id: " + validId);
+                        return;
+                    }
+                    Image image = ImageCache.getInstance().getImage(resolvedPath);
                     if (image != null) {
                         imageView.setImage(image);
                     } else {
-                        System.err.println("[GUI] Missing asset for card ID: " + id);
+                        System.err.println("[CardView] Missing asset for card id: " + validId);
                     }
                 },
                 () -> {
-                    // fallback case
-                    System.out.println("[GUI] Card ID is absent. Rendering card back.");
+                    System.out.println("[CardView] Card id is absent. Rendering card back.");
                     Image backImage = ImageCache.getInstance().getImage("card_back");
                     if (backImage != null) {
                         imageView.setImage(backImage);
@@ -126,12 +125,9 @@ public class CardView extends StackPane {
      * Gets the data associated with this card view.
      * @return The CardDTO object.
      */
-    public CardDTO getCardData() {
-        return cardData;
-    }
 
     public Optional<String> getCardId() {
-        return (cardData != null) ? Optional.ofNullable(cardData.getId()) : cardIdFallback;
+        return cardIdFallback;
     }
 
     /**
@@ -140,9 +136,18 @@ public class CardView extends StackPane {
      */
     public void setHighlight(boolean selected) {
         if (selected) {
-            this.setStyle("-fx-border-color: -fx-text-gold; -fx-border-width: 3px; -fx-border-radius: 8px;");
+            if (!this.getStyleClass().contains("card-selected")) {
+                this.getStyleClass().add("card-selected");
+            }
         } else {
-            this.setStyle("");
+            this.getStyleClass().remove("card-selected");
         }
+    }
+
+    private String normalizeId(String rawId) {
+        if (rawId == null) return null;
+        return rawId
+                .replace("char_", "character_")
+                .replace("build_", "building_");
     }
 }

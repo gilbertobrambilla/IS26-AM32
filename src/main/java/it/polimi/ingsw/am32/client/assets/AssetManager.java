@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.client.assets;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.polimi.ingsw.am32.dto.setup.*;
 
@@ -21,6 +22,7 @@ public class AssetManager {
     private final Map<String, TurnOrderTileDTO> turnOrderTiles;
     private final Map<String, String> uiAssets;
     private final Map<String, String> cardBacks;
+    private final Map<String, String> assetPathIndex = new HashMap<>();
 
     /**
      * Asset manager is instantiated.
@@ -56,23 +58,23 @@ public class AssetManager {
      * @param resourcePath the path of the json asset file.
      */
     public void loadAssets(String resourcePath) {
-        // object mapper is created
         ObjectMapper mapper = new ObjectMapper();
-        // unknown properties are ignored
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
-            // stream is checked for null
-            if (is == null) {
-                // exception is thrown
-                throw new RuntimeException("asset file not found");
-            }
-            // json is deserialized into the root object
-            GameAssetsRoot root = mapper.readValue(is, GameAssetsRoot.class);
-            // maps are populated
+        try (InputStream is = AssetManager.class.getResourceAsStream("/" + resourcePath);) {
+            if (is == null) throw new RuntimeException("asset file not found: " + resourcePath);
+
+            // stream is read once into a tree node
+            JsonNode rootNode = mapper.readTree(is);
+
+            // asset path index is built from raw json, no DTO needed
+            buildAssetPathIndex(rootNode);
+
+            // root is converted to typed dto for the rest of the maps
+            GameAssetsRoot root = mapper.treeToValue(rootNode, GameAssetsRoot.class);
             populateMaps(root);
+
         } catch (Exception e) {
-            // exception is thrown to fail fast
             throw new RuntimeException("failed to load assets", e);
         }
     }
@@ -110,6 +112,23 @@ public class AssetManager {
         // card backs are mapped
         if (root.getCardBacks() != null) {
             cardBacks.putAll(root.getCardBacks());
+        }
+    }
+
+    private void buildAssetPathIndex(JsonNode rootNode) {
+        String[] entityArrays = {"building_cards", "character_cards", "event_cards", "offer_tiles", "turn_order_tiles"};
+
+        for (String arrayField : entityArrays) {
+            JsonNode array = rootNode.get(arrayField);
+            if (array == null || !array.isArray()) continue;
+
+            for (JsonNode item : array) {
+                JsonNode id = item.get("id");
+                JsonNode assetPath = item.get("asset_path");
+                if (id != null && assetPath != null) {
+                    assetPathIndex.put(id.asText(), assetPath.asText());
+                }
+            }
         }
     }
 
@@ -188,5 +207,9 @@ public class AssetManager {
     public String getCardBack(String key) {
         // path is returned
         return cardBacks.get(key);
+    }
+
+    public String getAssetPath(String id) {
+        return assetPathIndex.get(id);
     }
 }

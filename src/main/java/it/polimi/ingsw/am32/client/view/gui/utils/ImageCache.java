@@ -2,6 +2,7 @@ package it.polimi.ingsw.am32.client.view.gui.utils;
 
 import javafx.scene.image.Image;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,8 +53,12 @@ public class ImageCache {
 
         // image is loaded if null
         if (img == null) {
-            // new image is instantiated
-            img = new Image(path);
+            URL resourceUrl = getClass().getResource(path);
+            if (resourceUrl == null) {
+                System.err.println("[ImageCache] Could not find resource in classpath: " + path);
+                return null;
+            }
+            img = new Image(resourceUrl.toExternalForm());
             // image is stored in cache
             cache.put(path, img);
         }

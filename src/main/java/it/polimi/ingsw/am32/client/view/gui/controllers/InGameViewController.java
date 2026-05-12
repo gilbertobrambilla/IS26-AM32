@@ -4,16 +4,18 @@ import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.client.model.LightGameState;
 import it.polimi.ingsw.am32.client.model.LightPlayer;
 import it.polimi.ingsw.am32.client.model.LightOfferTile;
+import it.polimi.ingsw.am32.client.model.LightTurnOrderTile;
 import it.polimi.ingsw.am32.client.view.gui.components.CardView;
 import it.polimi.ingsw.am32.client.view.gui.components.OpponentView;
 import it.polimi.ingsw.am32.client.view.gui.components.OfferView;
 import it.polimi.ingsw.am32.client.view.gui.components.PlayerStatsView;
-import it.polimi.ingsw.am32.dto.messages.game.events.GamePhaseChangedEvent;
-import it.polimi.ingsw.am32.dto.messages.game.events.GameStartedEvent;
-import it.polimi.ingsw.am32.dto.messages.game.events.GameStateEvent;
+import it.polimi.ingsw.am32.dto.messages.game.events.*;
+import it.polimi.ingsw.am32.client.assets.AssetManager;
+import it.polimi.ingsw.am32.dto.setup.CharacterCardDTO;
 import it.polimi.ingsw.am32.model.enums.GamePhase;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
@@ -34,13 +36,11 @@ public class InGameViewController implements ViewController {
     @FXML private VBox opponentsContainer;
     @FXML private HBox offersContainer;
 
-    // NUOVI CONTENITORI AL POSTO DI availableCardsContainer
     @FXML private HBox upperRowCardsContainer;
     @FXML private HBox lowerRowCardsContainer;
 
     @FXML private HBox myCardsContainer;
 
-    // Rimuoviamo myStatsContainer e usiamo le Label dirette (o puoi mantenere il tuo PlayerStatsView, ho adattato il codice per supportare la tua classe)
     @FXML private VBox myStatsContainer;
 
     @FXML private VBox turnOrderContainer;
@@ -51,12 +51,15 @@ public class InGameViewController implements ViewController {
     private final List<String> selectedCharacterIds = new ArrayList<>();
     private final List<String> selectedBuildingIds = new ArrayList<>();
 
-    // --- UI Components Cache (MANTENUTA PERCHÈ È OTTIMA) ---
+    // --- UI Components Cache  ---
     private final Map<String, OpponentView> opponentViewsCache = new HashMap<>();
     private final Map<String, OfferView> offerViewCache = new HashMap<>();
     private final Map<String, CardView> availableCardViewCache = new HashMap<>();
     private final Map<String, CardView> myCardsCache = new HashMap<>();
     private PlayerStatsView myStatsViewCache;
+
+    private static final double CASCADE_SPACING = -150.0;
+    private static final String DECK_INFO_NODE_ID = "deck-info";
 
     public InGameViewController(ClientController clientController) {
         this.clientController = clientController;
@@ -79,7 +82,6 @@ public class InGameViewController implements ViewController {
         String myNick = state.getMyNickname();
         renderOpponents(state.getPlayers(), myNick);
 
-        // Nuova logica separata per le righe
         renderBoardRows(state);
 
         renderOfferTiles(state.getOfferTrack());
@@ -91,8 +93,6 @@ public class InGameViewController implements ViewController {
     @Override
     public void onGamePhaseUpdated(GamePhaseChangedEvent event) {
         LightGameState state = clientController.getLightGameState();
-        updateStatusBar(state.getCurrentEra(), state.getCurrentRound(), state.getCurrentPhase().name());
-        renderDeckInfo(state.getTribeDeckSize(), state.getTribeDeckTopCardEra());
 
         if (event.getPhase() != GamePhase.RESOLVE_ACTIONS) {
             selectedCharacterIds.clear();
@@ -100,25 +100,10 @@ public class InGameViewController implements ViewController {
             if (confirmActionButton != null) confirmActionButton.setVisible(false);
         }
 
-        switch (event.getPhase()) {
-            case PLACE_TOTEMS:
-            case RESOLVE_ACTIONS:
-                renderOfferTiles(state.getOfferTrack());
-                renderBoardRows(state);
-                renderTurnOrder(state.getTurnOrderTile());
-                break;
-            case END_ROUND:
-                renderOpponents(state.getPlayers(), state.getMyNickname());
-                renderMyBoard(state.getPlayers().get(state.getMyNickname()));
-                break;
-            default:
-                break;
-        }
+        fullRender(state);
     }
 
-    // --- NUOVA LOGICA: RIGHE SUPERIORI E INFERIORI ---
     private void renderBoardRows(LightGameState state) {
-        // Raccogli tutti gli ID per gestire la cache
         List<String> upperIds = new ArrayList<>();
         if(state.getUpperTribeRow() != null) upperIds.addAll(state.getUpperTribeRow());
         if(state.getUpperBuildingRow() != null) upperIds.addAll(state.getUpperBuildingRow());
@@ -130,10 +115,8 @@ public class InGameViewController implements ViewController {
         List<String> allIds = new ArrayList<>(upperIds);
         allIds.addAll(lowerIds);
 
-        // Pulisci cache per carte non più sul tabellone
         availableCardViewCache.keySet().removeIf(id -> !allIds.contains(id));
 
-        // Crea/Aggiorna le View
         for (String cardId : allIds) {
             if (!availableCardViewCache.containsKey(cardId)) {
                 CardView cardView = new CardView(cardId);
@@ -142,7 +125,6 @@ public class InGameViewController implements ViewController {
             }
         }
 
-        // Posiziona nelle righe corrette
         upperRowCardsContainer.getChildren().setAll(
                 upperIds.stream().map(availableCardViewCache::get).collect(Collectors.toList())
         );
@@ -151,11 +133,9 @@ public class InGameViewController implements ViewController {
         );
     }
 
-    // --- NUOVA LOGICA: LA TUA PLANCIA A CASCATA ---
     private void renderMyBoard(LightPlayer localPlayer) {
         if (localPlayer == null) return;
 
-        // Aggiorna la view delle stat (Cibo/Prestigio)
         if (myStatsViewCache != null) {
             myStatsViewCache.updateStats(localPlayer);
         } else {
@@ -168,10 +148,8 @@ public class InGameViewController implements ViewController {
         allMyCards.addAll(localPlayer.getBuildingCards());
         Set<String> currentIds = new HashSet<>(allMyCards);
 
-        // Rimuovi dalla cache le carte non più possedute
         myCardsCache.keySet().removeIf(id -> !currentIds.contains(id));
 
-        // Crea le nuove CardView se non esistono
         for (String cardId : allMyCards) {
             if (!myCardsCache.containsKey(cardId)) {
                 CardView cardView = new CardView(cardId);
@@ -179,62 +157,56 @@ public class InGameViewController implements ViewController {
             }
         }
 
-        // PULISCI IL CONTENITORE PRINCIPALE
         myCardsContainer.getChildren().clear();
 
-        // RAGGRUPPA LE CARTE PER CATEGORIA PER FARE LA CASCATA
         Map<String, List<CardView>> groupedCards = new HashMap<>();
         for (String cardId : allMyCards) {
             String category = getCardCategory(cardId);
             groupedCards.computeIfAbsent(category, k -> new ArrayList<>()).add(myCardsCache.get(cardId));
         }
 
-        // CREA UNA COLONNA PER OGNI CATEGORIA
         for (Map.Entry<String, List<CardView>> entry : groupedCards.entrySet()) {
             VBox column = new VBox();
             column.setAlignment(Pos.TOP_CENTER);
 
-            // IL TRUCCO: Spaziatura negativa! Modifica -120 in base alle dimensioni del tuo componente CardView
-            column.setSpacing(-150.0);
-
-            // Aggiungi le carte (ordinandole se vuoi)
+            column.setSpacing(CASCADE_SPACING);
             column.getChildren().addAll(entry.getValue());
 
             myCardsContainer.getChildren().add(column);
         }
     }
 
-    // --- Metodo di Utility per la cascata ---
     private String getCardCategory(String cardId) {
-        if (cardId.startsWith("building")) return "Building";
-        if (cardId.contains("artist")) return "Artist";
-        if (cardId.contains("builder")) return "Builder";
-        if (cardId.contains("hunter")) return "Hunter";
-        if (cardId.contains("gatherer")) return "Gatherer";
-        if (cardId.contains("inventor")) return "Inventor";
-        if (cardId.contains("shaman")) return "Shaman";
-        return "Generic";
+        if (cardId.startsWith("building")) {
+            return "Building";
+        }
+
+        CharacterCardDTO dto = AssetManager.getInstance().getCharacterCard(cardId);
+        if (dto == null) {
+            System.err.println("[InGameViewController] Unknown card id: " + cardId);
+            return "Generic";
+        }
+
+        return dto.getCharacterType();
     }
 
-    // --- IL RESTO DEL TUO CODICE RIMANE UGUALE ---
-
     private void renderOpponents(Map<String, LightPlayer> players, String localPlayerName) {
-        // [TUO CODICE ORIGINALE, NON TOCCATO]
+        opponentViewsCache.keySet().removeIf(nick -> !players.containsKey(nick));
+
+        List<OpponentView> updatedViews = new ArrayList<>();
+
         players.forEach((nickname, player) -> {
             if (!nickname.equals(localPlayerName)) {
-                if (opponentViewsCache.containsKey(nickname)) {
-                    opponentViewsCache.get(nickname).updateValues(player);
-                } else {
-                    OpponentView newView = new OpponentView(player);
-                    opponentViewsCache.put(nickname, newView);
-                    opponentsContainer.getChildren().add(newView);
-                }
+                OpponentView view = opponentViewsCache.computeIfAbsent(nickname, k -> new OpponentView(player));
+                view.updateValues(player); // Aggiorna i dati
+                updatedViews.add(view);
             }
         });
+
+        opponentsContainer.getChildren().setAll(updatedViews);
     }
 
     private void renderOfferTiles(List<LightOfferTile> tiles) {
-        // [TUO CODICE ORIGINALE, NON TOCCATO]
         Set<String> currentTileIds = tiles.stream().map(LightOfferTile::getId).collect(Collectors.toSet());
         offerViewCache.keySet().removeIf(id -> !currentTileIds.contains(id));
         for (LightOfferTile tile : tiles) {
@@ -252,17 +224,22 @@ public class InGameViewController implements ViewController {
     }
 
     private void handleCardSelection(CardView selectedCard) {
-        // [TUO CODICE ORIGINALE, NON TOCCATO]
         selectedCard.getCardId().ifPresent(cardId -> {
             boolean isCharacter = cardId.startsWith("character");
             List<String> targetList = isCharacter ? selectedCharacterIds : selectedBuildingIds;
+
             if (targetList.contains(cardId)) {
                 targetList.remove(cardId);
                 selectedCard.setHighlight(false);
             } else {
+                availableCardViewCache.values().forEach(cv -> cv.setHighlight(false));
+                selectedCharacterIds.clear();
+                selectedBuildingIds.clear();
+
                 targetList.add(cardId);
                 selectedCard.setHighlight(true);
             }
+
             boolean hasSelection = !selectedCharacterIds.isEmpty() || !selectedBuildingIds.isEmpty();
             if (confirmActionButton != null) confirmActionButton.setVisible(hasSelection);
         });
@@ -270,7 +247,6 @@ public class InGameViewController implements ViewController {
 
     @FXML
     private void handleConfirmAction() {
-        // [TUO CODICE ORIGINALE, NON TOCCATO]
         clientController.requestResolveAction(new ArrayList<>(selectedCharacterIds), new ArrayList<>(selectedBuildingIds));
         selectedCharacterIds.clear();
         selectedBuildingIds.clear();
@@ -279,19 +255,28 @@ public class InGameViewController implements ViewController {
     }
 
     private void handleTotemPlacement(OfferView selectedTile) {
-        // [TUO CODICE ORIGINALE, NON TOCCATO]
+        if (!isMyTurnAndPhase(GamePhase.PLACE_TOTEMS)) return;
+
         String tileId = selectedTile.getTileData().getId();
-        selectedTile.setDisable(true);
         clientController.requestPlaceTotem(tileId);
     }
 
-    private void renderTurnOrder(it.polimi.ingsw.am32.client.model.LightTurnOrderTile turnOrderTile) {
-        // [TUO CODICE ORIGINALE, NON TOCCATO]
-        turnOrderContainer.getChildren().clear();
+    private boolean isMyTurnAndPhase(GamePhase expectedPhase) {
+        LightGameState state = clientController.getLightGameState();
+        if (state == null || state.getCurrentPlayer() == null) return false;
+        return state.getMyNickname().equals(state.getCurrentPlayer())
+                && state.getCurrentPhase() == expectedPhase;
+    }
+
+    private void renderTurnOrder(LightTurnOrderTile turnOrderTile) {
         if (turnOrderTile == null) return;
+
+        List<Node> newNodes = new ArrayList<>();
+
         Label titleLabel = new Label("TURN ORDER");
         titleLabel.getStyleClass().add("subtitle-text");
-        turnOrderContainer.getChildren().add(titleLabel);
+        newNodes.add(titleLabel);
+
         List<String> players = turnOrderTile.getPlayers();
         for (int i = 0; i < players.size(); i++) {
             Label playerLabel = new Label((i + 1) + ". " + players.get(i));
@@ -300,16 +285,17 @@ public class InGameViewController implements ViewController {
             } else {
                 playerLabel.getStyleClass().add("turn-order-opponent");
             }
-            turnOrderContainer.getChildren().add(playerLabel);
+            newNodes.add(playerLabel);
         }
+
+        turnOrderContainer.getChildren().setAll(newNodes);
     }
 
     private void renderDeckInfo(int deckSize, int topCardEra) {
-        // [TUO CODICE ORIGINALE, NON TOCCATO]
         if (eventContainer == null) return;
-        eventContainer.getChildren().removeIf(node -> "deck-info".equals(node.getId()));
+        eventContainer.getChildren().removeIf(node -> DECK_INFO_NODE_ID.equals(node.getId()));
         Label deckLabel = new Label("Tribe Deck: " + deckSize + " cards (Era " + topCardEra + ")");
-        deckLabel.setId("deck-info");
+        deckLabel.setId(DECK_INFO_NODE_ID);
         deckLabel.getStyleClass().add("subtitle-text");
         eventContainer.getChildren().add(deckLabel);
     }
@@ -337,8 +323,31 @@ public class InGameViewController implements ViewController {
     @Override public void onGameStarted(GameStartedEvent event) { fullRender(clientController.getLightGameState()); }
     @Override public void onGameStateRestored(GameStateEvent event) { fullRender(clientController.getLightGameState()); }
 
+    @Override
+    public void onTotemPlaced(TotemPlacedEvent event) {
+        LightGameState state = clientController.getLightGameState();
+        renderOfferTiles(state.getOfferTrack());
+        renderTurnOrder(state.getTurnOrderTile());
+    }
+
+    @Override
+    public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
+        OpponentView view = opponentViewsCache.get(event.getPlayer());
+        if (view != null) {
+            view.setOpacity(0.4);
+        }
+        showNotification("⚠️ " + event.getPlayer() + " disconnected.");
+    }
+
+    @Override
+    public void onPlayerReconnected(PlayerReconnectedEvent event) {
+        OpponentView view = opponentViewsCache.get(event.getPlayer());
+        if (view != null) {
+            view.setOpacity(1.0);
+        }
+        showNotification("✅ " + event.getPlayer() + " reconnected.");;
+    }
     public void showNotification(String message) {
-        // [TUO CODICE ORIGINALE, NON TOCCATO]
         System.out.println("[GUI] " + message);
         if (eventContainer == null) return;
         Label notifLabel = new Label("📢 " + message);
@@ -349,4 +358,5 @@ public class InGameViewController implements ViewController {
         pause.setOnFinished(e -> eventContainer.getChildren().remove(notifLabel));
         pause.play();
     }
+
 }

@@ -28,7 +28,7 @@
     /* Applied to the scene root */
     -fx-background-color: -fx-bg-dark;
     -fx-font-family: -fx-font-family;
-    -fx-font-size: -fx-font-size-base;
+    -fx-font-size: 14px; /* CORRETTO QUI */
     -fx-text-fill: -fx-text-main;
 }
 
@@ -37,22 +37,22 @@
 /* Main Containers */
 .game-panel {
     -fx-background-color: -fx-bg-panel;
-    -fx-background-radius: -fx-border-radius-std;
-    -fx-padding: -fx-spacing-lg;
+    -fx-background-radius: 8px;
+    -fx-padding: 20px;
     -fx-border-color: #444444;
     -fx-border-width: 1px;
-    -fx-border-radius: -fx-border-radius-std;
+    -fx-border-radius: 8px;
 }
 
 /* Typography Classes */
 .title-text {
-    -fx-font-size: -fx-font-size-xl;
+    -fx-font-size: 32px; /* CORRETTO QUI */
     -fx-font-weight: bold;
     -fx-text-fill: -fx-text-main;
 }
 
 .subtitle-text {
-    -fx-font-size: -fx-font-size-lg;
+    -fx-font-size: 18px; /* CORRETTO QUI */
     -fx-text-fill: -fx-text-dim;
 }
 
@@ -100,6 +100,12 @@
     -fx-background-radius: 10px;
 }
 
+.card-selected {
+    -fx-border-color: -fx-text-gold;
+    -fx-border-width: 3px;
+    -fx-border-radius: 8px;
+}
+
 /* --- SEMANTIC TEXT CLASSES --- */
 
 .text-main {
@@ -116,7 +122,7 @@
 
 .error-text {
     -fx-text-fill: -fx-error-red;
-    -fx-font-size: -fx-font-size-base;
+    -fx-font-size: 14px; /* CORRETTO QUI */
 }
 
 /* --- VARIANT BUTTON CLASSES --- */
@@ -168,4 +174,10 @@
     -fx-background-radius: 5px;
     -fx-border-color: #444444;
     -fx-border-radius: 5px;
+}
+
+scroll-pane, .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
 }
