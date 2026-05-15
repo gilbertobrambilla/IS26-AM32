@@ -11,17 +11,17 @@ import java.rmi.RemoteException;
 public interface RMIClient extends Remote {
 
     /**
-     * Checks the liveness of the client.
+     * Processes a ping received from the server.
      *
-     * @throws RemoteException If a network error occurs.
+     * @throws RemoteException if a network error occurs
      */
-    void ping() throws RemoteException;
+    void onPingReceivedFromServer() throws RemoteException;
 
     /**
      * Receives a generic message from the server.
      *
-     * @param message The message received.
-     * @throws RemoteException If a network error occurs.
+     * @param message the message received
+     * @throws RemoteException if a network error occurs
      */
     void receiveMessage(MessageDTO message) throws RemoteException;
 }

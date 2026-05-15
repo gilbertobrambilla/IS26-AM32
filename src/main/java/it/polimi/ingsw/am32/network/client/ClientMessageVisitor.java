@@ -8,109 +8,148 @@ import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
  */
 public interface ClientMessageVisitor {
 
+    // setup
+
     /**
-     * Visits an available games list event.
+     * Visits a connection result event.
      *
-     * @param message The message to be visited.
+     * @param message the message to be visited
+     */
+    void visit(ConnectionResultEvent message);
+
+    /**
+     * Visits a login result event.
+     *
+     * @param message the message to be visited
+     */
+    void visit(LoginResultEvent message);
+
+    // lobby management
+
+    /**
+     * Visits an available lobbies event.
+     *
+     * @param message the message to be visited
      */
     void visit(AvailableLobbiesEvent message);
 
     /**
-     * Visits a lobby state updated event.
+     * Visits a lobby state-updated event.
      *
-     * @param message The message to be visited.
+     * @param message the message to be visited
      */
-    void visit(LobbyStateUpdatedEvent message);
+    void visit(LobbyRoomUpdateEvent message);
 
     /**
      * Visits a lobby error event.
      *
-     * @param message The message to be visited.
+     * @param message the message to be visited
      */
     void visit(LobbyErrorEvent message);
 
-    /**
-     * Visits an action resolved event.
-     *
-     * @param message The message to be visited.
-     */
-    void visit(ActionResolvedEvent message);
-
-    /**
-     * Visits an event resolved event.
-     *
-     * @param message The message to be visited.
-     */
-    void visit(EventResolvedEvent message);
-
-    /**
-     * Visits an extra acquisition resolved event.
-     *
-     * @param message The message to be visited.
-     */
-    void visit(ExtraAcquisitionResolvedEvent message);
-
-    /**
-     * Visits a game ended event.
-     *
-     * @param message The message to be visited.
-     */
-    void visit(GameEndedEvent message);
-
-    /**
-     * Visits a game phase changed event.
-     *
-     * @param message The message to be visited.
-     */
-    void visit(GamePhaseChangedEvent message);
+    // game flow
 
     /**
      * Visits a game started event.
      *
-     * @param message The message to be visited.
+     * @param message the message to be visited
      */
     void visit(GameStartedEvent message);
 
     /**
-     * Visits an invalid action event.
+     * Visits a game state event.
      *
-     * @param message The message to be visited.
+     * @param message the message to be visited
      */
-    void visit(GameErrorEvent message);
+    void visit(GameStateEvent message);
 
     /**
-     * Visits a player disconnected event.
+     * Visits a game phase changed event.
      *
-     * @param message The message to be visited.
+     * @param message the message to be visited
+     */
+    void visit(GamePhaseChangedEvent message);
+
+    // game actions
+
+    /**
+     * Visits an action-resolved event.
+     *
+     * @param message the message to be visited
+     */
+    void visit(ActionResolvedEvent message);
+
+    /**
+     * Visits a totem-placed event.
+     *
+     * @param message the message to be visited
+     */
+    void visit(TotemPlacedEvent message);
+
+    /**
+     * Visits an extra acquisition resolved event.
+     *
+     * @param message the message to be visited
+     */
+    void visit(ExtraAcquisitionResolvedEvent message);
+
+    /**
+     * Visits an event resolved event.
+     *
+     * @param message the message to be visited
+     */
+    void visit(EventResolvedEvent message);
+
+    // suspensions and reconnections
+
+    /**
+     * Visits a player-disconnected event.
+     *
+     * @param message the message to be visited
      */
     void visit(PlayerDisconnectedEvent message);
 
     /**
-     * Visits a player reconnected event.
+     * Visits a player-reconnected event.
      *
-     * @param message The message to be visited.
+     * @param message the message to be visited
      */
     void visit(PlayerReconnectedEvent message);
 
     /**
-     * Visits a round ended event.
+     * Visits a game-suspended event.
      *
-     * @param message The message to be visited.
+     * @param message the message to be visited
+     */
+    void visit(GameSuspendedEvent message);
+
+    /**
+     * Visits a game-resumed event.
+     *
+     * @param message the message to be visited
+     */
+    void visit(GameResumedEvent message);
+
+    // end and errors
+
+    /**
+     * Visits a game error event.
+     *
+     * @param message the message to be visited
+     */
+    void visit(GameErrorEvent message);
+
+    /**
+     * Visits a round-ended event.
+     *
+     * @param message the message to be visited
      */
     void visit(RoundEndedEvent message);
 
     /**
-     * Visits a totem placed event.
+     * Visits a game-ended event.
      *
-     * @param message The message to be visited.
+     * @param message the message to be visited
      */
-    void visit(TotemPlacedEvent message);
-
-    void visit(ConnectionResultEvent connectionResultEvent);
-
-    void visit(GameSuspendedEvent gameSuspendedEvent);
-
-    void visit(GameResumedEvent gameResumedEvent);
-
-    void visit(GameStateEvent gameStateEvent);
+    void visit(GameEndedEvent message);
 }

@@ -1,15 +1,20 @@
 package it.polimi.ingsw.am32.network.socket.messages;
+
 import it.polimi.ingsw.am32.network.socket.client.SocketServerProxy;
 import it.polimi.ingsw.am32.network.socket.server.SocketClientProxy;
 
+/**
+ * Message used for pinging between client and server via socket.
+ */
 public class SocketPingMessage implements ClientToServerMessage, ServerToClientMessage {
+
     @Override
     public void execute(SocketClientProxy handler) {
-        handler.processPing();
+        handler.onPingReceivedFromClient();
     }
 
     @Override
     public void execute(SocketServerProxy connection) {
-        connection.processPing();
+        connection.onPingReceivedFromServer();
     }
 }
