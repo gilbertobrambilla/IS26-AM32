@@ -51,4 +51,13 @@ public class OfferTile extends Tile{
     public boolean isValidSelection(int requestedUpper, int requestedLower, int availableUpper, int availableLower) {
         return this.action.isValidSelection(requestedUpper, requestedLower, availableUpper, availableLower);
     }
+
+    /**
+     * Checks if the tile is currently occupied by the specified player.
+     * @param player the player to check
+     * @return true if the player occupies this tile, false otherwise
+     */
+    public boolean isOccupiedBy(Player player) {
+        return !isFree() && this.occupyingPlayer.equals(player);
+    }
 }

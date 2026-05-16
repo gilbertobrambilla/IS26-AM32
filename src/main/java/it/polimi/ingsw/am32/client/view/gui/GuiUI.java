@@ -79,8 +79,8 @@ public class GuiUI implements UI {
 
     @Override
     public void showGameStarted(GameStartedEvent event) {
+        SceneManager.switchScene(ViewPaths.IN_GAME);
         Platform.runLater(() -> {
-            SceneManager.switchScene(ViewPaths.IN_GAME);
             ViewController ctrl = SceneManager.getCurrentController();
             if (ctrl != null) ctrl.onGameStarted(event);
         });
@@ -88,8 +88,8 @@ public class GuiUI implements UI {
 
     @Override
     public void restoreGameState(GameStateEvent event) {
+        SceneManager.switchScene(ViewPaths.IN_GAME);
         Platform.runLater(() -> {
-            SceneManager.switchScene(ViewPaths.IN_GAME);
             ViewController ctrl = SceneManager.getCurrentController();
             if (ctrl != null) ctrl.onGameStateRestored(event);
         });
@@ -217,7 +217,7 @@ public class GuiUI implements UI {
             alert.setContentText(message);
             alert.showAndWait();
 
-            Platform.exit();
+            System.exit(0);
         });
     }
 }

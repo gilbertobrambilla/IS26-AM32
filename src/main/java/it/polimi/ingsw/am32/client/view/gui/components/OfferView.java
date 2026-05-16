@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am32.client.view.gui.components;
 
+import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.model.LightOfferTile;
 import it.polimi.ingsw.am32.client.view.gui.utils.ImageCache;
 import javafx.animation.ScaleTransition;
@@ -72,15 +73,21 @@ public class OfferView extends StackPane {
      */
     private void loadTileImage() {
         if (tileData != null && tileData.getId() != null) {
-            Image image = ImageCache.getInstance().getImage(tileData.getId());
-            if (image != null) {
-                backgroundImageView.setImage(image);
+            String validId = normalizeId(tileData.getId());
+            String assetPath = AssetManager.getInstance().getAssetPath(validId);
+
+            if (assetPath != null) {
+                Image image = ImageCache.getInstance().getImage(assetPath);
+                if (image != null) {
+                    backgroundImageView.setImage(image);
+                } else {
+                    System.err.println("[GUI] ImageCache failed to load asset for offer tile ID: " + validId);
+                }
             } else {
-                System.err.println("[GUI] Missing asset for offer tile ID: " + tileData.getId());
+                System.err.println("[GUI] Missing asset path in AssetManager for offer tile ID: " + validId);
             }
         }
     }
-
     /**
      * Updates the overlay to display a player's totem if one is placed here.
      */
@@ -157,5 +164,10 @@ public class OfferView extends StackPane {
      */
     public LightOfferTile getTileData() {
         return tileData;
+    }
+
+    private String normalizeId(String rawId) {
+        if (rawId == null) return null;
+        return rawId.replace("offertile_", "offer_tile_");
     }
 }
