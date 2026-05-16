@@ -6,14 +6,14 @@ package it.polimi.ingsw.am32.controller;
 public interface VirtualView extends LobbyView, GameView {
 
     /**
-     * Destroys the virtual view closing the underlying connection cleanly.
-     */
-    void destroy();
-
-    /**
-     * Retrieves the unique identifier associated with this connection.
+     * The unique identifier associated with this connection is retrieved.
      *
-     * @return the unique connection id.
+     * @return the unique connection id
      */
     String getConnectionID();
+
+    /**
+     * The virtual view is destroyed, closing the underlying connection cleanly.
+     */
+    void destroy();
 }

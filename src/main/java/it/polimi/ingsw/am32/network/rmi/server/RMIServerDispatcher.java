@@ -14,106 +14,96 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Implementation of the rmi server interface.
+ * Rmi server interface implemented.
  */
 public class RMIServerDispatcher extends UnicastRemoteObject implements RMIServer {
+
     private final LobbyController lobbyController;
     private final ConcurrentHashMap<String, RemoteClientView> activeNodes;
 
     /**
-     * Constructs a new rmi server implementation.
+     * New rmi server implementation constructed.
      *
-     * @param lobbyController The controller handling the lobby logic.
-     * @throws RemoteException If the remote object cannot be exported.
+     * @param lobbyController the controller handling the lobby logic
+     * @throws RemoteException if the remote object cannot be exported
      */
     public RMIServerDispatcher(LobbyController lobbyController) throws RemoteException {
         super();
         this.lobbyController = lobbyController;
-        // active nodes map is instantiated
+        // active nodes map instantiated
         this.activeNodes = new ConcurrentHashMap<>();
     }
 
     @Override
-    public void ping(String connectionID) throws RemoteException {
+    public void onPingReceivedFromClient(String connectionID) throws RemoteException {
         if (connectionID == null) {
-            // anonymous ping is ignored
+            // anonymous ping ignored
             return;
         }
 
-        // node is retrieved from active nodes
+        // node retrieved from active nodes
         RemoteClientView node = activeNodes.get(connectionID);
         if (node != null) {
-            // ping received is notified
-            node.notifyPingReceived();
+            // ping received processed
+            node.onPingReceivedFromClient();
         }
     }
 
     @Override
-    public ConnectionResultEvent connect(String nickname, RMIClient clientStub) throws RemoteException {
-        // client node is instantiated
+    public void connect(RMIClient clientStub) throws RemoteException {
+        // client node instantiated
         ClientNode clientNode = new RMIClientProxy(clientStub);
 
-        // connection id is generated
+        // connection id generated
         String connectionID = UUID.randomUUID().toString();
 
         try {
-            // view implementation is instantiated
-            RemoteClientView view = RemoteClientView.create(nickname, clientNode, connectionID, (isNetworkDrop) -> {
-                // node is removed from active nodes
+            // view implementation instantiated
+            RemoteClientView view = RemoteClientView.create(clientNode, connectionID, (isNetworkDrop) -> {
+                // node removed from active nodes
                 this.activeNodes.remove(connectionID);
                 if (isNetworkDrop) {
-                    // network drop is handled
-                    this.lobbyController.handlePlayerNetworkDrop(nickname, connectionID);
+                    // network drop handled
+                    this.lobbyController.processPlayerNetworkDrop(connectionID);
                 }
             });
 
-            // player connection is delegated to controller
-            ConnectionResultEvent result = this.lobbyController.connectPlayer(nickname, view);
+            // node stored immediately
+            this.activeNodes.put(connectionID, view);
 
-            if (result.isSuccess()) {
-                // node is stored
-                this.activeNodes.put(connectionID, view);
-            } else {
-                // heartbeat is stopped for rejected client
-                view.stopHeartbeat();
-            }
-
-            // connection result is returned
-            return result;
+            // connection result notified to the client
+            view.notifyConnectionResult(new ConnectionResultEvent(true, "connection successful", connectionID));
 
         } catch (Exception e) {
-            // created node is retrieved
+            // created node retrieved
             RemoteClientView createdNode = this.activeNodes.remove(connectionID);
             if (createdNode != null) {
-                // disconnection is handled
+                // disconnection handled
                 createdNode.handleDisconnect();
             }
-            // exception is thrown
-            throw new RemoteException("Internal server error during connection setup.", e);
+            // exception thrown
+            throw new RemoteException("internal server error during connection setup", e);
+        }
+    }
+
+    @Override
+    public void login(String nickname, String connectionID) throws RemoteException {
+        // node retrieved from active nodes
+        RemoteClientView node = this.activeNodes.get(connectionID);
+        if (node != null) {
+            this.lobbyController.processLogin(nickname, node);
         }
     }
 
     @Override
     public void sendLobbyCommand(LobbyCommand command, String connectionID) throws RemoteException {
-        // node is retrieved from active nodes
-        RemoteClientView node = this.activeNodes.get(connectionID);
-        if (node != null) {
-            // nickname is extracted
-            String nickname = node.getNickname();
-            // lobby command is dispatched
-            this.lobbyController.handleLobbyCommand(command, nickname);
-        }
+        // lobby command dispatched
+        this.lobbyController.processLobbyCommand(command, connectionID);
     }
 
     @Override
     public void sendGameCommand(GameCommand command, String connectionID) throws RemoteException {
-        // node is retrieved from active nodes
-        RemoteClientView node = this.activeNodes.get(connectionID);
-        if (node != null) {
-            // nickname is extracted
-            String nickname = node.getNickname();
-            // game command is dispatched
-            this.lobbyController.handleGameCommand(command, nickname);
-        }
+        // game command dispatched
+        this.lobbyController.processGameCommand(command, connectionID);
     }
 }

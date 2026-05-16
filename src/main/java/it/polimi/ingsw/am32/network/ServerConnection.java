@@ -7,12 +7,18 @@ import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
  * Interface representing a generic connection to the server.
  */
 public interface ServerConnection {
+
     /**
-     * Connects the player to the server using the provided nickname.
-     *
-     * @param nickname The nickname of the player.
+     * Establishes the physical network connection to the server.
      */
-    void connect(String nickname);
+    void connect();
+
+    /**
+     * Login is requested using the provided nickname.
+     *
+     * @param nickname the nickname chosen by the player
+     */
+    void login(String nickname);
 
     /**
      * Sends a lobby command to the server.

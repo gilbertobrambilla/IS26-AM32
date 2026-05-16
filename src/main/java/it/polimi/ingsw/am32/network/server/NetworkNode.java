@@ -1,12 +1,12 @@
 package it.polimi.ingsw.am32.network.server;
 
 /**
- * Interface representing the network lifecycle management of a client connection.
+ * Interface used to represent the network lifecycle management of a client connection.
  */
 public interface NetworkNode {
 
     /**
-     * Handles the disconnection of the client and the cleanup of network resources.
+     * Disconnection of the client and cleanup of network resources handled.
      */
     void handleDisconnect();
 }

@@ -4,10 +4,10 @@ import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.LobbyInfoDTO;
 import it.polimi.ingsw.am32.network.client.ClientMessageVisitor;
 
-public class LobbyStateUpdatedEvent implements MessageDTO {
+public class LobbyRoomUpdateEvent implements MessageDTO {
     private final LobbyInfoDTO lobbyInfo;
 
-    public LobbyStateUpdatedEvent(LobbyInfoDTO lobby) {
+    public LobbyRoomUpdateEvent(LobbyInfoDTO lobby) {
         this.lobbyInfo = lobby;
     }
 
