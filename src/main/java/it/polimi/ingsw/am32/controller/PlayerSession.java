@@ -5,19 +5,19 @@ import it.polimi.ingsw.am32.model.Player;
 import java.util.Objects;
 
 /**
- * Represents the active session of a player linking the model entity to its network view.
+ * The active session of a player linking the model entity to its network view is represented.
  */
 public class PlayerSession {
     private final Player player;
-    private GameView view;
+    private VirtualView view;
 
     /**
-     * Constructs a new player session.
+     * A new player session is constructed.
      *
-     * @param player the player model entity.
-     * @param view the view associated with the player.
+     * @param player the player model entity
+     * @param view the virtual view associated with the player
      */
-    public PlayerSession(Player player, GameView view) {
+    public PlayerSession(Player player, VirtualView view) {
         Objects.requireNonNull(player, "player cannot be null");
         Objects.requireNonNull(view, "view cannot be null");
 
@@ -26,29 +26,29 @@ public class PlayerSession {
     }
 
     /**
-     * Retrieves the player model entity.
+     * The player model entity is retrieved.
      *
-     * @return the player entity.
+     * @return the player entity
      */
     public Player getPlayer() {
         return this.player;
     }
 
     /**
-     * Retrieves the view associated with the player.
+     * The view associated with the player is retrieved.
      *
-     * @return the player view.
+     * @return the player view
      */
-    public GameView getView() {
+    public VirtualView getView() {
         return this.view;
     }
 
     /**
-     * Sets a new view for the player session.
+     * A new view is set for the player session.
      *
-     * @param view the new view to be set.
+     * @param view the new view to be set
      */
-    public void setView(GameView view) {
+    public void setView(VirtualView view) {
         Objects.requireNonNull(view, "view cannot be null");
         // view is updated for the session
         this.view = view;
