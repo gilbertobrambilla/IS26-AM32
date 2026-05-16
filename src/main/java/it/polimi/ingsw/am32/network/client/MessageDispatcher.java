@@ -12,12 +12,22 @@ public class MessageDispatcher implements ClientMessageVisitor {
     private final ClientController controller;
 
     /**
-     * Dispatcher is instantiated.
+     * Instantiates the dispatcher.
      *
-     * @param controller the client controller.
+     * @param controller the client controller
      */
     public MessageDispatcher(ClientController controller) {
         this.controller = controller;
+    }
+
+    @Override
+    public void visit(ConnectionResultEvent message) {
+        controller.onConnectionResult(message);
+    }
+
+    @Override
+    public void visit(LoginResultEvent message) {
+        controller.onLoginResult(message);
     }
 
     @Override
@@ -26,13 +36,13 @@ public class MessageDispatcher implements ClientMessageVisitor {
     }
 
     @Override
-    public void visit(LobbyStateUpdatedEvent message) {
+    public void visit(LobbyRoomUpdateEvent message) {
         controller.onLobbyRoomUpdated(message);
     }
 
     @Override
     public void visit(LobbyErrorEvent message) {
-        // lobby error is dispatched to controller
+        // lobby error dispatched to controller
         controller.onLobbyError(message);
     }
 
@@ -42,23 +52,8 @@ public class MessageDispatcher implements ClientMessageVisitor {
     }
 
     @Override
-    public void visit(ActionResolvedEvent message) {
-        controller.onActionResolved(message);
-    }
-
-    @Override
-    public void visit(EventResolvedEvent message) {
-        controller.onEventResolved(message);
-    }
-
-    @Override
-    public void visit(ExtraAcquisitionResolvedEvent message) {
-        controller.onExtraAcquisitionResolved(message);
-    }
-
-    @Override
-    public void visit(GameEndedEvent message) {
-        controller.onGameEnded(message);
+    public void visit(GameStateEvent message) {
+        controller.onGameStateUpdate(message);
     }
 
     @Override
@@ -67,8 +62,23 @@ public class MessageDispatcher implements ClientMessageVisitor {
     }
 
     @Override
-    public void visit(GameErrorEvent message) {
-        controller.onInvalidAction(message);
+    public void visit(ActionResolvedEvent message) {
+        controller.onActionResolved(message);
+    }
+
+    @Override
+    public void visit(TotemPlacedEvent message) {
+        controller.onTotemPlaced(message);
+    }
+
+    @Override
+    public void visit(ExtraAcquisitionResolvedEvent message) {
+        controller.onExtraAcquisitionResolved(message);
+    }
+
+    @Override
+    public void visit(EventResolvedEvent message) {
+        controller.onEventResolved(message);
     }
 
     @Override
@@ -82,21 +92,6 @@ public class MessageDispatcher implements ClientMessageVisitor {
     }
 
     @Override
-    public void visit(RoundEndedEvent message) {
-        controller.onRoundEnded(message);
-    }
-
-    @Override
-    public void visit(TotemPlacedEvent message) {
-        controller.onTotemPlaced(message);
-    }
-
-    @Override
-    public void visit(ConnectionResultEvent message) {
-        controller.onConnectionResult(message);
-    }
-
-    @Override
     public void visit(GameSuspendedEvent message) {
         controller.onGameSuspended(message);
     }
@@ -107,7 +102,17 @@ public class MessageDispatcher implements ClientMessageVisitor {
     }
 
     @Override
-    public void visit(GameStateEvent message) {
-        controller.onGameStateUpdate(message);
+    public void visit(GameErrorEvent message) {
+        controller.onInvalidAction(message);
+    }
+
+    @Override
+    public void visit(RoundEndedEvent message) {
+        controller.onRoundEnded(message);
+    }
+
+    @Override
+    public void visit(GameEndedEvent message) {
+        controller.onGameEnded(message);
     }
 }

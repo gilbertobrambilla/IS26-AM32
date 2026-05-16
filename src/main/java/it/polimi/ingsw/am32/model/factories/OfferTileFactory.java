@@ -8,31 +8,48 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Factory responsible for creating offer tiles from dto.
+ */
 public class OfferTileFactory implements TileFactory<OfferTileDTO, OfferTile> {
+
+    /**
+     * Default constructor.
+     */
+    public OfferTileFactory() {
+        // default initialization is performed
+    }
 
     @Override
     public List<OfferTile> createTiles(List<OfferTileDTO> dtoList) {
+        // dto list is checked for nullability
         Objects.requireNonNull(dtoList, "dtoList cannot be null");
 
+        // list of tiles is initialized
         List<OfferTile> tiles = new ArrayList<>();
 
+        // dto are iterated to create tiles
         for (OfferTileDTO dto : dtoList) {
 
+            // action is created
             Action action = new Action(
-                dto.getActDrawsUpper(),
-                dto.getActDrawsLower(),
-                dto.getActFoodBonus()
+                    dto.getDrawsFromUpperRow(),
+                    dto.getDrawsFromLowerRow(),
+                    dto.getFoodBonus()
             );
 
+            // tile is created
             OfferTile newTile = new OfferTile(
-                dto.getId(),
-                dto.getMinPlayers(),
-                action
+                    dto.getId(),
+                    dto.getMinPlayers(),
+                    action
             );
 
+            // tile is added to the list
             tiles.add(newTile);
         }
 
+        // list is returned
         return tiles;
     }
 }

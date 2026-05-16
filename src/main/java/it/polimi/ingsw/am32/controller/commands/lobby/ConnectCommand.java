@@ -3,16 +3,26 @@ package it.polimi.ingsw.am32.controller.commands.lobby;
 import it.polimi.ingsw.am32.controller.LobbyController;
 import it.polimi.ingsw.am32.controller.VirtualView;
 
+/**
+ * Command used to process a new anonymous network connection.
+ */
 public class ConnectCommand implements LobbyCommand {
-    private final String requestedNickname;
 
-    public ConnectCommand(String requestedNickname) {
-        this.requestedNickname = requestedNickname;
+    /**
+     * A new connection command is constructed.
+     */
+    public ConnectCommand() {
     }
 
+    /**
+     * The connection request is executed on the lobby controller.
+     *
+     * @param lobby the lobby controller processing the request
+     * @param view the virtual view associated with the connection
+     * @param sessionNickname the session nickname, expected to be null at this stage
+     */
     @Override
     public void execute(LobbyController lobby, VirtualView view, String sessionNickname) {
-        // session nickname is expected to be null or irrelevant here, as the player is not authenticated yet
-        lobby.connectPlayer(requestedNickname, view);
+        lobby.processConnection(view);
     }
 }

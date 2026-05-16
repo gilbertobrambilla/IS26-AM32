@@ -159,6 +159,9 @@ public class ClientMain {
                 // pass the instantiated controller to the static context of our JavaFX App
                 GuiApp.setController(clientController);
 
+                // pass the server address to the static context of our JavaFX App
+                GuiApp.setServerAddress(currentIp);
+
                 // launch the JavaFX Application thread
                 Application.launch(GuiApp.class, args);
 

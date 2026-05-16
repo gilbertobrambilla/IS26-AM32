@@ -1,10 +1,8 @@
 package it.polimi.ingsw.am32.client.assets;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.polimi.ingsw.am32.dto.setup.*;
+import it.polimi.ingsw.am32.utils.JsonAssetLoader;
 
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +37,7 @@ public class AssetManager {
     /**
      * Singleton instance is retrieved.
      *
-     * @return the asset manager instance.
+     * @return the asset manager instance
      */
     public static AssetManager getInstance() {
         // instance is created if null
@@ -51,73 +49,39 @@ public class AssetManager {
     }
 
     /**
-     * Assets are loaded from the specified json file.
-     *
-     * @param resourcePath the path of the json asset file.
+     * Assets are loaded from the shared JSON loader.
      */
-    public void loadAssets(String resourcePath) {
-        // object mapper is created
-        ObjectMapper mapper = new ObjectMapper();
-        // unknown properties are ignored
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    public void loadAssets() {
+        // shared loader instance is retrieved
+        JsonAssetLoader loader = JsonAssetLoader.getInstance();
 
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
-            // stream is checked for null
-            if (is == null) {
-                // exception is thrown
-                throw new RuntimeException("asset file not found");
-            }
-            // json is deserialized into the root object
-            GameAssetsRoot root = mapper.readValue(is, GameAssetsRoot.class);
-            // maps are populated
-            populateMaps(root);
-        } catch (Exception e) {
-            // exception is thrown to fail fast
-            throw new RuntimeException("failed to load assets", e);
-        }
-    }
-
-    /**
-     * Internal maps are populated with the parsed data.
-     *
-     * @param root the parsed game assets root.
-     */
-    private void populateMaps(GameAssetsRoot root) {
         // building cards are mapped
-        if (root.getBuildingCards() != null) {
-            root.getBuildingCards().forEach(card -> buildingCards.put(card.getId(), card));
-        }
+        loader.getBuildingCards().forEach(card -> buildingCards.put(card.getId(), card));
+
         // character cards are mapped
-        if (root.getCharacterCards() != null) {
-            root.getCharacterCards().forEach(card -> characterCards.put(card.getId(), card));
-        }
+        loader.getCharacterCards().forEach(card -> characterCards.put(card.getId(), card));
+
         // event cards are mapped
-        if (root.getEventCards() != null) {
-            root.getEventCards().forEach(card -> eventCards.put(card.getId(), card));
-        }
+        loader.getEventCards().forEach(card -> eventCards.put(card.getId(), card));
+
         // offer tiles are mapped
-        if (root.getOfferTiles() != null) {
-            root.getOfferTiles().forEach(tile -> offerTiles.put(tile.getId(), tile));
-        }
+        loader.getOfferTiles().forEach(tile -> offerTiles.put(tile.getId(), tile));
+
         // turn order tiles are mapped
-        if (root.getTurnOrderTiles() != null) {
-            root.getTurnOrderTiles().forEach(tile -> turnOrderTiles.put(tile.getId(), tile));
-        }
+        loader.getTurnOrderTiles().forEach(tile -> turnOrderTiles.put(tile.getId(), tile));
+
         // ui assets are mapped
-        if (root.getUiAssets() != null) {
-            uiAssets.putAll(root.getUiAssets());
-        }
+        uiAssets.putAll(loader.getUiAssets());
+
         // card backs are mapped
-        if (root.getCardBacks() != null) {
-            cardBacks.putAll(root.getCardBacks());
-        }
+        cardBacks.putAll(loader.getCardBacks());
     }
 
     /**
      * Building card is retrieved by its identifier.
      *
-     * @param id the card identifier.
-     * @return the building card dto.
+     * @param id the card identifier
+     * @return the building card dto
      */
     public BuildingCardDTO getBuildingCard(String id) {
         // card is returned
@@ -127,8 +91,8 @@ public class AssetManager {
     /**
      * Character card is retrieved by its identifier.
      *
-     * @param id the card identifier.
-     * @return the character card dto.
+     * @param id the card identifier
+     * @return the character card dto
      */
     public CharacterCardDTO getCharacterCard(String id) {
         // card is returned
@@ -138,8 +102,8 @@ public class AssetManager {
     /**
      * Event card is retrieved by its identifier.
      *
-     * @param id the card identifier.
-     * @return the event card dto.
+     * @param id the card identifier
+     * @return the event card dto
      */
     public EventCardDTO getEventCard(String id) {
         // card is returned
@@ -149,8 +113,8 @@ public class AssetManager {
     /**
      * Offer tile is retrieved by its identifier.
      *
-     * @param id the tile identifier.
-     * @return the offer tile dto.
+     * @param id the tile identifier
+     * @return the offer tile dto
      */
     public OfferTileDTO getOfferTile(String id) {
         // tile is returned
@@ -160,8 +124,8 @@ public class AssetManager {
     /**
      * Turn order tile is retrieved by its identifier.
      *
-     * @param id the tile identifier.
-     * @return the turn order tile dto.
+     * @param id the tile identifier
+     * @return the turn order tile dto
      */
     public TurnOrderTileDTO getTurnOrderTile(String id) {
         // tile is returned
@@ -171,8 +135,8 @@ public class AssetManager {
     /**
      * Ui asset path is retrieved by its key.
      *
-     * @param key the ui asset key.
-     * @return the relative path.
+     * @param key the ui asset key
+     * @return the relative path
      */
     public String getUiAsset(String key) {
         // path is returned
@@ -182,8 +146,8 @@ public class AssetManager {
     /**
      * Card back path is retrieved by its key.
      *
-     * @param key the card back key.
-     * @return the relative path.
+     * @param key the card back key
+     * @return the relative path
      */
     public String getCardBack(String key) {
         // path is returned

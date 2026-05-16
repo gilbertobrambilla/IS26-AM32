@@ -17,72 +17,74 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Socket server that listens for incoming connections and manages active nodes.
  */
 public class SocketServer extends Thread {
+
     private final int port;
     private final LobbyController lobbyController;
     private final AtomicBoolean running;
-    private ServerSocket serverSocket;
     private final ConcurrentHashMap<String, NetworkNode> activeNodes;
     private final ExecutorService threadPool;
 
+    private ServerSocket serverSocket;
+
     /**
-     * Constructs a new socket server instance.
+     * New socket server instance constructed.
      *
-     * @param port The port to listen on.
-     * @param lobbyController The controller managing the lobby logic.
+     * @param port the port to listen on
+     * @param lobbyController the controller managing the lobby logic
      */
     public SocketServer(int port, LobbyController lobbyController) {
         this.port = port;
         this.lobbyController = lobbyController;
         this.running = new AtomicBoolean(true);
-        // map for active nodes is initialized
+        // map for active nodes initialized
         this.activeNodes = new ConcurrentHashMap<>();
-        // cached thread pool is created
+        // cached thread pool created
         this.threadPool = Executors.newCachedThreadPool();
     }
 
     @Override
     public void run() {
         try {
-            // server socket is created
+            // server socket created
             serverSocket = new ServerSocket(port);
 
             while (running.get()) {
-                // client connection is accepted
+                // client connection accepted
                 Socket clientSocket = serverSocket.accept();
-                // client connection is logged
+                // client connection logged
                 LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Connection accepted from: " + clientSocket.getInetAddress());
 
-                // client proxy is instantiated
+                // client proxy instantiated
                 SocketClientProxy proxy = new SocketClientProxy(clientSocket, lobbyController, activeNodes);
-                // proxy task is submitted to thread pool
+                // proxy task submitted to thread pool
                 threadPool.submit(proxy);
             }
         } catch (IOException e) {
             if (running.get()) {
-                // critical server error is logged
+                // critical server error logged
                 LogManager.getInstance().log(LogLevel.ERROR, "[SYSTEM] Critical error: " + e.getMessage());
             } else {
-                // server shutdown is logged
+                // server shutdown logged
                 LogManager.getInstance().log(LogLevel.INFO, "[SYSTEM] Server shut down gracefully.");
             }
         }
     }
 
     /**
-     * Stops the server and closes the socket.
+     * The server is stopped and the socket is closed.
      */
     public void stopServer() {
-        // running flag is updated
+        // running flag updated
         this.running.set(false);
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
-                // server socket is closed
+                // server socket closed
                 serverSocket.close();
             }
-            // thread pool is shut down
+            // thread pool shut down
             threadPool.shutdownNow();
         } catch (IOException e) {
-            // error is printed
+            // error printed
             System.err.println("Error while closing server socket: " + e.getMessage());
         }
     }

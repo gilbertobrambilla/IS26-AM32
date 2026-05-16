@@ -39,7 +39,7 @@
 
             <VBox prefHeight="48.0" prefWidth="162.0" spacing="5.0">
                 <Label text="Number of Players:" />
-                <Spinner fx:id="playerCountSpinner" editable="true" initialValue="3" max="4" min="2" />
+                <Spinner fx:id="playerCountSpinner" editable="true" initialValue="3" max="5" min="2" />
             </VBox>
 
             <Button maxWidth="Infinity" onAction="#handleCreateGame" style="-fx-background-color: ef4a23;" styleClass="button-accent" text="CREATE GAME" />

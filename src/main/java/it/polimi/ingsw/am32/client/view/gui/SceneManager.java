@@ -45,45 +45,56 @@ public class SceneManager {
             throw new IllegalStateException("SceneManager has not been initialized yet.");
         }
 
-        try {
-            FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(viewPath.getPath()));
+        // scene switch is always guaranteed to run on the JavaFX Application Thread
+        Runnable sceneSwitch = () -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(viewPath.getPath()));
 
-            loader.setControllerFactory(controllerClass -> {
-                try {
-                    return controllerClass.getConstructor(ClientController.class).newInstance(clientController);
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to instantiate controller: " + controllerClass.getName() +
-                            ". Ensure it has a constructor accepting ClientController.", e);
+                loader.setControllerFactory(controllerClass -> {
+                    try {
+                        return controllerClass.getConstructor(ClientController.class).newInstance(clientController);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to instantiate controller: " + controllerClass.getName() +
+                                ". Ensure it has a constructor accepting ClientController.", e);
+                    }
+                });
+
+                Parent root = loader.load();
+                currentController = loader.getController();
+
+                Scene currentScene = primaryStage.getScene();
+                if (currentScene == null) {
+                    currentScene = new Scene(root, 1440, 900);;
+                    primaryStage.setScene(currentScene);
+                } else {
+                    currentScene.setRoot(root);
+                    primaryStage.sizeToScene();
                 }
-            });
 
-            Parent root = loader.load();
-            currentController = loader.getController();
-
-            Scene currentScene = primaryStage.getScene();
-            if (currentScene == null) {
-                currentScene = new Scene(root);
-                primaryStage.setScene(currentScene);
-            } else {
-                currentScene.setRoot(root);
-            }
-
-            URL cssResource = SceneManager.class.getResource("/css/global.css");
-            if (cssResource != null) {
-                String cssUrl = cssResource.toExternalForm();
-                if (!currentScene.getStylesheets().contains(cssUrl)) {
-                    currentScene.getStylesheets().add(cssUrl);
+                URL cssResource = SceneManager.class.getResource("/css/global.css");
+                if (cssResource != null) {
+                    String cssUrl = cssResource.toExternalForm();
+                    if (!currentScene.getStylesheets().contains(cssUrl)) {
+                        currentScene.getStylesheets().add(cssUrl);
+                    }
+                } else {
+                    System.err.println("[GUI WARNING] Style resource not found: /css/global.css");
                 }
-            } else {
-                System.err.println("[GUI WARNING] Style resource not found: /css/global.css");
+
+                primaryStage.show();
+                System.out.println("[GUI] Switched to scene: " + viewPath.name());
+
+            } catch (IOException e) {
+                System.err.println("[GUI ERROR] Failed to load FXML file: " + viewPath.getPath());
+                e.printStackTrace();
             }
+        };
 
-            primaryStage.show();
-            System.out.println("[GUI] Switched to scene: " + viewPath.name());
-
-        } catch (IOException e) {
-            System.err.println("[GUI ERROR] Failed to load FXML file: " + viewPath.getPath());
-            e.printStackTrace();
+        if (Platform.isFxApplicationThread()) {
+            // already on JavaFX thread — execute directly to avoid unnecessary queuing
+            sceneSwitch.run();
+        } else {
+            Platform.runLater(sceneSwitch);
         }
     }
 

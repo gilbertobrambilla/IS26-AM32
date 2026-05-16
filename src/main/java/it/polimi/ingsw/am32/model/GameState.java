@@ -203,7 +203,15 @@ public class GameState {
             );
         }
 
+        Player nextPlayer = null;
+        List<Player> turnOrder = turnOrderTile.getTurnOrder();
+        int currentIndex = turnOrder.indexOf(player);
+        if (currentIndex >= 0 && currentIndex < turnOrder.size() - 1) {
+            nextPlayer = turnOrder.get(currentIndex + 1);
+        }
+
         targetTile.placePlayer(player);
+        this.turnOrderTile.removePlayer(player);
 
         // completion of the placement phase is evaluated
         int occupiedCount = 0;
@@ -215,13 +223,15 @@ public class GameState {
 
         if (occupiedCount == players.size()) {
             this.currentPhase = GamePhase.RESOLVE_ACTIONS;
-        } else {
-            // current player is updated to the next one on the turn order tile
-            List<Player> turnOrder = turnOrderTile.getTurnOrder();
-            int currentIndex = turnOrder.indexOf(player);
-            if (currentIndex >= 0 && currentIndex < turnOrder.size() - 1) {
-                this.currentPlayer = turnOrder.get(currentIndex + 1);
+
+            for (OfferTile tile : this.offerTrack) {
+                if (!tile.isFree()) {
+                    this.currentPlayer = tile.getOccupyingPlayer();
+                    break;
+                }
             }
+        } else {
+            this.currentPlayer = nextPlayer;
         }
     }
 
@@ -251,7 +261,7 @@ public class GameState {
 
         // player's occupied tile is identified
         for (OfferTile tile : this.offerTrack) {
-            if (player.equals(tile.getOccupyingPlayer())) {
+            if (tile.isOccupiedBy(player)) {
                 targetTile = tile;
                 break;
             }
@@ -375,18 +385,14 @@ public class GameState {
 
         // transaction is executed and cards are removed from the board
         for (CharacterCard c : foundCharacters) {
-            if (!this.upperTribeRow.remove(c)) {
-                this.lowerTribeRow.remove(c);
-            }
-            // card acquisition and its related state updates are delegated to the player entity
+            this.upperTribeRow.removeIf(card -> card.getId().equals(c.getId()));
+            this.lowerTribeRow.removeIf(card -> card.getId().equals(c.getId()));
             player.acquireCharacter(c);
         }
 
         for (BuildingCard b : foundBuildings) {
-            if (!this.upperBuildingRow.remove(b)) {
-                this.lowerBuildingRow.remove(b);
-            }
-            // card acquisition and its related state updates are delegated to the player entity
+            this.upperBuildingRow.removeIf(card -> card.getId().equals(b.getId()));
+            this.lowerBuildingRow.removeIf(card -> card.getId().equals(b.getId()));
             player.acquireBuilding(b, this);
         }
 
@@ -486,7 +492,7 @@ public class GameState {
         OfferTile targetTile = null;
         // player occupied tile is identified
         for (OfferTile tile : this.offerTrack) {
-            if (player.equals(tile.getOccupyingPlayer())) {
+            if (tile.isOccupiedBy(player)) {
                 targetTile = tile;
                 break;
             }

@@ -39,7 +39,14 @@ public class LoginViewController implements ViewController {
             return;
         }
 
+        if (username.length() > 15) {
+            showErrorMessage("Nickname cannot exceed 15 characters");
+            return;
+        }
+
         errorLabel.setVisible(false);
+
+        // 3. Chiamata corretta al ClientController
         clientController.requestConnect(username);
     }
 

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class GameDTOMapper {
 
     /**
-     * Builds a comprehensive snapshot of the current game state.
+     * A comprehensive snapshot of the current game state is built.
      *
      * @param gameId the unique identifier for this game
      * @param gameState the game state model
@@ -29,18 +29,18 @@ public class GameDTOMapper {
     public static GameStateDTO buildGameStateDTO(int gameId, GameState gameState, List<String> activeClientsNicknames) {
         // players are mapped to dtos
         List<PlayerDTO> playersDTO = gameState.getPlayers().stream()
-                .map(p -> mapPlayer(p, activeClientsNicknames))
+                .map(p -> buildPlayerDTO(p, activeClientsNicknames))
                 .collect(Collectors.toList());
 
         // rows are retrieved from model and mapped to dtos
-        List<CardDTO> upperTribeRowDTO = mapCharacterCardsList(gameState.getUpperTribeRow());
-        List<CardDTO> lowerTribeRowDTO = mapCharacterCardsList(gameState.getLowerTribeRow());
-        List<CardDTO> upperBuildingRowDTO = mapBuildingCardsList(gameState.getUpperBuildingRow());
-        List<CardDTO> lowerBuildingRowDTO = mapBuildingCardsList(gameState.getLowerBuildingRow());
+        List<CardDTO> upperTribeRowDTO = buildCharacterCardDTOList(gameState.getUpperTribeRow());
+        List<CardDTO> lowerTribeRowDTO = buildCharacterCardDTOList(gameState.getLowerTribeRow());
+        List<CardDTO> upperBuildingRowDTO = buildBuildingCardDTOList(gameState.getUpperBuildingRow());
+        List<CardDTO> lowerBuildingRowDTO = buildBuildingCardDTOList(gameState.getLowerBuildingRow());
 
         // offer track is mapped to dtos
         List<OfferTileDTO> offerTrackDTO = gameState.getOfferTrack().stream()
-                .map(GameDTOMapper::mapOfferTile)
+                .map(GameDTOMapper::buildOfferTileDTO)
                 .collect(Collectors.toList());
 
         // turn order nicknames are extracted from model
@@ -74,43 +74,43 @@ public class GameDTOMapper {
     }
 
     /**
-     * Maps a list of player stats change receipts to a list of dtos.
+     * A list of player stats change receipts is mapped to a list of dtos.
      *
      * @param receipts the list of receipts from the model
      * @return the mapped list of dtos
      */
-    public static List<PlayerStatsChangedDTO> mapStatsChangesList(List<PlayerStatsChangeReceipt> receipts) {
+    public static List<PlayerStatsChangedDTO> buildPlayerStatsChangedDTOList(List<PlayerStatsChangeReceipt> receipts) {
         if (receipts == null) return new ArrayList<>();
         // receipts list is mapped to dtos
         return receipts.stream()
-                .map(GameDTOMapper::mapStatsChange)
+                .map(GameDTOMapper::buildPlayerStatsChangedDTO)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Maps a totem return receipt to its corresponding dto.
+     * A totem return receipt is mapped to its corresponding dto.
      *
      * @param receipt the receipt from the model
      * @return the mapped dto, or null if the receipt is null
      */
-    public static TotemReturnedDTO mapTotemReturn(TotemReturnReceipt receipt) {
+    public static TotemReturnedDTO buildTotemReturnedDTO(TotemReturnReceipt receipt) {
         if (receipt == null) return null;
         // totem return dto is instantiated
         return new TotemReturnedDTO(
                 receipt.getPlayerNickname(),
                 receipt.getTurnOrderPosition(),
-                mapStatsChange(receipt.getStatsChange()),
+                buildPlayerStatsChangedDTO(receipt.getStatsChange()),
                 receipt.getNextPlayerNickname()
         );
     }
 
     /**
-     * Maps a list of building card models to a list of card dtos.
+     * A list of building card models is mapped to a list of card dtos.
      *
      * @param buildings the list of building card models
      * @return the mapped list of card dtos
      */
-    public static List<CardDTO> mapBuildingCardsList(List<BuildingCard> buildings) {
+    public static List<CardDTO> buildBuildingCardDTOList(List<BuildingCard> buildings) {
         if (buildings == null) return new ArrayList<>();
         // building cards are processed as a stream and mapped
         return buildings.stream()
@@ -119,12 +119,12 @@ public class GameDTOMapper {
     }
 
     /**
-     * Maps a list of card models to a list of card dtos.
+     * A list of card models is mapped to a list of card dtos.
      *
      * @param cards the list of card models
      * @return the mapped list of card dtos
      */
-    public static List<CardDTO> mapCharacterCardsList(List<Card> cards) {
+    public static List<CardDTO> buildCharacterCardDTOList(List<Card> cards) {
         if (cards == null) return new ArrayList<>();
         // cards are processed as a stream and mapped
         return cards.stream()
@@ -133,12 +133,12 @@ public class GameDTOMapper {
     }
 
     /**
-     * Maps a single player stats change receipt to its corresponding dto.
+     * A single player stats change receipt is mapped to its corresponding dto.
      *
      * @param receipt the receipt from the model
      * @return the mapped dto, or null if the receipt is null
      */
-    private static PlayerStatsChangedDTO mapStatsChange(PlayerStatsChangeReceipt receipt) {
+    private static PlayerStatsChangedDTO buildPlayerStatsChangedDTO(PlayerStatsChangeReceipt receipt) {
         if (receipt == null) return null;
         // stats change dto is built
         return new PlayerStatsChangedDTO(
@@ -152,17 +152,17 @@ public class GameDTOMapper {
     }
 
     /**
-     * Maps a player model to a player dto.
+     * A player model is mapped to a player dto.
      *
      * @param player the player model
      * @param activeClientsNicknames the list of connected player nicknames
      * @return the mapped player dto
      */
-    private static PlayerDTO mapPlayer(Player player, List<String> activeClientsNicknames) {
+    private static PlayerDTO buildPlayerDTO(Player player, List<String> activeClientsNicknames) {
         if (player == null) return null;
         // player cards are mapped to dtos
-        List<CardDTO> characterCards = mapCharacterCardsList(new ArrayList<>(player.getCharacterList()));
-        List<CardDTO> buildingCards = mapBuildingCardsList(new ArrayList<>(player.getBuildingList()));
+        List<CardDTO> characterCards = buildCharacterCardDTOList(new ArrayList<>(player.getCharacterList()));
+        List<CardDTO> buildingCards = buildBuildingCardDTOList(new ArrayList<>(player.getBuildingList()));
         // player dto is constructed
         return new PlayerDTO(
                 player.getNickname(),
@@ -176,12 +176,12 @@ public class GameDTOMapper {
     }
 
     /**
-     * Maps an offer tile model to an offer tile dto.
+     * An offer tile model is mapped to an offer tile dto.
      *
      * @param tile the offer tile model
      * @return the mapped offer tile dto
      */
-    private static OfferTileDTO mapOfferTile(OfferTile tile) {
+    private static OfferTileDTO buildOfferTileDTO(OfferTile tile) {
         if (tile == null) return null;
         // occupying player nickname is extracted if present
         String occupyingPlayer = tile.isFree() ? null : tile.getOccupyingPlayer().getNickname();

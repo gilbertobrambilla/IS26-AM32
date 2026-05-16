@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am32.model.factories;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.polimi.ingsw.am32.dto.setup.TurnOrderTileDTO;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 
@@ -8,71 +7,61 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Factory responsible for creating turn order tiles from dto.
+ */
 public class TurnOrderTileFactory implements TileFactory<TurnOrderTileDTO, TurnOrderTile> {
-    private final ObjectMapper objectMapper;
 
+    /**
+     * Default constructor.
+     */
     public TurnOrderTileFactory() {
-        this.objectMapper = new ObjectMapper();
+        // default initialization is performed
     }
 
     @Override
     public List<TurnOrderTile> createTiles(List<TurnOrderTileDTO> dtoList) {
+        // dto list is checked for nullability
         Objects.requireNonNull(dtoList, "dtoList cannot be null");
 
+        // list of tiles is initialized
         List<TurnOrderTile> tiles = new ArrayList<>();
 
+        // dto are iterated to create tiles
         for (TurnOrderTileDTO dto : dtoList) {
-            List<Integer> foodModifiers;
-            List<Integer> prestigeModifiers;
 
-            try {
-                Integer[] foodArray = objectMapper.readValue(dto.getFoodModifiers(), Integer[].class);
-                Integer[] prestigeArray = objectMapper.readValue(dto.getPrestigeModifiers(), Integer[].class);
-
-                foodModifiers = List.of(foodArray);
-                prestigeModifiers = List.of(prestigeArray);
-
-            } catch (Exception e) {
-                throw new RuntimeException("error parsing json for tile " + dto.getId(), e);
-            }
-
+            // tile is created directly using lists from dto
             TurnOrderTile newTile = new TurnOrderTile(
-                dto.getId(),
-                dto.getRequiredPlayers(),
-                foodModifiers,
-                prestigeModifiers
+                    dto.getId(),
+                    dto.getRequiredPlayers(),
+                    dto.getFoodModifiers(),
+                    dto.getPrestigeModifiers()
             );
 
+            // tile is added to the list
             tiles.add(newTile);
         }
 
+        // list is returned
         return tiles;
     }
 
+    /**
+     * Creates a single turn order tile from a dto.
+     *
+     * @param dto the turn order tile dto
+     * @return the created turn order tile
+     */
     public TurnOrderTile createTile(TurnOrderTileDTO dto) {
-        Objects.requireNonNull(dto, "dtoList cannot be null");
+        // dto is checked for nullability
+        Objects.requireNonNull(dto, "dto cannot be null");
 
-        List<Integer> foodModifiers;
-        List<Integer> prestigeModifiers;
-
-        try {
-            Integer[] foodArray = objectMapper.readValue(dto.getFoodModifiers(), Integer[].class);
-            Integer[] prestigeArray = objectMapper.readValue(dto.getPrestigeModifiers(), Integer[].class);
-
-            foodModifiers = List.of(foodArray);
-            prestigeModifiers = List.of(prestigeArray);
-
-        } catch (Exception e) {
-            throw new RuntimeException("error parsing json for tile " + dto.getId(), e);
-        }
-
-        TurnOrderTile newTile = new TurnOrderTile(
+        // tile is created directly using lists from dto
+        return new TurnOrderTile(
                 dto.getId(),
                 dto.getRequiredPlayers(),
-                foodModifiers,
-                prestigeModifiers
+                dto.getFoodModifiers(),
+                dto.getPrestigeModifiers()
         );
-
-        return newTile;
     }
 }

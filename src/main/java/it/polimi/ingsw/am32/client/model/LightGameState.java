@@ -95,6 +95,11 @@ public class LightGameState {
                 break;
             }
         }
+
+        List<String> order = new ArrayList<>(this.turnOrderTile.getPlayers());
+        order.remove(nickname);
+        this.turnOrderTile = new LightTurnOrderTile(this.turnOrderTile.getTileId(), order);
+
         // current player is updated
         this.currentPlayer = nextPlayer;
     }
@@ -115,6 +120,12 @@ public class LightGameState {
             // building cards are added
             buildings.forEach(p::addBuildingCard);
         }
+
+        if (this.upperTribeRow != null) this.upperTribeRow.removeAll(characters);
+        if (this.lowerTribeRow != null) this.lowerTribeRow.removeAll(characters);
+        if (this.upperBuildingRow != null) this.upperBuildingRow.removeAll(buildings);
+        if (this.lowerBuildingRow != null) this.lowerBuildingRow.removeAll(buildings);
+
         // stats are updated
         updateStats(stats);
         // current player is updated
@@ -225,5 +236,39 @@ public class LightGameState {
 
     public int getTribeDeckTopCardEra() {
         return tribeDeckTopCardEra;
+    }
+
+    /**
+     * Updates the state when an action finishes and the totem returns.
+     */
+    public void returnTotem(String nickname, int slotIndex) {
+        // Libera l'Offer Tile
+        for (LightOfferTile tile : offerTrack) {
+            if (nickname.equals(tile.getOccupyingPlayer())) {
+                tile.setOccupyingPlayer(null);
+                break;
+            }
+        }
+
+        List<String> order = new ArrayList<>(this.turnOrderTile.getPlayers());
+        order.remove(nickname);
+
+        if (slotIndex >= order.size()) {
+            order.add(nickname);
+        } else {
+            order.add(slotIndex, nickname);
+        }
+
+        this.turnOrderTile = new LightTurnOrderTile(this.turnOrderTile.getTileId(), order);
+    }
+
+    public void updateRound(int newRound, int newEra, List<String> upperTribe, List<String> lowerTribe, List<String> upperBuilding, List<String> lowerBuilding, String nextPlayer) {
+        this.currentRound = newRound;
+        this.currentEra = newEra;
+        this.upperTribeRow = new ArrayList<>(upperTribe);
+        this.lowerTribeRow = new ArrayList<>(lowerTribe);
+        this.upperBuildingRow = new ArrayList<>(upperBuilding);
+        this.lowerBuildingRow = new ArrayList<>(lowerBuilding);
+        this.currentPlayer = nextPlayer;
     }
 }

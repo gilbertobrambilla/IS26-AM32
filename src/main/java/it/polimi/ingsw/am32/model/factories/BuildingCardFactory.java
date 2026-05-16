@@ -1,7 +1,6 @@
 package it.polimi.ingsw.am32.model.factories;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.*;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.effects.NoEffect;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.effects.endgame.*;
@@ -18,31 +17,37 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Factory responsible for creating building cards from dto.
+ */
 public class BuildingCardFactory implements CardFactory<BuildingCardDTO, BuildingCard> {
-    private final ObjectMapper objectMapper;
 
+    /**
+     * Default constructor.
+     */
     public BuildingCardFactory() {
-        this.objectMapper = new ObjectMapper();
+        // default initialization is performed
     }
 
     @Override
     public List<BuildingCard> createCards(List<BuildingCardDTO> dtoList) {
+        // dto list is checked for nullability
         Objects.requireNonNull(dtoList, "dtoList cannot be null");
 
+        // list of cards is initialized
         List<BuildingCard> cards = new ArrayList<>();
 
+        // dto are iterated to create cards
         for (BuildingCardDTO dto : dtoList) {
+            // building effect code is extracted
             BuildingEffectCode type = BuildingEffectCode.valueOf(dto.getEffectCode());
 
-            JsonNode params;
-            try {
-                params = objectMapper.readTree(dto.getEffectParams());
-            } catch (Exception e) {
-                throw new RuntimeException("error parsing json for building card " + dto.getId(), e);
-            }
+            // JSON node is extracted directly from dto
+            JsonNode params = dto.getEffectParams();
 
             BuildingCardEffect effect;
 
+            // effect is instantiated based on the type
             switch (type) {
                 // endgame effects
                 case ENDGAME_BUILDER_PRESTIGE_MULTIPLIER:
@@ -74,6 +79,7 @@ public class BuildingCardFactory implements CardFactory<BuildingCardDTO, Buildin
                     } else if (targetChar == CharacterType.GATHERER) {
                         effect = new GathererSustenanceDiscountEffect(discount);
                     } else {
+                        // exception is thrown if type is not supported
                         throw new IllegalStateException("unsupported character type for sustenance discount building " + dto.getId());
                     }
                     break;
@@ -83,12 +89,13 @@ public class BuildingCardFactory implements CardFactory<BuildingCardDTO, Buildin
                     int exFood = getRequiredInt(params, JSONConsts.BUILD_EXTRA_FOOD, dto.getId());
                     int exPrestige = getRequiredInt(params, JSONConsts.BUILD_EXTRA_PRESTIGE, dto.getId());
 
-                    // correct effect class is instantiated based on the target event
+                    // effect class is instantiated based on the target event
                     if (eventType == EventType.HUNT) {
                         effect = new ExtraResourcesOnHuntEffect(charType, exFood, exPrestige);
                     } else if (eventType == EventType.CAVE_PAINTINGS) {
                         effect = new ExtraResourcesOnCavePaintingsEffect(charType, exFood, exPrestige);
                     } else {
+                        // exception is thrown if event type is not supported
                         throw new IllegalStateException("unsupported event type for building");
                     }
                     break;
@@ -134,9 +141,11 @@ public class BuildingCardFactory implements CardFactory<BuildingCardDTO, Buildin
                     break;
 
                 default:
+                    // exception is thrown if type is not supported
                     throw new IllegalStateException("unexpected value: " + type + " for building card " + dto.getId());
             }
 
+            // card is created
             BuildingCard newCard = new BuildingCard(
                     dto.getId(),
                     dto.getEra(),
@@ -145,23 +154,47 @@ public class BuildingCardFactory implements CardFactory<BuildingCardDTO, Buildin
                     effect
             );
 
+            // card is added to the list
             cards.add(newCard);
         }
 
+        // list is returned
         return cards;
     }
 
+    /**
+     * Extracts a required integer from a JSON node.
+     *
+     * @param node the JSON node
+     * @param fieldName the field name
+     * @param cardId the card id
+     * @return the extracted integer
+     */
     private int getRequiredInt(JsonNode node, String fieldName, String cardId) {
+        // node is checked for missing parameter
         if (!node.hasNonNull(fieldName)) {
+            // exception is thrown
             throw new IllegalStateException("error: missing parameter '" + fieldName + "' in json for card " + cardId);
         }
+        // integer value is returned
         return node.get(fieldName).asInt();
     }
 
+    /**
+     * Extracts a required string from a JSON node.
+     *
+     * @param node the JSON node
+     * @param fieldName the field name
+     * @param cardId the card id
+     * @return the extracted string
+     */
     private String getRequiredString(JsonNode node, String fieldName, String cardId) {
+        // node is checked for missing parameter
         if (!node.hasNonNull(fieldName)) {
+            // exception is thrown
             throw new IllegalStateException("error: missing parameter '" + fieldName + "' in json for card " + cardId);
         }
+        // string value is returned
         return node.get(fieldName).asText();
     }
 }
