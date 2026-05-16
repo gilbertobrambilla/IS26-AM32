@@ -17,93 +17,189 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.Collectors;
 
 /**
  * Controller class responsible for managing the lobby, player connections, and game creation.
  */
-public class LobbyController implements GameLifecycleCallback {
+public class LobbyController implements GameLifecycleCallback, Runnable {
     private final Map<String, VirtualView> connectedPlayers;
     private final Map<Integer, GameController> activeGames;
     private final Map<String, GameController> playerGameMap;
+    private final Map<String, String> connectionIdToNickname;
     private int nextGameId;
     private final Object lobbyLock;
+    private final BlockingQueue<PrioritizedTask> commandQueue;
 
     /**
-     * Constructs a new LobbyController with default collections and initial game id.
+     * A new lobby controller is constructed with default collections and initial game id.
      */
     public LobbyController() {
         this.connectedPlayers = new HashMap<>();
         this.activeGames = new HashMap<>();
         this.playerGameMap = new HashMap<>();
+        this.connectionIdToNickname = new HashMap<>();
         this.nextGameId = 1;
         this.lobbyLock = new Object();
+        // command queue is initialized
+        this.commandQueue = new PriorityBlockingQueue<>();
+        // thread is started
+        new Thread(this).start();
     }
 
     /**
-     * Processes a new player connection request.
-     * The uniqueness of the nickname is verified across both the lobby and active games.
+     * The termination of a game is processed.
+     * Data structures are cleared.
      *
-     * @param nickname the requested nickname.
-     * @param view the player's connection view.
-     * @return the connection result event.
+     * @param gameId the id of the ended game
+     * @param result the final result of the game
      */
-    public ConnectionResultEvent connectPlayer(String nickname, VirtualView view) {
-        GameController game;
-
+    @Override
+    public void endGame(int gameId, GameResult result) {
         synchronized (this.lobbyLock) {
-            game = this.playerGameMap.get(nickname);
-
-            if (game != null) {
-                if (game.isPlayerActive(nickname)) {
-                    // rejection result is returned immediately
-                    return new ConnectionResultEvent(false, "nickname already taken", false, null);
-                }
-            } else {
-                // player is added to lobby if absent
-                if (!this.connectedPlayers.containsKey(nickname)) {
-                    this.connectedPlayers.put(nickname, view);
-                } else {
-                    // rejection result is returned immediately
-                    return new ConnectionResultEvent(false, "nickname already taken", false, null);
-                }
+            // game is removed from active games
+            GameController removedGame = this.activeGames.remove(gameId);
+            if (removedGame != null) {
+                // player mappings are cleared
+                this.playerGameMap.entrySet().removeIf(entry -> entry.getValue().equals(removedGame));
             }
         }
+    }
 
-        if (game != null) {
-            // reconnect task is enqueued
-            game.enqueueSystemTask(() -> game.processReconnect(nickname, view));
-            // reconnecting result is returned
-            return new ConnectionResultEvent(true, "reconnecting to game...", true, view.getConnectionID());
-        } else {
-            // available lobby list is sent to the newly connected player
-            view.notifyLobbyState(buildAvailableGamesListEvent());
-
-            // player connection is logged
-            LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Player connected: " + nickname);
-
-            new Thread(() -> {
-                try {
-                    Thread.sleep(500);
-                    view.notifyLobbyState(buildAvailableGamesListEvent());
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }).start();
-
-            // successful result is returned
-            return new ConnectionResultEvent(true, "connection successful", false, view.getConnectionID());
+    /**
+     * The abortion of an abandoned game is processed.
+     * Data structures are cleared.
+     *
+     * @param gameId the id of the abandoned game
+     */
+    @Override
+    public void abortGame(int gameId) {
+        synchronized (this.lobbyLock) {
+            // game is removed from active games
+            GameController removedGame = this.activeGames.remove(gameId);
+            if (removedGame != null) {
+                // player mappings are cleared
+                this.playerGameMap.entrySet().removeIf(entry -> entry.getValue().equals(removedGame));
+            }
         }
     }
 
     /**
-     * Processes a new game creation request.
-     *
-     * @param nickname The nickname of the creator.
-     * @param view The player's connection view.
-     * @param numOfPlayers The targeted number of players for the new game.
+     * The main execution loop for the lobby controller thread is defined.
+     * Tasks from the command queue are processed sequentially based on priority.
      */
-    public void createGame(String nickname, VirtualView view, int numOfPlayers) {
+    @Override
+    public void run() {
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                // prioritized task is retrieved from the queue
+                PrioritizedTask prioritizedTask = this.commandQueue.take();
+                try {
+                    // task is executed
+                    prioritizedTask.run();
+                } catch (Exception e) {
+                    // task execution failure is logged
+                    LogManager.getInstance().log(LogLevel.ERROR, "[LobbyController] task execution failed in lobby", e);
+                }
+            }
+        } catch (InterruptedException e) {
+            // thread interruption is handled
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * An internal system task is added to the execution queue.
+     *
+     * @param task the runnable task to be executed
+     */
+    public void enqueueSystemTask(Runnable task) {
+        // internal system task is enqueued with high priority
+        this.commandQueue.add(new PrioritizedTask(1, task));
+    }
+
+    /**
+     * A new anonymous network connection is processed and registered.
+     *
+     * @param view the virtual view associated with the new connection
+     */
+    public void processConnection(VirtualView view) {
+        // task is enqueued
+        this.enqueueSystemTask(() -> {
+            // connection id is retrieved
+            String connectionID = view.getConnectionID();
+            // successful connection result is notified to the client
+            view.notifyConnectionResult(new ConnectionResultEvent(true, "connection established successfully", connectionID));
+        });
+    }
+
+    /**
+     * A player login request is processed and entrance into the lobby is handled.
+     *
+     * @param nickname the requested nickname
+     * @param rawView the raw virtual view associated with the connection
+     */
+    public void processLogin(String nickname, VirtualView rawView) {
+        // raw view is wrapped in the asynchronous adapter
+        VirtualView view = new AsyncVirtualView(rawView);
+
+        // task is enqueued
+        this.enqueueSystemTask(() -> {
+            GameController game;
+            // connection id is retrieved
+            String connectionID = view.getConnectionID();
+
+            synchronized (this.lobbyLock) {
+                game = this.playerGameMap.get(nickname);
+
+                if (game != null) {
+                    if (game.isPlayerActive(nickname)) {
+                        // rejection result is notified
+                        view.notifyLoginResult(new LoginResultEvent(false, "nickname already taken", false));
+                        // adapter is destroyed to prevent thread leak
+                        view.destroy();
+                        return;
+                    }
+                    // map is updated with new connection id
+                    this.connectionIdToNickname.put(connectionID, nickname);
+                } else {
+                    // player is added to lobby if absent
+                    if (!this.connectedPlayers.containsKey(nickname)) {
+                        this.connectedPlayers.put(nickname, view);
+                        // map is updated with connection id
+                        this.connectionIdToNickname.put(connectionID, nickname);
+                    } else {
+                        // rejection result is notified
+                        view.notifyLoginResult(new LoginResultEvent(false, "nickname already taken", false));
+                        // adapter is destroyed to prevent thread leak
+                        view.destroy();
+                        return;
+                    }
+                }
+            }
+
+            if (game != null) {
+                // reconnect task is enqueued
+                game.enqueueSystemTask(() -> game.processReconnect(nickname, view));
+            } else {
+                // successful login result is notified
+                view.notifyLoginResult(new LoginResultEvent(true, "authentication successful", false));
+                // available lobby list is broadcasted
+                view.notifyAvailableLobbies(buildAvailableLobbiesEvent());
+            }
+        });
+    }
+
+    /**
+     * A new game creation request is processed.
+     *
+     * @param nickname the nickname of the creator
+     * @param view the player connection view
+     * @param numOfPlayers the targeted number of players for the new game
+     */
+    public void processCreateGame(String nickname, VirtualView view, int numOfPlayers) {
         int gameId;
         synchronized (this.lobbyLock) {
             // game id is retrieved and incremented
@@ -125,7 +221,7 @@ public class LobbyController implements GameLifecycleCallback {
             // exception is logged with stack trace
             LogManager.getInstance().log(
                     LogLevel.ERROR,
-                    "[LobbyController - createGame] critical error during game creation",
+                    "[LobbyController - processCreateGame] critical error during game creation",
                     e
             );
             // internal error is notified for unexpected failures
@@ -147,21 +243,21 @@ public class LobbyController implements GameLifecycleCallback {
         // player is instantiated
         Player player = new Player(nickname);
         // player addition task is enqueued with callback
-        gameController.enqueueSystemTask(() -> gameController.addPlayerToGame(nickname, view, player, this::broadcastAvailableGamesUpdate));
+        gameController.enqueueSystemTask(() -> gameController.processAddPlayerToGame(nickname, view, player, this::notifyAvailableLobbies));
         // waiting room update task is enqueued
-        gameController.enqueueSystemTask(gameController::broadcastWaitingRoomState);
+        gameController.enqueueSystemTask(gameController::notifyLobbyRoomUpdate);
         // controller thread is started
         new Thread(gameController).start();
     }
 
     /**
-     * Processes a game join request asynchronously by delegating validation to the game controller.
+     * A game join request is processed asynchronously by delegating validation to the game controller.
      *
-     * @param nickname The nickname of the player joining.
-     * @param view     The player's connection view.
-     * @param gameId   The ID of the target game.
+     * @param nickname the nickname of the player joining
+     * @param view the player connection view
+     * @param gameId the id of the target game
      */
-    public void joinGame(String nickname, VirtualView view, int gameId) {
+    public void processJoinGame(String nickname, VirtualView view, int gameId) {
         if (view == null) return;
 
         GameController game;
@@ -180,7 +276,7 @@ public class LobbyController implements GameLifecycleCallback {
                     this.connectedPlayers.remove(nickname);
                 }
                 // menu is notified of the updated available games list
-                this.broadcastAvailableGamesUpdate();
+                this.notifyAvailableLobbies();
             }));
         } else {
             // error is notified if game id is not found
@@ -189,113 +285,127 @@ public class LobbyController implements GameLifecycleCallback {
     }
 
     /**
-     * Handles a network drop event by notifying the relevant game or managing an unstarted game.
+     * A lobby command received from the network is handled.
      *
-     * @param nickname the nickname of the disconnected player.
-     * @param connectionID the unique identifier of the dropped connection.
+     * @param command the lobby command to be executed
+     * @param connectionID the unique identifier of the connection issuing the command
      */
-    public void handlePlayerNetworkDrop(String nickname, String connectionID) {
-        GameController game;
-        synchronized (this.lobbyLock) {
-            // view is retrieved from connected players
-            VirtualView view = this.connectedPlayers.get(nickname);
+    public void processLobbyCommand(LobbyCommand command, String connectionID) {
+        // task is enqueued
+        this.enqueueSystemTask(() -> {
+            VirtualView view;
+            String nickname;
+            synchronized (this.lobbyLock) {
+                // nickname is resolved from connection id
+                nickname = this.connectionIdToNickname.get(connectionID);
+                if (nickname == null) {
+                    return;
+                }
+                // virtual view is retrieved from connected players map
+                view = this.connectedPlayers.get(nickname);
+            }
+            if (view != null) {
+                // command is executed
+                command.execute(this, view, nickname);
+            }
+        });
+    }
 
-            // view id is checked to prevent ghost disconnects in the lobby
-            if (view != null && view.getConnectionID().equals(connectionID)) {
-                // player is removed from lobby
-                this.connectedPlayers.remove(nickname);
+    /**
+     * A game command received from the network is routed to the appropriate game controller.
+     *
+     * @param command the game command to be executed
+     * @param connectionID the unique identifier of the connection issuing the command
+     */
+    public void processGameCommand(GameCommand command, String connectionID) {
+        // task is enqueued
+        this.enqueueSystemTask(() -> {
+            GameController game;
+            String nickname;
+            synchronized (this.lobbyLock) {
+                // nickname is resolved from connection id
+                nickname = this.connectionIdToNickname.get(connectionID);
+                if (nickname == null) {
+                    return;
+                }
+                // game controller is retrieved from player game map
+                game = this.playerGameMap.get(nickname);
+            }
+            if (game != null) {
+                // command is enqueued in the target game controller
+                game.enqueueCommand(command, nickname);
+            }
+        });
+    }
+
+    /**
+     * A network drop event is handled by notifying the relevant game or managing an unstarted game.
+     *
+     * @param connectionID the unique identifier of the dropped connection
+     */
+    public void processPlayerNetworkDrop(String connectionID) {
+        // task is enqueued
+        this.enqueueSystemTask(() -> {
+            String nickname;
+            GameController game;
+
+            synchronized (this.lobbyLock) {
+                // nickname is retrieved and removed from translation map
+                nickname = this.connectionIdToNickname.remove(connectionID);
+
+                if (nickname == null) {
+                    // player was anonymous, no further action is required
+                    return;
+                }
+
+                // view is retrieved from connected players
+                VirtualView view = this.connectedPlayers.get(nickname);
+
+                // view id is checked to prevent ghost disconnects in the lobby
+                if (view != null && view.getConnectionID().equals(connectionID)) {
+                    // player is removed from lobby
+                    this.connectedPlayers.remove(nickname);
+                    // adapter is destroyed to free up the thread
+                    view.destroy();
+                }
+
+                // game controller is retrieved from player game map
+                game = this.playerGameMap.get(nickname);
             }
 
-            // game controller is retrieved from player game map
-            game = this.playerGameMap.get(nickname);
-        }
+            if (game != null) {
+                if (!game.isStarted()) {
+                    // pregame disconnect task is enqueued with cleanup callback
+                    game.enqueueSystemTask(() -> game.processPregameDisconnect(nickname, () -> {
+                        synchronized (this.lobbyLock) {
+                            // player is removed from player game map
+                            this.playerGameMap.remove(nickname);
 
-        if (game != null) {
-            if (!game.isStarted()) {
-                // pregame disconnect task is enqueued with cleanup callback
-                game.enqueueSystemTask(() -> game.processPregameDisconnect(nickname, connectionID, () -> {
-                    synchronized (this.lobbyLock) {
-                        // player is removed from player game map
-                        this.playerGameMap.remove(nickname);
-                    }
+                            if (game.getCurrentPlayersCount() == 0) {
+                                // game is removed from active games
+                                this.activeGames.remove(game.getGameId());
+                                // player mappings for this game are cleared
+                                this.playerGameMap.entrySet().removeIf(entry -> entry.getValue().equals(game));
+                            }
+                        }
 
-                    if (game.getCurrentPlayersCount() == 0) {
-                        // unstarted game is destroyed if empty
-                        destroyUnstartedGame(game);
-                    } else {
                         // available games list is updated
-                        broadcastAvailableGamesUpdate();
-                    }
-                }));
-            } else {
-                // disconnect task is enqueued
-                game.enqueueSystemTask(() -> game.processDisconnect(nickname, connectionID));
+                        notifyAvailableLobbies();
+                    }));
+                } else {
+                    // disconnect task is enqueued
+                    game.enqueueSystemTask(() -> game.processDisconnect(nickname));
+                }
             }
-        }
+        });
     }
 
     /**
-     * Processes the termination of a game.
-     * Data structures are cleared.
-     *
-     * @param gameId the ID of the ended game.
-     * @param result the final result of the game.
+     * The updated list of available lobbies is broadcasted to all players in the lobby menu.
      */
-    @Override
-    public void endGame(int gameId, GameResult result) {
-        synchronized (this.lobbyLock) {
-            // game is removed from active games
-            GameController removedGame = this.activeGames.remove(gameId);
-            if (removedGame != null) {
-                // player mappings are cleared
-                this.playerGameMap.entrySet().removeIf(entry -> entry.getValue().equals(removedGame));
-            }
-        }
-    }
-
-    /**
-     * Processes the abortion of an abandoned game.
-     * Data structures are cleared.
-     *
-     * @param gameId the ID of the abandoned game.
-     */
-    @Override
-    public void abortGame(int gameId) {
-        synchronized (this.lobbyLock) {
-            // game is removed from active games
-            GameController removedGame = this.activeGames.remove(gameId);
-            if (removedGame != null) {
-                // player mappings are cleared
-                this.playerGameMap.entrySet().removeIf(entry -> entry.getValue().equals(removedGame));
-            }
-        }
-    }
-
-    /**
-     * Destroys an unstarted game and notifies remaining players if any.
-     *
-     * @param game The unstarted game to destroy.
-     */
-    private void destroyUnstartedGame(GameController game) {
-        int gameId = game.getGameId();
-        synchronized (this.lobbyLock) {
-            // game is removed from active games
-            this.activeGames.remove(gameId);
-            // player mappings for this game are cleared
-            this.playerGameMap.entrySet().removeIf(entry -> entry.getValue().equals(game));
-        }
-        // game controller is notified to inform its active clients
-        game.enqueueSystemTask(game::destroyPregame);
-        // menu is notified via available games list
-        broadcastAvailableGamesUpdate();
-    }
-
-    /**
-     * Broadcasts the updated list of available games to all players in the lobby menu.
-     */
-    private void broadcastAvailableGamesUpdate() {
-        // available games list event is built
-        AvailableLobbiesEvent event = buildAvailableGamesListEvent();
+    private void notifyAvailableLobbies() {
+        // available lobby list event is built
+        AvailableLobbiesEvent event = buildAvailableLobbiesEvent();
         List<VirtualView> viewsToNotify;
 
         synchronized (this.lobbyLock) {
@@ -305,20 +415,20 @@ public class LobbyController implements GameLifecycleCallback {
 
         // event is pushed to all players currently in the menu
         for (VirtualView view : viewsToNotify) {
-            view.notifyLobbyState(event);
+            view.notifyAvailableLobbies(event);
         }
     }
 
     /**
-     * Builds the complete list of available games for newly connected players.
+     * The complete list of available lobbies for newly connected players is built.
      *
-     * @return The built AvailableLobbiesEvent.
+     * @return the available lobbies event
      */
-    private AvailableLobbiesEvent buildAvailableGamesListEvent() {
-        List<LobbyInfoDTO> availableGames;
+    private AvailableLobbiesEvent buildAvailableLobbiesEvent() {
+        List<LobbyInfoDTO> availableLobbies;
         synchronized (this.lobbyLock) {
-            // available games are filtered and mapped to dtos
-            availableGames = this.activeGames.values().stream()
+            // available lobbies are filtered and mapped to dto
+            availableLobbies = this.activeGames.values().stream()
                     .filter(gc -> !gc.isStarted() && gc.getCurrentPlayersCount() < gc.getTargetPlayersCount())
                     .map(gc -> new LobbyInfoDTO(
                             gc.getGameId(),
@@ -328,42 +438,6 @@ public class LobbyController implements GameLifecycleCallback {
                     ))
                     .collect(Collectors.toList());
         }
-        return new AvailableLobbiesEvent(availableGames);
-    }
-
-    /**
-     * Handles a lobby command received from the network.
-     *
-     * @param command  The lobby command to be executed.
-     * @param nickname The nickname of the player issuing the command.
-     */
-    public void handleLobbyCommand(LobbyCommand command, String nickname) {
-        VirtualView view;
-        synchronized (this.lobbyLock) {
-            // virtual view is retrieved from connected players map
-            view = this.connectedPlayers.get(nickname);
-        }
-        if (view != null) {
-            // command is executed
-            command.execute(this, view, nickname);
-        }
-    }
-
-    /**
-     * Routes a game command received from the network to the appropriate game controller.
-     *
-     * @param command  The game command to be executed.
-     * @param nickname The nickname of the player issuing the command.
-     */
-    public void handleGameCommand(GameCommand command, String nickname) {
-        GameController game;
-        synchronized (this.lobbyLock) {
-            // game controller is retrieved from player game map
-            game = this.playerGameMap.get(nickname);
-        }
-        if (game != null) {
-            // command is enqueued in the target game controller
-            game.enqueueCommand(command, nickname);
-        }
+        return new AvailableLobbiesEvent(availableLobbies);
     }
 }

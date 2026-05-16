@@ -27,24 +27,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Proxy representing a remote client connected via socket.
  */
 public class SocketClientProxy implements Runnable, ClientNode {
+
     private final Socket socket;
     private final LobbyController lobbyController;
     private final ConcurrentHashMap<String, NetworkNode> activeNodes;
-
-    private ObjectOutputStream out;
     private final Object outLock = new Object();
-
-    private RemoteClientView virtualView;
-    private String nickname;
-    private String connectionID;
     private final AtomicBoolean connected;
 
+    private ObjectOutputStream out;
+    private RemoteClientView virtualView;
+    private String connectionID;
+
     /**
-     * Constructs a new socket client proxy.
+     * New socket client proxy constructed.
      *
-     * @param socket The client socket.
-     * @param lobbyController The lobby controller instance.
-     * @param activeNodes The map containing all active network nodes.
+     * @param socket the client socket
+     * @param lobbyController the lobby controller instance
+     * @param activeNodes the map containing all active network nodes
      */
     public SocketClientProxy(Socket socket, LobbyController lobbyController, ConcurrentHashMap<String, NetworkNode> activeNodes) {
         this.socket = socket;
@@ -56,155 +55,159 @@ public class SocketClientProxy implements Runnable, ClientNode {
     @Override
     public void run() {
         try {
-            // output stream is created
+            // output stream created
             out = new ObjectOutputStream(socket.getOutputStream());
-            // stream is flushed to prevent deadlock
+            // stream flushed to prevent deadlock
             out.flush();
-            // input stream is created
+            // input stream created
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
             while (connected.get()) {
-                // message is read from stream
+                // message read from stream
                 ClientToServerMessage message = (ClientToServerMessage) in.readObject();
-                // message is executed
+                // message executed
                 message.execute(this);
             }
         } catch (IOException | ClassNotFoundException e) {
-            // client disconnection is logged
-            LogManager.getInstance().log(LogLevel.WARNING, "[NETWORK] Disconnection detected for: " + nickname);
+            // client disconnection logged
+            LogManager.getInstance().log(LogLevel.WARNING, "[NETWORK] Disconnection detected for connection: " + connectionID);
         } finally {
-            // disconnect is handled
+            // disconnect handled
             disconnect();
         }
     }
 
-    /**
-     * Processes a connection request from the client and establishes the virtual view.
-     *
-     * @param nickname The nickname of the connecting player.
-     */
-    public void processConnect(String nickname) {
-        this.nickname = nickname;
-        // unique connection identifier is generated locally
-        String currentConnectionID = UUID.randomUUID().toString();
-        this.connectionID = currentConnectionID;
-
-        if (this.virtualView != null) {
-            // heartbeat of old view is stopped
-            this.virtualView.stopHeartbeat();
-        }
-
-        // virtual view is created with the connection id
-        this.virtualView = RemoteClientView.create(nickname, this, currentConnectionID, (isNetworkDrop) -> {
-            // node is removed from active nodes map
-            this.activeNodes.remove(currentConnectionID);
-
-            if (connected.get()) {
-                // connection state is updated
-                connected.set(false);
-                try {
-                    // socket is closed
-                    socket.close();
-                } // Inside SocketClientProxy.java
-                catch (IOException e) {
-                    LogManager.getInstance().log(LogLevel.WARNING, "[NETWORK] Socket closure error for client " + nickname + ": connection already closed by peer.");
-                }
-            }
-            if (isNetworkDrop) {
-                // network drop is handled by controller using the connection id
-                lobbyController.handlePlayerNetworkDrop(nickname, currentConnectionID);
-            }
-        });
-        // virtual view is added to active nodes map
-        this.activeNodes.put(currentConnectionID, this.virtualView);
-
-        // player connection is delegated to controller
-        ConnectionResultEvent result = lobbyController.connectPlayer(nickname, this.virtualView);
-
-        // connection result is sent to client
-        sendMessage(result);
-
-        if (!result.isSuccess()) {
-            // node is removed from active nodes
-            this.activeNodes.remove(currentConnectionID);
-            // heartbeat is stopped
-            this.virtualView.stopHeartbeat();
-            // virtual view is cleared for future retry
-            this.virtualView = null;
-        }
-    }
-
-    /**
-     * Processes a lobby command received from the client.
-     *
-     * @param command The lobby command to process.
-     */
-    public void processLobbyCommand(LobbyCommand command) {
-        // lobby command is forwarded to controller
-        lobbyController.handleLobbyCommand(command, this.nickname);
-    }
-
-    /**
-     * Processes a game command received from the client.
-     *
-     * @param command The game command to process.
-     */
-    public void processGameCommand(GameCommand command) {
-        // game command is forwarded to controller
-        lobbyController.handleGameCommand(command, this.nickname);
-    }
-
-    /**
-     * Processes a ping message received from the client.
-     */
-    public void processPing() {
-        if (this.virtualView != null) {
-            // ping received is notified
-            this.virtualView.notifyPingReceived();
-        }
+    @Override
+    public void sendPingToClient() {
+        // ping message sent
+        sendMessageToSocket(new SocketPingMessage());
     }
 
     @Override
     public void sendMessage(MessageDTO message) {
-        // dto message is wrapped and sent
+        // dto message wrapped and sent
         sendMessageToSocket(new SocketDTOMessage(message));
     }
 
-    @Override
-    public void ping() {
-        // ping message is sent
-        sendMessageToSocket(new SocketPingMessage());
+    /**
+     * Connection process initialized and a connection result notified.
+     */
+    public void processConnect() {
+        // unique connection identifier generated locally
+        String currentConnectionID = UUID.randomUUID().toString();
+        this.connectionID = currentConnectionID;
+
+        if (this.virtualView != null) {
+            // heartbeat of old view stopped
+            this.virtualView.stopHeartbeat();
+        }
+
+        // virtual view created
+        this.virtualView = RemoteClientView.create(this, currentConnectionID, (isNetworkDrop) -> {
+            // node removed from active nodes map
+            this.activeNodes.remove(currentConnectionID);
+
+            if (isNetworkDrop) {
+                if (connected.get()) {
+                    // connection state updated
+                    connected.set(false);
+                    try {
+                        // socket closed
+                        socket.close();
+                    } catch (IOException e) {
+                        // socket closure error logged
+                        LogManager.getInstance().log(LogLevel.WARNING, "[NETWORK] Socket closure error: connection already closed by peer");
+                    }
+                }
+                // network drop handled by controller
+                lobbyController.processPlayerNetworkDrop(currentConnectionID);
+            }
+        });
+
+        // virtual view added to active nodes map
+        this.activeNodes.put(currentConnectionID, this.virtualView);
+
+        // connection result notified to the client
+        this.virtualView.notifyConnectionResult(new ConnectionResultEvent(true, "connection successful", currentConnectionID));
     }
 
+    /**
+     * Login request received from the client processed.
+     *
+     * @param nickname the requested nickname
+     */
+    public void onLoginRequest(String nickname) {
+        // login processed by controller
+        lobbyController.processLogin(nickname, this.virtualView);
+    }
+
+    /**
+     * Lobby command received from the client processed.
+     *
+     * @param command the lobby command to process
+     */
+    public void processLobbyCommand(LobbyCommand command) {
+        // lobby command forwarded to controller
+        lobbyController.processLobbyCommand(command, this.connectionID);
+    }
+
+    /**
+     * Game command received from the client processed.
+     *
+     * @param command the game command to process
+     */
+    public void processGameCommand(GameCommand command) {
+        // game command forwarded to controller
+        lobbyController.processGameCommand(command, this.connectionID);
+    }
+
+    /**
+     * Ping received from the client processed.
+     */
+    public void onPingReceivedFromClient() {
+        if (this.virtualView != null) {
+            // ping received processed
+            this.virtualView.onPingReceivedFromClient();
+        }
+    }
+
+    /**
+     * Object sent to the client over the socket connection.
+     *
+     * @param obj the object to be sent
+     */
     private void sendMessageToSocket(Object obj) {
         synchronized (outLock) {
             try {
                 if (connected.get()) {
-                    // object is written to stream
+                    // object written to stream
                     out.writeObject(obj);
-                    // stream is flushed
+                    // stream flushed
                     out.flush();
-                    // stream is reset
+                    // stream reset
                     out.reset();
                 }
             } catch (IOException e) {
-                // network exception is thrown
+                // network exception thrown
                 throw new NetworkException("Socket send error", e);
             }
         }
     }
 
+    /**
+     * Connection disconnected and resources cleaned up.
+     */
     private void disconnect() {
         if (!connected.get()) return;
 
         if (virtualView != null) {
-            // disconnect is handled by virtual view
+            // disconnect handled by virtual view
             virtualView.handleDisconnect();
         } else {
-            // connection state is updated
+            // connection state updated
             connected.set(false);
             try {
-                // socket is closed
+                // socket closed
                 socket.close();
             } catch (IOException ignored) {}
         }

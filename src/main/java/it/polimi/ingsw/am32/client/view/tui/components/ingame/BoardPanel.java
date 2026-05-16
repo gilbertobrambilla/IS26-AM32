@@ -39,7 +39,7 @@ public class BoardPanel extends AbstractTuiPanel {
     /**
      * The game state data is updated.
      *
-     * @param state the current game state.
+     * @param state the current game state
      */
     public void updateData(LightGameState state) {
         // state is updated
@@ -114,12 +114,12 @@ public class BoardPanel extends AbstractTuiPanel {
     /**
      * A row of cards is dynamically drawn with automatic line wrapping.
      *
-     * @param terminal the terminal instance.
-     * @param cardIds the list of card identifiers.
-     * @param startX the starting x coordinate.
-     * @param startY the starting y coordinate.
-     * @param maxWidth the maximum available width.
-     * @return the total number of vertical lines consumed.
+     * @param terminal the terminal instance
+     * @param cardIds the list of card identifiers
+     * @param startX the starting x coordinate
+     * @param startY the starting y coordinate
+     * @param maxWidth the maximum available width
+     * @return the total number of vertical lines consumed
      */
     private int drawCardRow(Terminal terminal, List<String> cardIds, int startX, int startY, int maxWidth) {
         // empty row check is performed
@@ -153,12 +153,12 @@ public class BoardPanel extends AbstractTuiPanel {
     /**
      * The specific visual representation of a single card is evaluated and drawn.
      *
-     * @param terminal the terminal instance.
-     * @param fullId the full card identifier.
-     * @param x the x coordinate.
-     * @param y the y coordinate.
-     * @param width the width of the card.
-     * @param height the height of the card.
+     * @param terminal the terminal instance
+     * @param fullId the full card identifier
+     * @param x the x coordinate
+     * @param y the y coordinate
+     * @param width the width of the card
+     * @param height the height of the card
      */
     private void drawSingleCard(Terminal terminal, String fullId, int x, int y, int width, int height) {
         // asset manager is retrieved
@@ -209,12 +209,12 @@ public class BoardPanel extends AbstractTuiPanel {
     /**
      * The offer track is dynamically drawn with automatic line wrapping.
      *
-     * @param terminal the terminal instance.
-     * @param track the list of light offer tiles.
-     * @param startX the starting x coordinate.
-     * @param startY the starting y coordinate.
-     * @param maxWidth the maximum available width.
-     * @return the total number of vertical lines consumed.
+     * @param terminal the terminal instance
+     * @param track the list of light offer tiles
+     * @param startX the starting x coordinate
+     * @param startY the starting y coordinate
+     * @param maxWidth the maximum available width
+     * @return the total number of vertical lines consumed
      */
     private int drawOfferTrack(Terminal terminal, List<LightOfferTile> track, int startX, int startY, int maxWidth) {
         // tile dimensions are defined
@@ -240,9 +240,9 @@ public class BoardPanel extends AbstractTuiPanel {
             // string statistics are formulated
             String stats = "";
             if (dto != null) {
-                String upper = dto.getActDrawsUpper() > 0 ? "U:" + dto.getActDrawsUpper() + " " : "";
-                String lower = dto.getActDrawsLower() > 0 ? "L:" + dto.getActDrawsLower() + " " : "";
-                String food = dto.getActFoodBonus() > 0 ? "+" + dto.getActFoodBonus() + "F" : "";
+                String upper = dto.getDrawsFromUpperRow() > 0 ? "U:" + dto.getDrawsFromUpperRow() + " " : "";
+                String lower = dto.getDrawsFromLowerRow() > 0 ? "L:" + dto.getDrawsFromLowerRow() + " " : "";
+                String food = dto.getFoodBonus() > 0 ? "+" + dto.getFoodBonus() + "Food" : "";
                 stats = upper + lower + food;
             }
 

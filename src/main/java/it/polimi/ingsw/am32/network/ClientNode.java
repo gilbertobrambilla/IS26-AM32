@@ -8,9 +8,9 @@ import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 public interface ClientNode {
 
     /**
-     * Checks the liveness of the client.
+     * Ping is sent to the client to check liveness.
      */
-    void ping();
+    void sendPingToClient();
 
     /**
      * Sends a generic message to the client.

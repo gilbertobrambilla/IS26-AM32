@@ -1,14 +1,14 @@
 package it.polimi.ingsw.am32.client.assets;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.polimi.ingsw.am32.dto.setup.*;
+import it.polimi.ingsw.am32.utils.JsonAssetLoader;
 
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Asset manager is implemented to store and provide game assets.
+ */
 public class AssetManager {
     private static AssetManager instance;
 
@@ -19,9 +19,12 @@ public class AssetManager {
     private final Map<String, TurnOrderTileDTO> turnOrderTiles;
     private final Map<String, String> uiAssets;
     private final Map<String, String> cardBacks;
-    private final Map<String, String> assetPathIndex = new HashMap<>();
 
+    /**
+     * Asset manager is instantiated.
+     */
     private AssetManager() {
+        // internal maps are initialized
         this.buildingCards = new HashMap<>();
         this.characterCards = new HashMap<>();
         this.eventCards = new HashMap<>();
@@ -31,160 +34,123 @@ public class AssetManager {
         this.cardBacks = new HashMap<>();
     }
 
+    /**
+     * Singleton instance is retrieved.
+     *
+     * @return the asset manager instance
+     */
     public static AssetManager getInstance() {
+        // instance is created if null
         if (instance == null) {
             instance = new AssetManager();
         }
+        // instance is returned
         return instance;
     }
 
-    public void loadAssets(String resourcePath) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    /**
+     * Assets are loaded from the shared JSON loader.
+     */
+    public void loadAssets() {
+        // shared loader instance is retrieved
+        JsonAssetLoader loader = JsonAssetLoader.getInstance();
 
-        try (InputStream is = AssetManager.class.getResourceAsStream("/" + resourcePath)) {
-            if (is == null) throw new RuntimeException("Asset file not found: " + resourcePath);
+        // building cards are mapped
+        loader.getBuildingCards().forEach(card -> buildingCards.put(card.getId(), card));
 
-            JsonNode rootNode = mapper.readTree(is);
+        // character cards are mapped
+        loader.getCharacterCards().forEach(card -> characterCards.put(card.getId(), card));
 
-            buildAssetPathIndex(rootNode);
+        // event cards are mapped
+        loader.getEventCards().forEach(card -> eventCards.put(card.getId(), card));
 
-            parseBuildingCards(rootNode.get("building_cards"));
-            parseCharacterCards(rootNode.get("character_cards"));
-            parseEventCards(rootNode.get("event_cards"));
-            parseOfferTiles(rootNode.get("offer_tiles"));
-            parseTurnOrderTiles(rootNode.get("turn_order_tiles"));
-            parseStringMap(rootNode.get("ui_assets"), uiAssets);
-            parseStringMap(rootNode.get("card_backs"), cardBacks);
+        // offer tiles are mapped
+        loader.getOfferTiles().forEach(tile -> offerTiles.put(tile.getId(), tile));
 
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load assets", e);
-        }
+        // turn order tiles are mapped
+        loader.getTurnOrderTiles().forEach(tile -> turnOrderTiles.put(tile.getId(), tile));
+
+        // ui assets are mapped
+        uiAssets.putAll(loader.getUiAssets());
+
+        // card backs are mapped
+        cardBacks.putAll(loader.getCardBacks());
     }
 
-    private void parseBuildingCards(JsonNode array) {
-        if (array == null || !array.isArray()) return;
-        for (JsonNode node : array) {
-            BuildingCardDTO card = new BuildingCardDTO(
-                    node.get("id").asText(),
-                    node.get("era").asInt(),
-                    node.get("base_prestige").asInt(),
-                    node.get("cost").asInt(),
-                    node.get("effect_code").asText(),
-                    node.get("effect_params").toString()
-            );
-            buildingCards.put(card.getId(), card);
-        }
-    }
-
-    private void parseCharacterCards(JsonNode array) {
-        if (array == null || !array.isArray()) return;
-        for (JsonNode node : array) {
-            CharacterCardDTO card = new CharacterCardDTO(
-                    node.get("id").asText(),
-                    node.get("era").asInt(),
-                    node.get("base_prestige").asInt(),
-                    node.get("min_players").asInt(),
-                    node.get("character_type").asText(),
-                    node.get("character_params").toString()
-            );
-            characterCards.put(card.getId(), card);
-        }
-    }
-
-    private void parseEventCards(JsonNode array) {
-        if (array == null || !array.isArray()) return;
-        for (JsonNode node : array) {
-            EventCardDTO card = new EventCardDTO(
-                    node.get("id").asText(),
-                    node.get("era").asInt(),
-                    node.get("event_type").asText(),
-                    node.get("event_params").toString()
-            );
-            eventCards.put(card.getId(), card);
-        }
-    }
-
-    private void parseOfferTiles(JsonNode array) {
-        if (array == null || !array.isArray()) return;
-        for (JsonNode node : array) {
-            OfferTileDTO tile = new OfferTileDTO(
-                    node.get("id").asText(),
-                    node.get("min_players").asInt(),
-                    node.get("act_draws_upper").asInt(),
-                    node.get("act_draws_lower").asInt(),
-                    node.get("act_food_bonus").asInt()
-            );
-            offerTiles.put(tile.getId(), tile);
-        }
-    }
-
-    private void parseTurnOrderTiles(JsonNode array) {
-        if (array == null || !array.isArray()) return;
-        for (JsonNode node : array) {
-            TurnOrderTileDTO tile = new TurnOrderTileDTO(
-                    node.get("id").asText(),
-                    node.get("required_players").asInt(),
-                    node.get("food_modifiers").toString(),
-                    node.get("prestige_modifiers").toString()
-            );
-            turnOrderTiles.put(tile.getId(), tile);
-        }
-    }
-
-    private void parseStringMap(JsonNode node, Map<String, String> targetMap) {
-        if (node == null || !node.isObject()) return;
-        node.fields().forEachRemaining(entry -> {
-            targetMap.put(entry.getKey(), entry.getValue().asText());
-        });
-    }
-
-    private void buildAssetPathIndex(JsonNode rootNode) {
-        String[] entityArrays = {"building_cards", "character_cards", "event_cards", "offer_tiles", "turn_order_tiles"};
-
-        for (String arrayField : entityArrays) {
-            JsonNode array = rootNode.get(arrayField);
-            if (array == null || !array.isArray()) continue;
-
-            for (JsonNode item : array) {
-                JsonNode id = item.get("id");
-                JsonNode assetPath = item.get("asset_path");
-                if (id != null && assetPath != null) {
-                    assetPathIndex.put(id.asText(), assetPath.asText());
-                }
-            }
-        }
-    }
-
+    /**
+     * Building card is retrieved by its identifier.
+     *
+     * @param id the card identifier
+     * @return the building card dto
+     */
     public BuildingCardDTO getBuildingCard(String id) {
+        // card is returned
         return buildingCards.get(id);
     }
 
+    /**
+     * Character card is retrieved by its identifier.
+     *
+     * @param id the card identifier
+     * @return the character card dto
+     */
     public CharacterCardDTO getCharacterCard(String id) {
+        // card is returned
         return characterCards.get(id);
     }
 
+    /**
+     * Event card is retrieved by its identifier.
+     *
+     * @param id the card identifier
+     * @return the event card dto
+     */
     public EventCardDTO getEventCard(String id) {
+        // card is returned
         return eventCards.get(id);
     }
 
+    /**
+     * Offer tile is retrieved by its identifier.
+     *
+     * @param id the tile identifier
+     * @return the offer tile dto
+     */
     public OfferTileDTO getOfferTile(String id) {
+        // tile is returned
         return offerTiles.get(id);
     }
 
+    /**
+     * Turn order tile is retrieved by its identifier.
+     *
+     * @param id the tile identifier
+     * @return the turn order tile dto
+     */
     public TurnOrderTileDTO getTurnOrderTile(String id) {
+        // tile is returned
         return turnOrderTiles.get(id);
     }
 
+    /**
+     * Ui asset path is retrieved by its key.
+     *
+     * @param key the ui asset key
+     * @return the relative path
+     */
     public String getUiAsset(String key) {
+        // path is returned
         return uiAssets.get(key);
     }
 
+    /**
+     * Card back path is retrieved by its key.
+     *
+     * @param key the card back key
+     * @return the relative path
+     */
     public String getCardBack(String key) {
+        // path is returned
         return cardBacks.get(key);
-    }
-
-    public String getAssetPath(String id) {
-        return assetPathIndex.get(id);
     }
 }
