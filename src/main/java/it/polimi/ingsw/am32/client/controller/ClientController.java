@@ -6,6 +6,7 @@ import it.polimi.ingsw.am32.client.view.tui.TuiUI;
 import it.polimi.ingsw.am32.controller.commands.game.*;
 import it.polimi.ingsw.am32.controller.commands.lobby.*;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
+import it.polimi.ingsw.am32.dto.messages.game.models.CardDTO;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 import it.polimi.ingsw.am32.network.client.MessageDispatcher;
 import it.polimi.ingsw.am32.network.client.VirtualServer;
@@ -14,6 +15,7 @@ import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Controller handling incoming network events and outgoing user requests.
@@ -208,6 +210,18 @@ public class ClientController {
 
     public void onRoundEnded(RoundEndedEvent event) {
         runOnUIThread(() -> {
+            List<String> upperTribe = event.getUpperTribeRow().stream().map(CardDTO::getId).collect(Collectors.toList());
+            List<String> lowerTribe = event.getLowerTribeRow().stream().map(CardDTO::getId).collect(Collectors.toList());
+            List<String> upperBuilding = event.getUpperBuildingRow().stream().map(CardDTO::getId).collect(Collectors.toList());
+            List<String> lowerBuilding = event.getLowerBuildingRow().stream().map(CardDTO::getId).collect(Collectors.toList());
+
+            lightGameState.updateRound(
+                    event.getRound(),
+                    event.getEra(),
+                    upperTribe, lowerTribe, upperBuilding, lowerBuilding,
+                    event.getNextPlayer()
+            );
+
             // ui is updated
             if (ui != null) ui.showRoundSummary(event);
         });
@@ -231,9 +245,16 @@ public class ClientController {
 
     public void onActionResolved(ActionResolvedEvent event) {
         runOnUIThread(() -> {
-            // state is updated
-            lightGameState.updateActionResolution(event.getPlayer(), event.getAcquiredCharacterCardIds(), event.getAcquiredBuildingCardIds(), event.getStatsChanges(), event.getNextPlayer());
-            // ui is updated
+            lightGameState.updateActionResolution(
+                    event.getPlayer(),
+                    event.getAcquiredCharacterCardIds(),
+                    event.getAcquiredBuildingCardIds(),
+                    event.getStatsChanges(),
+                    event.getNextPlayer()
+            );
+
+            lightGameState.returnTotem(event.getPlayer(), event.getTotemReturnDetails().getTurnOrderPosition());
+
             if (ui != null) ui.showActionResolved(event);
         });
     }

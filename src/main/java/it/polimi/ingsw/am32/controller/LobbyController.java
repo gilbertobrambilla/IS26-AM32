@@ -82,6 +82,15 @@ public class LobbyController implements GameLifecycleCallback {
             // player connection is logged
             LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Player connected: " + nickname);
 
+            new Thread(() -> {
+                try {
+                    Thread.sleep(500);
+                    view.notifyLobbyState(buildAvailableGamesListEvent());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }).start();
+
             // successful result is returned
             return new ConnectionResultEvent(true, "connection successful", false, view.getConnectionID());
         }

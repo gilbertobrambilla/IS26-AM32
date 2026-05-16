@@ -573,6 +573,16 @@ public class GameController implements Runnable {
                 for (PlayerSession s : this.activeClients.values()) {
                     s.getView().notifyActionResolved(eventDTO);
                 }
+
+                if (this.gameState.getCurrentPlayer() == null &&
+                        this.gameState.getCurrentPhase() == GamePhase.RESOLVE_EVENTS) {
+
+                    GamePhaseChangedEvent phaseDTO = new GamePhaseChangedEvent(GamePhase.RESOLVE_EVENTS, null);
+                    for (PlayerSession s : this.activeClients.values()) {
+                        s.getView().notifyGamePhaseChanged(phaseDTO);
+                    }
+                }
+
                 // game phase is advanced if necessary
                 autoAdvanceGameIfNecessary();
             } catch (InvalidGameActionException e) {

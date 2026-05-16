@@ -220,26 +220,36 @@ public class InGameViewController implements ViewController {
 
     private void handleCardSelection(CardView selectedCard) {
         if (!isMyTurnAndPhase(GamePhase.RESOLVE_ACTIONS)) {
-            showNotification("⚠️ Non è il tuo turno per prendere le carte!");
+            showNotification("⚠️ It is not your turn to take cards!");
             return;
         }
 
         selectedCard.getCardId().ifPresent(cardId -> {
-            boolean isCharacter = cardId.startsWith("character");
-            List<String> targetList = isCharacter ? selectedCharacterIds : selectedBuildingIds;
+            // block clicks on event cards (they resolve automatically)
+            if (cardId.startsWith("event")) {
+                showNotification("⚠️ Event cards resolve automatically!");
+                return;
+            }
 
+            // sort correctly using "building" as the discriminant
+            List<String> targetList;
+            if (cardId.startsWith("building")) {
+                targetList = selectedBuildingIds;
+            } else {
+                // Everything else (e.g., char_15, character_15) goes to characters
+                targetList = selectedCharacterIds;
+            }
+
+            // multiple selection logic (without clearing previously selected cards!)
             if (targetList.contains(cardId)) {
-                targetList.remove(cardId);
+                targetList.remove(cardId); // Deselect if clicked again
                 selectedCard.setHighlight(false);
             } else {
-                availableCardViewCache.values().forEach(cv -> cv.setHighlight(false));
-                selectedCharacterIds.clear();
-                selectedBuildingIds.clear();
-
-                targetList.add(cardId);
+                targetList.add(cardId);    // Add to the selected list
                 selectedCard.setHighlight(true);
             }
 
+            // show the confirm button if there is at least one card selected
             boolean hasSelection = !selectedCharacterIds.isEmpty() || !selectedBuildingIds.isEmpty();
             if (confirmActionButton != null) confirmActionButton.setVisible(hasSelection);
         });
