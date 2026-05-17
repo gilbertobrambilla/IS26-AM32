@@ -1,5 +1,7 @@
 package it.polimi.ingsw.am32.client.view.tui.utils;
 
+import it.polimi.ingsw.am32.model.enums.TotemColor;
+
 /**
  * Utility class for managing ansi color codes for various game components.
  */
@@ -24,6 +26,31 @@ public class TuiColorPalette {
             case "INVENTOR": return "\033[38;5;39m";
             case "SHAMAN": return "\033[38;5;93m";
             default: return "\033[0m";
+        }
+    }
+
+    /**
+     * Totem ansi color code is retrieved based on the totem color enum.
+     *
+     * @param color the enum representing the totem color
+     * @return the ansi color string
+     */
+    public static String getTotemColor(TotemColor color) {
+        if (color == null) {
+            return "\033[0m";
+        }
+
+        // ansi code is mapped to high contrast 256-color palette
+        switch (color.name().toUpperCase()) {
+            case "RED": return "\033[38;5;167m";
+            case "YELLOW": return "\033[38;5;214m";
+            case "BLUE": return "\033[38;5;37m";
+            case "BLACK":
+            case "BROWN": return "\033[38;5;161m";
+            case "WHITE":
+            case "GREEN": return "\033[38;5;255m";
+            default:
+                return "\033[0m";
         }
     }
 

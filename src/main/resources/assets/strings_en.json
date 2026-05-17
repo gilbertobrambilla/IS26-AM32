@@ -1,5 +1,13 @@
 {
-  "character_types": {
+  "gamePhases": {
+    "PLACE_TOTEMS": "Place Totems",
+    "RESOLVE_ACTIONS": "Resolve Actions",
+    "EXTRA_ACQUISITION": "Extra Acquisition",
+    "RESOLVE_EVENTS": "Resolve Events",
+    "END_ROUND": "End Round",
+    "WAITING": "Waiting"
+  },
+  "characterTypes": {
     "ARTIST": "Artist",
     "BUILDER": "Builder",
     "GATHERER": "Gatherer",
@@ -7,8 +15,7 @@
     "INVENTOR": "Inventor",
     "SHAMAN": "Shaman"
   },
-
-  "invention_types": {
+  "inventionTypes": {
     "ARROWHEAD": "Arrowhead",
     "BREAD": "Bread",
     "CANOE": "Canoe",
@@ -20,33 +27,13 @@
     "POTTERY": "Pottery",
     "ROPE": "Rope"
   },
-
-  "building_effects": {
-    "SUSTENANCE_DISCOUNT_PER_CHARACTER": "-{discountPerCharacter} Food cost per {targetCharacter}",
-    "SHAMANIC_PENALTY_IMMUNITY": "Immune to Shamanic Ritual penalties",
-    "EXTRA_FOOD_ON_TOTEM": "+{extraFood} Food when placing Totem",
-    "FOOD_PER_INVENTOR_PAIR": "+{extraFood} Food per identical Inventor pair",
-    "SHAMANIC_DOUBLE_REWARD": "Double PP from Shamanic Rituals",
-    "EXTRA_SHAMAN_STARS": "+{extraStars} ★",
-    "EXTRA_RESOURCES_ON_EVENT": "During {targetEvent}: +{extraFood} Food & +{extraPrestige} PP per {targetCharacter}",
-    "ENDGAME_BUILDER_PRESTIGE_MULTIPLIER": "Builder PP x{multiplier} at endgame",
-    "FOOD_PER_SET": "+{extraFood} Food per complete Character set",
-    "ENDGAME_PRESTIGE_PER_SET": "+{pointsPerSet} PP per complete Character set at endgame",
-    "ENDGAME_PRESTIGE_PER_CHARACTER": "+{pointsPerCharacter} PP per {targetCharacter} at endgame",
-    "EXTRA_CARD_ON_ROUND_END": "Draw 1 extra card at round end",
-    "NO_EFFECT": ""
-  },
-
   "events": {
-    "CAVE_PAINTINGS": "≥ {cave_bonus_threshold} Artist: +{cave_prestige_bonus} PP / Artist | ≤ {cave_penalty_threshold} Artist: -{cave_prestige_penalty} PP",
-    "HUNT": "+{hunt_food_bonus} Food & +{hunt_prestige_bonus} PP per Hunter",
-    "SHAMANIC_RITUAL": "> ★: +{sham_prestige_bonus} PP | < ★: -{sham_prestige_penalty} PP",
-    "SUSTENANCE": "-{sust_food_cost} Food / Char | Unfed Char: -{sust_prestige_penalty} PP"
+    "CAVE_PAINTINGS":  "Cave Paintings",
+    "HUNT": "Hunt",
+    "SHAMANIC_RITUAL": "Shamanic Ritual",
+    "SUSTENANCE": "Sustenance"
   },
-
-  "ui_labels": {
-    "PRESTIGE": "PP",
-    "FOOD": "Food",
-    "ERA": "Era"
+  "SYSTEM_MESSAGES": {
+    "HELP_MESSAGE": "Endgame scoring: Builders yield base \uD83C\uDFC6, Inventors give their count multiplied by unique inventions, Artists give 10 \uD83C\uDFC6 per pair, plus Building \uD83C\uDFC6."
   }
 }
