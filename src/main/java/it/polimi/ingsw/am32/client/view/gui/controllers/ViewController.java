@@ -9,7 +9,7 @@ public interface ViewController {
     default void onDisconnection(String message) {}
 
     default void onAvailableGamesUpdated(AvailableLobbiesEvent event) {}
-    default void onLobbyRoomUpdated(LobbyStateUpdatedEvent event) {}
+    default void onLobbyRoomUpdated(LobbyRoomUpdateEvent event) {}
     default void onLobbyError(LobbyErrorEvent event) {}
 
     default void onGameStarted(GameStartedEvent event) {}

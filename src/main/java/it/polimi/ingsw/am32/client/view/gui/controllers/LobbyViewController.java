@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.client.view.gui.controllers;
 import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.AvailableLobbiesEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyErrorEvent;
-import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyStateUpdatedEvent;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyRoomUpdateEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.LobbyInfoDTO;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -88,7 +88,7 @@ public class LobbyViewController implements ViewController {
     }
 
     @Override
-    public void onLobbyRoomUpdated(LobbyStateUpdatedEvent event) {
+    public void onLobbyRoomUpdated(LobbyRoomUpdateEvent event) {
         statusLabel.setText("In lobby room. Waiting for other players...");
     }
 
