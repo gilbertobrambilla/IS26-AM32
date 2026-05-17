@@ -179,7 +179,7 @@ public class BoardPanel extends AbstractTuiPanel {
         if (fullId.startsWith("event")) {
             EventCardDTO dto = am.getEventCard(fullId);
             if (dto != null) {
-                // event prefix and id are hidden
+                // event id is hidden
                 prefixVisible = "[  ] ";
                 prefixAnsi = prefixVisible;
                 typeVisible = dict.translate(dto.getEventType());
@@ -439,7 +439,8 @@ public class BoardPanel extends AbstractTuiPanel {
             String text = "";
             if (dto != null) {
                 int food = dto.getFoodModifiers().get(i);
-                int prestige = 0; dto.getPrestigeModifiers().get(i);
+                // prestige is extracted correctly
+                int prestige = dto.getPrestigeModifiers().get(i);
 
                 if (food > 0) text += "+" + food + " 🍖";
                 else if (food < 0) text += food + " 🍖";

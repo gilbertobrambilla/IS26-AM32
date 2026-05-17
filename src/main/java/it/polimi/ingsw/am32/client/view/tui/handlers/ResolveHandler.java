@@ -14,6 +14,13 @@ import java.util.List;
  */
 public class ResolveHandler implements InputHandler {
 
+    /**
+     * The command is executed using the provided arguments.
+     *
+     * @param controller the client controller
+     * @param args the raw input tokens
+     * @throws IllegalArgumentException if the provided arguments are invalid
+     */
     @Override
     public void execute(ClientController controller, String[] args) throws IllegalArgumentException {
         LightGameState state = controller.getLightGameState();
@@ -47,7 +54,76 @@ public class ResolveHandler implements InputHandler {
         int allowedLower = tileDto.getDrawsFromLowerRow();
         int totalAllowed = allowedUpper + allowedLower;
 
-        int requestedCards = args.length - 1;
+        List<String> characters = new ArrayList<>();
+        List<String> buildings = new ArrayList<>();
+        int takenUpper = 0;
+        int takenLower = 0;
+
+        String currentFlag = null;
+
+        // arguments are parsed sequentially
+        for (int i = 1; i < args.length; i++) {
+            String token = args[i];
+
+            // flag is updated if present
+            if (token.startsWith("-")) {
+                currentFlag = token;
+                continue;
+            }
+
+            // exception is thrown if token is provided before any flag
+            if (currentFlag == null) {
+                throw new IllegalArgumentException("card id provided before any flag");
+            }
+
+            boolean found = false;
+
+            // character flag is handled
+            if ("-c".equalsIgnoreCase(currentFlag)) {
+                String charId = "character_" + token;
+
+                // upper tribe row is checked
+                if (state.getUpperTribeRow().contains(charId)) {
+                    characters.add(charId);
+                    takenUpper++;
+                    found = true;
+                }
+                // lower tribe row is checked if not found in upper
+                else if (state.getLowerTribeRow().contains(charId)) {
+                    characters.add(charId);
+                    takenLower++;
+                    found = true;
+                }
+            }
+            // building flag is handled
+            else if ("-b".equalsIgnoreCase(currentFlag)) {
+                String buildId = "building_" + token;
+
+                // upper building row is checked
+                if (state.getUpperBuildingRow().contains(buildId)) {
+                    buildings.add(buildId);
+                    takenUpper++;
+                    found = true;
+                }
+                // lower building row is checked if not found in upper
+                else if (state.getLowerBuildingRow().contains(buildId)) {
+                    buildings.add(buildId);
+                    takenLower++;
+                    found = true;
+                }
+            }
+            // unknown flag is handled
+            else {
+                throw new IllegalArgumentException("unknown flag '" + currentFlag + "' provided");
+            }
+
+            // card availability is verified
+            if (!found) {
+                throw new IllegalArgumentException("card '" + token + "' with flag '" + currentFlag + "' is not available on the board");
+            }
+        }
+
+        int requestedCards = characters.size() + buildings.size();
 
         // requested amount is validated against tile limits
         if (totalAllowed == 0 && requestedCards > 0) {
@@ -56,49 +132,6 @@ public class ResolveHandler implements InputHandler {
 
         if (requestedCards != totalAllowed) {
             throw new IllegalArgumentException("you must pick exactly " + totalAllowed + " cards");
-        }
-
-        List<String> characters = new ArrayList<>();
-        List<String> buildings = new ArrayList<>();
-        int takenUpper = 0;
-        int takenLower = 0;
-
-        // requested cards are parsed and verified
-        for (int i = 1; i < args.length; i++) {
-            String token = args[i];
-            String charId = "character_" + token;
-            String buildId = "building_" + token;
-
-            boolean found = false;
-
-            // upper row is checked
-            if (state.getUpperTribeRow().contains(charId)) {
-                characters.add(charId);
-                takenUpper++;
-                found = true;
-            } else if (state.getUpperBuildingRow().contains(buildId)) {
-                buildings.add(buildId);
-                takenUpper++;
-                found = true;
-            }
-
-            // lower row is checked if not found in upper
-            if (!found) {
-                if (state.getLowerTribeRow().contains(charId)) {
-                    characters.add(charId);
-                    takenLower++;
-                    found = true;
-                } else if (state.getLowerBuildingRow().contains(buildId)) {
-                    buildings.add(buildId);
-                    takenLower++;
-                    found = true;
-                }
-            }
-
-            // card availability is verified
-            if (!found) {
-                throw new IllegalArgumentException("card '" + token + "' is not available on the board");
-            }
         }
 
         // row limits are verified
@@ -113,7 +146,7 @@ public class ResolveHandler implements InputHandler {
     @Override
     public String getSyntax() {
         // syntax string is returned
-        return "take [-c|-b] <id>";
+        return "resolve [-c|-b] <id>";
     }
 
     @Override

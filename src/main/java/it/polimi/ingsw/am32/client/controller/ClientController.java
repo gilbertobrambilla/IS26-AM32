@@ -2,7 +2,6 @@ package it.polimi.ingsw.am32.client.controller;
 
 import it.polimi.ingsw.am32.client.model.LightGameState;
 import it.polimi.ingsw.am32.client.view.UI;
-import it.polimi.ingsw.am32.client.view.tui.TuiUI;
 import it.polimi.ingsw.am32.controller.commands.game.*;
 import it.polimi.ingsw.am32.controller.commands.lobby.*;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
@@ -12,6 +11,7 @@ import it.polimi.ingsw.am32.network.client.MessageDispatcher;
 import it.polimi.ingsw.am32.network.client.VirtualServer;
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -273,8 +273,14 @@ public class ClientController {
         });
     }
 
+    /**
+     * Action resolution event is processed.
+     *
+     * @param event the action resolved event
+     */
     public void onActionResolved(ActionResolvedEvent event) {
         runOnUIThread(() -> {
+            // card acquisitions and main stats are updated
             lightGameState.updateActionResolution(
                     event.getPlayer(),
                     event.getAcquiredCharacterCardIds(),
@@ -283,8 +289,15 @@ public class ClientController {
                     event.getNextPlayer()
             );
 
+            // totem placement is updated
             lightGameState.returnTotem(event.getPlayer(), event.getTotemReturnDetails().getTurnOrderPosition());
 
+            // totem return stats are evaluated and safely updated
+            if (event.getTotemReturnDetails().getStatsChanges() != null) {
+                lightGameState.updateStats(Collections.singletonList(event.getTotemReturnDetails().getStatsChanges()));
+            }
+
+            // ui is updated
             if (ui != null) ui.showActionResolved(event);
         });
     }

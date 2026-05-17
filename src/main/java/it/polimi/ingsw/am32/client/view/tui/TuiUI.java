@@ -12,6 +12,7 @@ import it.polimi.ingsw.am32.client.view.tui.components.ingame.SidePanel;
 import it.polimi.ingsw.am32.client.view.tui.handlers.*;
 import it.polimi.ingsw.am32.client.view.tui.scenes.*;
 import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
+import it.polimi.ingsw.am32.dto.setup.EventCardDTO;
 import it.polimi.ingsw.am32.log.LogLevel;
 import it.polimi.ingsw.am32.log.LogManager;
 import it.polimi.ingsw.am32.log.LogObserver;
@@ -425,7 +426,7 @@ public class TuiUI implements UI, LogObserver {
     // UI interface implementation
 
     /**
-     * Connection result is processed and displayed on the terminal.
+     * Connection result is processed and displayed in the terminal.
      *
      * @param event the connection result event
      */
@@ -454,7 +455,7 @@ public class TuiUI implements UI, LogObserver {
     }
 
     /**
-     * Connection result is processed and displayed on the terminal.
+     * Connection result is processed and displayed in the terminal.
      *
      * @param event the login result event
      */
@@ -493,7 +494,7 @@ public class TuiUI implements UI, LogObserver {
         // data list is initialized
         List<MenuScene.MenuLobbyData> lobbyData = new ArrayList<>();
 
-        // event data is mapped to local dtos
+        // event data is mapped to local dto
         event.getLobbies().forEach(g -> lobbyData.add(
                 new MenuScene.MenuLobbyData(g.getGameId(), g.getCurrentPlayersCount(), g.getTargetPlayers())
         ));
@@ -515,7 +516,7 @@ public class TuiUI implements UI, LogObserver {
         // info dto is extracted
         var info = event.getLobbyInfo();
 
-        // data is injected into the lobby scene including the player list
+        // data is injected into the lobby scene
         lobbyScene.setLobbyData(
                 info.getGameId(),
                 info.getCurrentPlayersCount(),
@@ -599,14 +600,31 @@ public class TuiUI implements UI, LogObserver {
      */
     @Override
     public void updateGamePhase(GamePhaseChangedEvent event) {
+        // dictionary instance is retrieved
+        GameDictionary dict = GameDictionary.getInstance();
+
+        // raw phase is translated into a user-friendly string
+        String translatedPhase = dict.translate(event.getPhase().toString());
+
+        // base message is constructed
+        String logMessage = "[GAME] Phase changed to " + translatedPhase;
+
+        // turn info is appended if a player is active
+        if (event.getNextPlayer() != null && !event.getNextPlayer().isEmpty() && !"null".equalsIgnoreCase(event.getNextPlayer())) {
+            logMessage += ". Turn of " + event.getNextPlayer() + ".";
+        } else {
+            logMessage += ".";
+        }
+
         // phase change is logged
-        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Phase changed to " + event.getPhase() + ". Turn of " + event.getNextPlayer() + ".");
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, logMessage);
+
         // state and scene are updated to refresh all panels
         updateStateAndScene(TuiState.IN_GAME);
     }
 
     /**
-     * Round summary is shown.
+     * A round summary is shown.
      *
      * @param event the round-ended event
      */
@@ -666,8 +684,7 @@ public class TuiUI implements UI, LogObserver {
     public void showActionResolved(ActionResolvedEvent event) {
         // action resolution is logged
         LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Action resolved by " + event.getPlayer() + ".");
-        // scene is redrawn
-        updateStateAndScene(TuiState.IN_GAME);
+        // scene redrawing is skipped to avoid double frames
     }
 
     /**
@@ -677,8 +694,17 @@ public class TuiUI implements UI, LogObserver {
      */
     @Override
     public void showEventResolved(EventResolvedEvent event) {
+        // event dto is retrieved
+        EventCardDTO dto = AssetManager.getInstance().getEventCard(event.getEventCardId());
+
+        // event name is translated
+        String eventName = event.getEventCardId();
+        if (dto != null) {
+            eventName = GameDictionary.getInstance().translate(dto.getEventType());
+        }
+
         // event resolution is logged
-        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Event " + event.getEventCardId() + " resolved.");
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Event " + eventName + " resolved.");
         // scene is redrawn
         updateStateAndScene(TuiState.IN_GAME);
     }
