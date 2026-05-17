@@ -46,26 +46,55 @@ public class LogPanel extends AbstractTuiPanel {
         // inner area is cleared
         clearContent(terminal, startX, startY, width, height);
 
-        // available rows are calculated
+        // available space is calculated
         int availableRows = height - 2;
+        int maxWidth = width - 4;
 
-        // messages are iterated and printed
-        int rowIdx = 0;
-        int startIndex = Math.max(0, messages.size() - availableRows);
+        if (maxWidth <= 0) return;
 
-        for (int i = startIndex; i < messages.size(); i++) {
-            // cursor is moved to the current row
-            moveCursor(terminal, startX + 2, startY + 1 + rowIdx);
+        // display lines list is initialized
+        List<String> displayLines = new java.util.ArrayList<>();
 
-            String msg = messages.get(i);
+        // messages are wrapped and converted into single lines
+        for (String msg : messages) {
+            String[] words = msg.split(" ");
+            StringBuilder currentLine = new StringBuilder();
 
-            // message is truncated if too long for the box
-            if (msg.length() > width - 4) {
-                msg = msg.substring(0, width - 7) + "...";
+            for (String word : words) {
+                // visible lengths are calculated ignoring ansi codes
+                int currentVisibleLen = currentLine.toString().replaceAll("\033\\[[;\\d]*m", "").length();
+                int wordVisibleLen = word.replaceAll("\033\\[[;\\d]*m", "").length();
+
+                // line break is evaluated
+                if (currentVisibleLen > 0 && currentVisibleLen + wordVisibleLen + 1 > maxWidth) {
+                    displayLines.add(currentLine.toString());
+                    currentLine = new StringBuilder();
+                }
+
+                // space is added if not empty
+                if (currentLine.length() > 0) {
+                    currentLine.append(" ");
+                }
+                currentLine.append(word);
             }
 
-            // message is printed
-            terminal.writer().print(msg);
+            // remaining text is added
+            if (currentLine.length() > 0) {
+                displayLines.add(currentLine.toString());
+            }
+        }
+
+        // starting index is calculated to show only the most recent lines
+        int startIndex = Math.max(0, displayLines.size() - availableRows);
+        int rowIdx = 0;
+
+        // visible lines are iterated and printed
+        for (int i = startIndex; i < displayLines.size(); i++) {
+            // cursor is moved
+            moveCursor(terminal, startX + 2, startY + 1 + rowIdx);
+
+            // text is printed
+            terminal.writer().print(displayLines.get(i));
 
             // row index is incremented
             rowIdx++;
