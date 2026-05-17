@@ -69,7 +69,7 @@ public class CardView extends StackPane {
         cardIdFallback.ifPresentOrElse(
                 id -> {
                     String validId = normalizeId(id);
-                    String resolvedPath = AssetManager.getInstance().getAssetPath(validId);
+                    String resolvedPath = AssetManager.getInstance().getUiAsset(validId);
                     if (resolvedPath == null) {
                         System.err.println("[CardView] No asset path for id: " + validId);
                         return;

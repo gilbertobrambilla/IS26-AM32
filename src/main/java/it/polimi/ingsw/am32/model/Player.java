@@ -137,7 +137,7 @@ public class Player implements Comparable<Player> {
             throw new IllegalArgumentException("amount cannot be negative");
         }
         if (this.food < amount) {
-            // exception is thrown if food is insufficient
+            // exception is thrown if food is not enough
             throw new InvalidGameActionException(
                     GameErrorReason.NOT_ENOUGH_FOOD,
                     "not enough food to perform the removal"
@@ -200,7 +200,7 @@ public class Player implements Comparable<Player> {
         boolean isNewPair = this.calculateInventorPairs() > pairsBefore;
 
         for (BuildingCard building : this.buildingList) {
-            // double dispatch is utilized to safely notify buildings of the specific character type added
+            // double dispatch is used to safely notify buildings of the specific character type added
             card.notifyBuilding(building, this);
 
             if (isNewSet) {
@@ -357,16 +357,30 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Turn order modifiers are processed for the player.
+     *
+     * @param foodMod the food modifier to apply
+     * @param prestigeMod the prestige modifier to apply
+     */
     public void processTurnOrderModifiers(int foodMod, int prestigeMod) {
         if (foodMod > 0) {
+            // positive food modifier is added
             this.addFood(foodMod);
         } else if (foodMod < 0) {
             int cost = Math.abs(foodMod);
             if (this.hasEnoughFood(cost)) {
+                // food cost is paid
                 this.removeFood(cost);
             } else if (prestigeMod < 0) {
+                // prestige penalty is applied if food is not enough
                 this.removePrestige(Math.abs(prestigeMod));
             }
+        }
+
+        if (prestigeMod > 0) {
+            // positive prestige modifier is added
+            this.addPrestige(prestigeMod);
         }
     }
 

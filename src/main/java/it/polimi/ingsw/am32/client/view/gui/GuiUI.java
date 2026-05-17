@@ -49,23 +49,32 @@ public class GuiUI implements UI {
         });
     }
 
+    @Override
+    public void showLoginResult(LoginResultEvent event) {
+
+    }
+
+    @Override
+    public void showConnectionLost(String message) {
+
+    }
+
+    @Override
+    public void showQuitConfirmation() {
+
+    }
+
+    @Override
+    public void updateAvailableLobbies(AvailableLobbiesEvent event) {
+
+    }
+
+    @Override
+    public void updateLobbyRoom(LobbyRoomUpdateEvent event) {
+
+    }
+
     // --- LOBBY PHASE ---
-
-    @Override
-    public void updateAvailableGames(AvailableLobbiesEvent event) {
-        Platform.runLater(() -> {
-            ViewController ctrl = SceneManager.getCurrentController();
-            if (ctrl != null) ctrl.onAvailableGamesUpdated(event);
-        });
-    }
-
-    @Override
-    public void updateLobbyRoom(LobbyStateUpdatedEvent event) {
-        Platform.runLater(() -> {
-            ViewController ctrl = SceneManager.getCurrentController();
-            if (ctrl != null) ctrl.onLobbyRoomUpdated(event);
-        });
-    }
 
     @Override
     public void showLobbyError(LobbyErrorEvent event) {
@@ -104,7 +113,7 @@ public class GuiUI implements UI {
     }
 
     @Override
-    public void showRoundSummary(RoundEndedEvent event) {
+    public void showRoundEnded(RoundEndedEvent event) {
         Platform.runLater(() -> {
             ViewController ctrl = SceneManager.getCurrentController();
             if (ctrl != null) ctrl.onRoundSummary(event);
@@ -112,7 +121,7 @@ public class GuiUI implements UI {
     }
 
     @Override
-    public void showGameResults(GameEndedEvent event) {
+    public void showGameEnded(GameEndedEvent event) {
         Platform.runLater(() -> {
             ViewController ctrl = SceneManager.getCurrentController();
             if (ctrl != null) ctrl.onGameResults(event);
@@ -164,7 +173,7 @@ public class GuiUI implements UI {
     // --- RESILIENCE AND ERRORS ---
 
     @Override
-    public void showError(GameErrorEvent event) {
+    public void showGameError(GameErrorEvent event) {
         Platform.runLater(() -> {
             ViewController ctrl = SceneManager.getCurrentController();
             if (ctrl != null) ctrl.onError(event);
@@ -200,24 +209,6 @@ public class GuiUI implements UI {
         Platform.runLater(() -> {
             ViewController ctrl = SceneManager.getCurrentController();
             if (ctrl != null) ctrl.onGameResumed(event);
-        });
-    }
-
-    @Override
-    public void notifyDisconnection(String message) {
-        Platform.runLater(() -> {
-            System.err.println("[GUI] Fatal Disconnection: " + message);
-
-            ViewController ctrl = SceneManager.getCurrentController();
-            if (ctrl != null) ctrl.onDisconnection(message);
-
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Fatal Error");
-            alert.setHeaderText("Connection to server lost");
-            alert.setContentText(message);
-            alert.showAndWait();
-
-            System.exit(0);
         });
     }
 }

@@ -3,6 +3,7 @@ package it.polimi.ingsw.am32.client.assets;
 import it.polimi.ingsw.am32.dto.setup.*;
 import it.polimi.ingsw.am32.utils.JsonAssetLoader;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,6 +76,17 @@ public class AssetManager {
 
         // card backs are mapped
         cardBacks.putAll(loader.getCardBacks());
+    }
+
+    /**
+     * The raw input stream for the dictionary file is retrieved directly from the classloader.
+     *
+     * @param resourcePath the path of the JSON dictionary file
+     * @return the input stream of the requested file
+     */
+    public InputStream getDictionaryStream(String resourcePath) {
+        // input stream is opened using the class loader
+        return AssetManager.class.getResourceAsStream(resourcePath);
     }
 
     /**

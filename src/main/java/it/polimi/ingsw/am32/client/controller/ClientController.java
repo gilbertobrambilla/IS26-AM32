@@ -2,7 +2,6 @@ package it.polimi.ingsw.am32.client.controller;
 
 import it.polimi.ingsw.am32.client.model.LightGameState;
 import it.polimi.ingsw.am32.client.view.UI;
-import it.polimi.ingsw.am32.client.view.tui.TuiUI;
 import it.polimi.ingsw.am32.controller.commands.game.*;
 import it.polimi.ingsw.am32.controller.commands.lobby.*;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
@@ -12,6 +11,7 @@ import it.polimi.ingsw.am32.network.client.MessageDispatcher;
 import it.polimi.ingsw.am32.network.client.VirtualServer;
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,15 +58,23 @@ public class ClientController {
     // outbound commands (ui -> controller -> network)
 
     /**
-     * Connection is requested.
-     *
-     * @param nickname the chosen nickname.
+     * Physical connection is requested.
      */
-    public void requestConnect(String nickname) {
-        this.myNickname = nickname;
-        this.lightGameState = new LightGameState(nickname);
+    public void requestConnect() {
         // connection is forwarded to virtual server
-        virtualServer.connect(nickname);
+        virtualServer.connect();
+    }
+
+    /**
+     * Login is requested.
+     *
+     * @param nickname the chosen nickname
+     */
+    public void requestLogin(String nickname) {
+        // temporary nickname is stored
+        this.myNickname = nickname;
+        // authentication is forwarded to virtual server
+        virtualServer.login(nickname);
     }
 
     /**
@@ -153,28 +161,50 @@ public class ClientController {
     /**
      * Connection result event is processed.
      *
-     * @param event the connection result event.
+     * @param event the connection result event
      */
     public void onConnectionResult(ConnectionResultEvent event) {
         if (event.isSuccess()) {
             // liveness routine is started on successful connection
-            this.virtualServer.startLivenessRoutine();
+            this.virtualServer.startServerHeartbeat();
         }
 
         runOnUIThread(() -> {
-            // ui is updated
+            // ui is updated to ask for nickname
             if (ui != null) ui.showConnectionResult(event);
+        });
+    }
+
+    /**
+     * Login result event is processed.
+     *
+     * @param event the login result event
+     */
+    public void onLoginResult(LoginResultEvent event) {
+        if (event.isSuccess()) {
+            // light game state is initialized upon success
+            this.lightGameState = new LightGameState(this.myNickname);
+        } else {
+            // rejected nickname is cleared
+            this.myNickname = null;
+        }
+
+        runOnUIThread(() -> {
+            // ui is updated with login outcome
+            if (ui != null) {
+                ui.showLoginResult(event);
+            }
         });
     }
 
     public void onAvailableGamesListUpdate(AvailableLobbiesEvent event) {
         runOnUIThread(() -> {
             // ui is updated
-            if (ui != null) ui.updateAvailableGames(event);
+            if (ui != null) ui.updateAvailableLobbies(event);
         });
     }
 
-    public void onLobbyRoomUpdated(LobbyStateUpdatedEvent event) {
+    public void onLobbyRoomUpdated(LobbyRoomUpdateEvent event) {
         runOnUIThread(() -> {
             // ui is updated
             if (ui != null) ui.updateLobbyRoom(event);
@@ -223,14 +253,14 @@ public class ClientController {
             );
 
             // ui is updated
-            if (ui != null) ui.showRoundSummary(event);
+            if (ui != null) ui.showRoundEnded(event);
         });
     }
 
     public void onGameEnded(GameEndedEvent event) {
         runOnUIThread(() -> {
             // ui is updated
-            if (ui != null) ui.showGameResults(event);
+            if (ui != null) ui.showGameEnded(event);
         });
     }
 
@@ -243,8 +273,14 @@ public class ClientController {
         });
     }
 
+    /**
+     * Action resolution event is processed.
+     *
+     * @param event the action resolved event
+     */
     public void onActionResolved(ActionResolvedEvent event) {
         runOnUIThread(() -> {
+            // card acquisitions and main stats are updated
             lightGameState.updateActionResolution(
                     event.getPlayer(),
                     event.getAcquiredCharacterCardIds(),
@@ -253,8 +289,15 @@ public class ClientController {
                     event.getNextPlayer()
             );
 
+            // totem placement is updated
             lightGameState.returnTotem(event.getPlayer(), event.getTotemReturnDetails().getTurnOrderPosition());
 
+            // totem return stats are evaluated and safely updated
+            if (event.getTotemReturnDetails().getStatsChanges() != null) {
+                lightGameState.updateStats(Collections.singletonList(event.getTotemReturnDetails().getStatsChanges()));
+            }
+
+            // ui is updated
             if (ui != null) ui.showActionResolved(event);
         });
     }
@@ -280,7 +323,7 @@ public class ClientController {
     public void onInvalidAction(GameErrorEvent event) {
         runOnUIThread(() -> {
             // ui is updated
-            if (ui != null) ui.showError(event);
+            if (ui != null) ui.showGameError(event);
         });
     }
 
@@ -324,7 +367,7 @@ public class ClientController {
     public void onFatalError(String message) {
         runOnUIThread(() -> {
             // ui is notified of the disconnection
-            if (ui != null) ui.notifyDisconnection(message);
+            if (ui != null) ui.showConnectionLost(message);
         });
     }
 
@@ -359,19 +402,16 @@ public class ClientController {
     }
 
     /**
-     * The user requests application termination.
+     * Application termination is requested.
      */
     public void requestExit() {
-        runOnUIThread(() -> {
-            // exit is triggered if ui is tui
-            if (ui instanceof TuiUI) {
-                ((TuiUI) ui).triggerUserQuit();
-            } else {
-                // fallback is executed for gui
-                shutdown();
-                System.exit(0);
-            }
-        });
+        // resources are released and the connection is gracefully closed
+        shutdown();
+
+        if (ui != null) {
+            // termination is delegated to the specific ui implementation
+            ui.showQuitConfirmation();
+        }
     }
 
     /**

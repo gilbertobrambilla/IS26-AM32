@@ -158,8 +158,6 @@ public class LobbyController implements GameLifecycleCallback, Runnable {
                     if (game.isPlayerActive(nickname)) {
                         // rejection result is notified
                         view.notifyLoginResult(new LoginResultEvent(false, "nickname already taken", false));
-                        // adapter is destroyed to prevent thread leak
-                        view.destroy();
                         return;
                     }
                     // map is updated with new connection id
@@ -173,8 +171,6 @@ public class LobbyController implements GameLifecycleCallback, Runnable {
                     } else {
                         // rejection result is notified
                         view.notifyLoginResult(new LoginResultEvent(false, "nickname already taken", false));
-                        // adapter is destroyed to prevent thread leak
-                        view.destroy();
                         return;
                     }
                 }

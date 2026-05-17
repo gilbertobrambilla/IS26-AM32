@@ -1,10 +1,19 @@
 package it.polimi.ingsw.am32.client.view.tui.components.ingame;
 
+import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.model.LightGameState;
 import it.polimi.ingsw.am32.client.model.LightPlayer;
 import it.polimi.ingsw.am32.client.view.tui.components.global.AbstractTuiPanel;
+import it.polimi.ingsw.am32.client.view.tui.utils.CardFormatter;
+import it.polimi.ingsw.am32.client.view.tui.utils.TuiColorPalette;
+import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
+import it.polimi.ingsw.am32.dto.setup.BuildingCardDTO;
+import it.polimi.ingsw.am32.dto.setup.CharacterCardDTO;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 import org.jline.terminal.Terminal;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Panel responsible for displaying player statistics and inventory.
@@ -14,9 +23,16 @@ public class SidePanel extends AbstractTuiPanel {
     private String focusedPlayer;
 
     /**
-     * The game state data is updated.
+     * Side panel is instantiated.
+     */
+    public SidePanel() {
+        // instance remains empty as formatter is now a singleton
+    }
+
+    /**
+     * Game state data is updated.
      *
-     * @param state the current game state.
+     * @param state the current game state
      */
     public void updateData(LightGameState state) {
         // state is updated
@@ -24,9 +40,9 @@ public class SidePanel extends AbstractTuiPanel {
     }
 
     /**
-     * The panel focus is set to a specific player or cleared.
+     * Panel focus is set to a specific player or cleared.
      *
-     * @param nickname the player nickname, or null to return to compressed view.
+     * @param nickname the player nickname or null to return to compressed view
      */
     public void setFocus(String nickname) {
         // focus is updated
@@ -36,8 +52,8 @@ public class SidePanel extends AbstractTuiPanel {
     /**
      * Ansi color code is retrieved based on totem color.
      *
-     * @param color the enum representing the totem color.
-     * @return the ansi color escape sequence.
+     * @param color the enum representing the totem color
+     * @return the ansi color escape sequence
      */
     private String getAnsiColor(TotemColor color) {
         if (color == null) {
@@ -71,16 +87,16 @@ public class SidePanel extends AbstractTuiPanel {
             drawCompressedView(terminal, startX, startY);
         } else {
             // expanded view is rendered
-            drawExpandedView(terminal, startX, startY);
+            drawExpandedView(terminal, startX, startY, width);
         }
     }
 
     /**
-     * The compressed view summarizing all players is drawn.
+     * Compressed view summarizing all players is drawn with local player identification.
      *
-     * @param terminal the terminal instance.
-     * @param startX the starting x coordinate.
-     * @param startY the starting y coordinate.
+     * @param terminal the terminal instance
+     * @param startX the starting x coordinate
+     * @param startY the starting y coordinate
      */
     private void drawCompressedView(Terminal terminal, int startX, int startY) {
         // initial row offset is defined
@@ -96,21 +112,24 @@ public class SidePanel extends AbstractTuiPanel {
             // active player indicator is evaluated
             String activeIndicator = player.getNickname().equals(currentPlayer) ? "> " : "  ";
 
-            // color codes are prepared
-            String colorCode = getAnsiColor(player.getTotemColor());
+            // local player identification is appended
+            String youSuffix = player.getNickname().equals(state.getMyNickname()) ? " (you)" : "";
+
+            // color codes are prepared from central palette
+            String colorCode = TuiColorPalette.getTotemColor(player.getTotemColor());
             String resetCode = "\033[0m";
 
-            // basic info is drawn with connection tag appended after the color reset
+            // basic info is drawn including identification suffix
             moveCursor(terminal, startX + 2, startY + rowOffset++);
-            terminal.writer().print(activeIndicator + colorCode + player.getNickname() + resetCode + connectionTag);
+            terminal.writer().print(activeIndicator + colorCode + player.getNickname() + youSuffix + resetCode + connectionTag);
 
-            // vitals are drawn
+            // vitals are drawn with prestige prioritized over food
             moveCursor(terminal, startX + 4, startY + rowOffset++);
-            terminal.writer().print("food: " + player.getFood() + " | prestige: " + player.getPrestige());
+            terminal.writer().print(player.getPrestige() + " 🏆   " + player.getFood() + " 🍖");
 
-            // card counters are drawn
+            // card counters are drawn using full names
             moveCursor(terminal, startX + 4, startY + rowOffset++);
-            terminal.writer().print("cards: " + player.getCharacterCards().size() + " chars | " + player.getBuildingCards().size() + " bldgs");
+            terminal.writer().print(player.getCharacterCards().size() + " characters   " + player.getBuildingCards().size() + " buildings");
 
             // spacing is added
             rowOffset++;
@@ -118,13 +137,14 @@ public class SidePanel extends AbstractTuiPanel {
     }
 
     /**
-     * The expanded view showing detailed inventory for a specific player is drawn.
+     * Expanded view showing detailed inventory for a specific player is drawn with identification.
      *
-     * @param terminal the terminal instance.
-     * @param startX the starting x coordinate.
-     * @param startY the starting y coordinate.
+     * @param terminal the terminal instance
+     * @param startX the starting x coordinate
+     * @param startY the starting y coordinate
+     * @param maxWidth the maximum width
      */
-    private void drawExpandedView(Terminal terminal, int startX, int startY) {
+    private void drawExpandedView(Terminal terminal, int startX, int startY, int maxWidth) {
         // focused player is retrieved
         LightPlayer player = state.getPlayers().get(focusedPlayer);
 
@@ -141,35 +161,48 @@ public class SidePanel extends AbstractTuiPanel {
         // current player is retrieved
         String currentPlayer = state.getCurrentPlayer();
 
-        // connection tag is formatted as suffix
+        // connection tag is formatted
         String connectionTag = player.isConnected() ? "" : " (disconnected)";
 
         // active player indicator is evaluated
         String activeIndicator = player.getNickname().equals(currentPlayer) ? "> " : "  ";
 
+        // local player identification is appended
+        String youSuffix = player.getNickname().equals(state.getMyNickname()) ? " (you)" : "";
+
         // formatting codes are prepared
-        String colorCode = getAnsiColor(player.getTotemColor());
+        String colorCode = TuiColorPalette.getTotemColor(player.getTotemColor());
         String resetCode = "\033[0m";
         String boldCode = "\033[1m";
 
-        // header info is drawn with connection tag appended after the color reset
+        // header info is drawn including identification suffix
         moveCursor(terminal, startX + 2, startY + rowOffset++);
-        terminal.writer().print(activeIndicator + boldCode + colorCode + player.getNickname() + resetCode + connectionTag);
+        terminal.writer().print(activeIndicator + boldCode + colorCode + player.getNickname() + youSuffix + resetCode + connectionTag);
 
-        // vitals are drawn
+        // vitals are drawn with prestige prioritized over food
         moveCursor(terminal, startX + 4, startY + rowOffset++);
-        terminal.writer().print("food: " + player.getFood() + " | prestige: " + player.getPrestige());
+        terminal.writer().print(player.getPrestige() + " 🏆   " + player.getFood() + " 🍖");
         rowOffset++;
 
         // characters section is drawn
         moveCursor(terminal, startX + 2, startY + rowOffset++);
         terminal.writer().print(boldCode + "characters" + resetCode);
 
-        // TODO: identical character cards are aggregated and translated via json dictionary
+        // character occurrences are mapped using translated types
+        AssetManager am = AssetManager.getInstance();
+        Map<String, Integer> charCounts = new HashMap<>();
         for (String cardId : player.getCharacterCards()) {
-            // indentation is added
+            CharacterCardDTO dto = am.getCharacterCard(cardId);
+            if (dto != null) {
+                String type = GameDictionary.getInstance().translate(dto.getCharacterType());
+                charCounts.put(type, charCounts.getOrDefault(type, 0) + 1);
+            }
+        }
+
+        // grouped character counts are printed
+        for (Map.Entry<String, Integer> entry : charCounts.entrySet()) {
             moveCursor(terminal, startX + 4, startY + rowOffset++);
-            terminal.writer().print(cardId);
+            terminal.writer().print(entry.getValue() + "x " + entry.getKey());
         }
         rowOffset++;
 
@@ -177,11 +210,20 @@ public class SidePanel extends AbstractTuiPanel {
         moveCursor(terminal, startX + 2, startY + rowOffset++);
         terminal.writer().print(boldCode + "buildings" + resetCode);
 
-        // TODO: identical building cards are aggregated and translated via json dictionary
+        // building occurrences are mapped by their formatted effect
+        Map<String, Integer> bldgCounts = new HashMap<>();
         for (String cardId : player.getBuildingCards()) {
-            // indentation is added
-            moveCursor(terminal, startX + 4, startY + rowOffset++);
-            terminal.writer().print(cardId);
+            BuildingCardDTO dto = am.getBuildingCard(cardId);
+            if (dto != null) {
+                String effect = CardFormatter.getInstance().formatBuilding(dto);
+                bldgCounts.put(effect, bldgCounts.getOrDefault(effect, 0) + 1);
+            }
+        }
+
+        // grouped building effects are printed
+        for (Map.Entry<String, Integer> entry : bldgCounts.entrySet()) {
+            String line = entry.getValue() + "x " + entry.getKey();
+            rowOffset += drawWrappedText(terminal, line, startX + 4, startY + rowOffset, maxWidth - 6);
         }
     }
 }

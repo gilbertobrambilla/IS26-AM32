@@ -46,16 +46,19 @@ public class LobbyScene implements Scene {
     public void draw(Terminal terminal, int width, int height) {
         // fixed layout bounds are defined
         int inputHeight = 2;
-        int logHeight = 8;
-        int sideWidth = Math.min(45, width / 3);
-        int mainWidth = width - sideWidth;
+        int logHeight = 7;
+
+        // bottom section widths are defined with restored and increased legend size
+        int legendWidth = Math.min(49, width / 3 + 4);
+        int logWidth = width - legendWidth;
+
         int mainHeight = height - logHeight - inputHeight;
 
         // lobby panel is drawn
         lobbyPanel.draw(terminal, 1, 1, width, mainHeight);
 
-        // bottom section is split between log and legend
-        logPanel.draw(terminal, 1, height - logHeight - inputHeight + 1, mainWidth, logHeight);
-        legendPanel.draw(terminal, mainWidth + 1, height - logHeight - inputHeight + 1, sideWidth, logHeight);
+        // bottom section is split
+        logPanel.draw(terminal, 1, height - logHeight - inputHeight + 1, logWidth, logHeight);
+        legendPanel.draw(terminal, logWidth + 1, height - logHeight - inputHeight + 1, legendWidth, logHeight);
     }
 }

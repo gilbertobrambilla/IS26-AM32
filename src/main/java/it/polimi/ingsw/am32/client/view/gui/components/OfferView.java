@@ -74,7 +74,7 @@ public class OfferView extends StackPane {
     private void loadTileImage() {
         if (tileData != null && tileData.getId() != null) {
             String validId = normalizeId(tileData.getId());
-            String assetPath = AssetManager.getInstance().getAssetPath(validId);
+            String assetPath = AssetManager.getInstance().getUiAsset(validId);
 
             if (assetPath != null) {
                 Image image = ImageCache.getInstance().getImage(assetPath);

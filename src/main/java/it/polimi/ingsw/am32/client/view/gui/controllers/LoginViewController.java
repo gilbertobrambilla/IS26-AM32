@@ -47,7 +47,7 @@ public class LoginViewController implements ViewController {
         errorLabel.setVisible(false);
 
         // 3. Chiamata corretta al ClientController
-        clientController.requestConnect(username);
+        clientController.requestConnect();
     }
 
     private void showErrorMessage(String message) {

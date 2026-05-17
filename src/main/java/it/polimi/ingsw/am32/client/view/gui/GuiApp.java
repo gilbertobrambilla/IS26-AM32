@@ -2,10 +2,12 @@ package it.polimi.ingsw.am32.client.view.gui;
 
 import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.controller.ClientController;
-import it.polimi.ingsw.am32.client.view.utils.CardFormatter;
+import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
+
+import java.io.InputStream;
 
 /**
  * the main entry point for the JavaFX graphical user interface.
@@ -61,10 +63,13 @@ public class GuiApp extends Application {
 
         System.out.println("[SYSTEM] Loading game assets...");
         try {
-            AssetManager.getInstance().loadAssets("assets/assets.json");
-            new CardFormatter().loadDictionary("assets/strings_en.json");
+            AssetManager.getInstance().loadAssets();
+
+            InputStream dictionaryStream = AssetManager.getInstance().getDictionaryStream("/assets/strings_en.json");
+            GameDictionary.getInstance().loadFromJson(dictionaryStream);
+
         } catch (Exception e) {
-            System.err.println("[GUI ERROR] Failed to load assets.json");
+            System.err.println("[GUI ERROR] Failed to load assets/dictionary");
             e.printStackTrace();
         }
 
