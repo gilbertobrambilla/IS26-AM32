@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am32.client.view.tui;
 
+import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.client.network.NetworkFactory;
 import it.polimi.ingsw.am32.client.view.UI;
 import it.polimi.ingsw.am32.client.view.tui.components.global.LegendPanel;
 import it.polimi.ingsw.am32.client.view.tui.components.global.LogPanel;
@@ -9,11 +11,13 @@ import it.polimi.ingsw.am32.client.view.tui.components.ingame.HeaderPanel;
 import it.polimi.ingsw.am32.client.view.tui.components.ingame.SidePanel;
 import it.polimi.ingsw.am32.client.view.tui.handlers.*;
 import it.polimi.ingsw.am32.client.view.tui.scenes.*;
+import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
 import it.polimi.ingsw.am32.log.LogLevel;
 import it.polimi.ingsw.am32.log.LogManager;
 import it.polimi.ingsw.am32.log.LogObserver;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
+import it.polimi.ingsw.am32.network.client.VirtualServer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -22,6 +26,7 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,9 +34,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Text user interface implementation handling fully drawn scenes and interaction.
  */
 public class TuiUI implements UI, LogObserver {
-    private final ClientController controller;
+    private final String serverIp;
+    private ClientController controller;
     private boolean isRunning;
-    private boolean isConnected;
+    private boolean isNetworkConnected;
+    private boolean isLoggedIn;
     private boolean isWaitingResponse;
     private Terminal terminal;
     private LineReader lineReader;
@@ -64,20 +71,19 @@ public class TuiUI implements UI, LogObserver {
     /**
      * The tui ui is instantiated.
      *
-     * @param controller the client controller.
+     * @param serverIp the server ip address
      */
-    public TuiUI(ClientController controller) {
-        this.controller = controller;
+    public TuiUI(String serverIp) {
+        this.serverIp = serverIp;
+        this.controller = null;
         this.isRunning = false;
-        this.isConnected = false;
+        this.isNetworkConnected = false;
+        this.isLoggedIn = false;
         this.currentState = null;
         this.commandRegistry = new EnumMap<>(TuiState.class);
 
         // registries are initialized
         initializeRegistries();
-
-        // ui reference is passed to controller
-        this.controller.setUI(this);
     }
 
     /**
@@ -85,24 +91,26 @@ public class TuiUI implements UI, LogObserver {
      */
     private void initializeRegistries() {
         InputHandler quit = new QuitHandler();
+        InputHandler help = new HelpHandler();
 
         Map<String, InputHandler> menuRegistry = new HashMap<>();
         menuRegistry.put("create", new CreateGameHandler());
         menuRegistry.put("join", new JoinGameHandler());
         menuRegistry.put("quit", quit);
+        menuRegistry.put("help", help);
 
         Map<String, InputHandler> inGameRegistry = new HashMap<>();
         inGameRegistry.put("place", new PlaceHandler());
-        inGameRegistry.put("take", new TakeHandler());
+        inGameRegistry.put("resolve", new ResolveHandler());
         inGameRegistry.put("stats", new StatsHandler());
         inGameRegistry.put("quit", quit);
-        // help handler is omitted pending future implementation
+        inGameRegistry.put("help", help);
 
         commandRegistry.put(TuiState.MENU, menuRegistry);
-        commandRegistry.put(TuiState.LOBBY, Map.of("quit", quit));
+        commandRegistry.put(TuiState.LOBBY, Map.of("quit", quit, "help", help));
         commandRegistry.put(TuiState.IN_GAME, inGameRegistry);
-        commandRegistry.put(TuiState.SUSPENDED, Map.of("quit", quit));
-        commandRegistry.put(TuiState.END_GAME, Map.of("quit", quit));
+        commandRegistry.put(TuiState.SUSPENDED, Map.of("quit", quit, "help", help));
+        commandRegistry.put(TuiState.END_GAME, Map.of("quit", quit, "help", help));
     }
 
     /**
@@ -126,6 +134,13 @@ public class TuiUI implements UI, LogObserver {
         // observer is registered with log manager
         LogManager.getInstance().addObserver(this);
 
+        // dictionary is loaded early in the lifecycle using the asset manager
+        InputStream dictionaryStream = AssetManager.getInstance().getDictionaryStream("/assets/strings_en.json");
+        GameDictionary.getInstance().loadFromJson(dictionaryStream);
+
+        // game assets are loaded into memory
+        AssetManager.getInstance().loadAssets();
+
         // global components are initialized
         this.screenManager = new ScreenManager(terminal);
         this.screenManager.setLineReader(lineReader);
@@ -147,14 +162,57 @@ public class TuiUI implements UI, LogObserver {
 
         while (isRunning) {
             try {
-                if (!isConnected) {
+                if (controller == null) {
+                    // protocol is requested from user
+                    String protocol = lineReader.readLine("Choose connection protocol (1: RMI, 2: Socket): ").trim();
+                    VirtualServer virtualServer = null;
+
+                    // crash callback is defined
+                    Runnable onCrash = () -> {
+                        if (controller != null) {
+                            controller.onFatalError("Server connection lost");
+                        }
+                    };
+
+                    if (protocol.equals("1")) {
+                        LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Connecting to " + serverIp + " via RMI...");
+                        virtualServer = NetworkFactory.createRmiConnection(serverIp, onCrash);
+                    } else if (protocol.equals("2")) {
+                        LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Connecting to " + serverIp + " via Socket...");
+                        virtualServer = NetworkFactory.createSocketConnection(serverIp, onCrash);
+                    } else {
+                        LogManager.getInstance().log(LogLevel.WARNING, "[SYSTEM] Invalid protocol selection.");
+                        continue;
+                    }
+
+                    if (virtualServer == null) {
+                        LogManager.getInstance().log(LogLevel.ERROR, "[NETWORK] Connection failed. The server might be offline.");
+                        continue;
+                    }
+
+                    // controller is instantiated and wired
+                    this.controller = new ClientController(virtualServer);
+                    virtualServer.setClientController(this.controller);
+                    this.controller.setUI(this);
+
+                    // physical connection is requested
+                    isWaitingResponse = true;
+                    this.controller.requestConnect();
+
+                    // thread is paused if response is still pending
+                    synchronized (this) {
+                        if (isWaitingResponse) {
+                            wait(10000);
+                        }
+                    }
+                } else if (isNetworkConnected && !isLoggedIn) {
                     // nickname is requested sequentially before scene take-over
                     String nickname = lineReader.readLine("Insert your nickname: ").trim();
                     if (!nickname.isEmpty()) {
                         // wait flag is set
                         isWaitingResponse = true;
-                        // connection is requested
-                        controller.requestConnect(nickname);
+                        // login is requested
+                        controller.requestLogin(nickname);
                         // thread is paused if response is still pending
                         synchronized (this) {
                             if (isWaitingResponse) {
@@ -162,7 +220,7 @@ public class TuiUI implements UI, LogObserver {
                             }
                         }
                     }
-                } else {
+                } else if (isNetworkConnected && isLoggedIn) {
                     // dynamic prompt is generated
                     String prompt = getDynamicPrompt();
                     // user input is read
@@ -209,7 +267,7 @@ public class TuiUI implements UI, LogObserver {
     /**
      * Dynamic prompt string is generated.
      *
-     * @return the formatted prompt string.
+     * @return the formatted prompt string
      */
     private String getDynamicPrompt() {
         if (currentState == null) return "> ";
@@ -226,7 +284,7 @@ public class TuiUI implements UI, LogObserver {
     /**
      * The user input is parsed and routed via the command registry.
      *
-     * @param input the raw user input.
+     * @param input the raw user input
      */
     private void parseCommand(String input) {
         String[] tokens = input.split("\\s+");
@@ -257,9 +315,9 @@ public class TuiUI implements UI, LogObserver {
     }
 
     /**
-     * Internal state is updated and the screen is triggered to re-render.
+     * The internal state is updated and the screen is triggered to re-render.
      *
-     * @param newState the target application state.
+     * @param newState the target application state
      */
     private void updateStateAndScene(TuiState newState) {
         // boolean flag evaluates if the prompt text actually needs to change
@@ -308,7 +366,7 @@ public class TuiUI implements UI, LogObserver {
     }
 
     /**
-     * Screen is safely rendered avoiding conflicts with active line reader.
+     * Screen is safely rendered avoiding conflicts with the active line reader.
      */
     private synchronized void safeRender() {
         if (lineReader != null && lineReader.isReading()) {
@@ -347,7 +405,7 @@ public class TuiUI implements UI, LogObserver {
     /**
      * The reason for the interface termination is retrieved.
      *
-     * @return the exit reason.
+     * @return the exit reason
      */
     public ExitReason getExitReason() {
         // exit reason is returned
@@ -355,18 +413,12 @@ public class TuiUI implements UI, LogObserver {
     }
 
     /**
-     * Voluntary user quit is triggered.
+     * Voluntary user quit is triggered (waiting for server acknowledgment).
      */
     public void triggerUserQuit() {
-        // exit reason is set
-        this.exitReason = ExitReason.USER_QUIT;
-        // loop is terminated
-        this.isRunning = false;
-
-        // waiting threads are unblocked
+        // wait flag is set to block until server confirmation
         synchronized (this) {
-            isWaitingResponse = false;
-            notifyAll();
+            isWaitingResponse = true;
         }
     }
 
@@ -375,26 +427,23 @@ public class TuiUI implements UI, LogObserver {
     /**
      * Connection result is processed and displayed on the terminal.
      *
-     * @param event the connection result event.
+     * @param event the connection result event
      */
     @Override
     public void showConnectionResult(ConnectionResultEvent event) {
         if (event.isSuccess()) {
-            // connection status is set
-            this.isConnected = true;
-
-            if (event.isReconnecting()) {
-                // reconnection message is logged without changing scene
-                LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Reconnecting to game...");
-            } else {
-                // welcome message is logged
-                LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] " + event.getMessage());
-                // state and scene are updated to menu
-                updateStateAndScene(TuiState.MENU);
-            }
+            // network connection flag is updated
+            this.isNetworkConnected = true;
+            // success is logged
+            LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Connected to server successfully.");
         } else {
-            // error message is logged
-            LogManager.getInstance().log(LogLevel.ERROR, "[NETWORK] Connection failed: " + event.getMessage());
+            // error is logged
+            LogManager.getInstance().log(LogLevel.ERROR, "[NETWORK] Connection failed.");
+            // controller is destroyed to restart flow
+            if (this.controller != null) {
+                this.controller.shutdown();
+                this.controller = null;
+            }
         }
 
         // wait flag is cleared and thread is notified
@@ -404,8 +453,43 @@ public class TuiUI implements UI, LogObserver {
         }
     }
 
+    /**
+     * Connection result is processed and displayed on the terminal.
+     *
+     * @param event the login result event
+     */
     @Override
-    public void updateAvailableGames(AvailableLobbiesEvent event) {
+    public void showLoginResult(LoginResultEvent event) {
+        if (event.isSuccess()) {
+            // connection status is set
+            this.isLoggedIn = true;
+
+            if (event.isReconnecting()) {
+                // reconnection message is logged without changing scene
+                LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Reconnecting to game...");
+            } else {
+                // welcome message is logged
+                LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] " + event.getMessage());
+            }
+        } else {
+            // error message is logged
+            LogManager.getInstance().log(LogLevel.ERROR, "[NETWORK] Login failed: " + event.getMessage());
+        }
+
+        // wait flag is cleared and thread is notified
+        synchronized (this) {
+            isWaitingResponse = false;
+            notifyAll();
+        }
+    }
+
+    /**
+     * Available games list is updated.
+     *
+     * @param event the available lobbies event
+     */
+    @Override
+    public void updateAvailableLobbies(AvailableLobbiesEvent event) {
         // data list is initialized
         List<MenuScene.MenuLobbyData> lobbyData = new ArrayList<>();
 
@@ -417,14 +501,17 @@ public class TuiUI implements UI, LogObserver {
         // available games are injected into the menu scene
         menuScene.setAvailableGames(lobbyData);
 
-        // screen is redrawn if the user is in the menu state
-        if (currentState == TuiState.MENU) {
-            safeRender();
-        }
+        // state and scene are updated to menu
+        updateStateAndScene(TuiState.MENU);
     }
 
+    /**
+     * Lobby room state is updated.
+     *
+     * @param event the lobby room update event
+     */
     @Override
-    public void updateLobbyRoom(LobbyStateUpdatedEvent event) {
+    public void updateLobbyRoom(LobbyRoomUpdateEvent event) {
         // info dto is extracted
         var info = event.getLobbyInfo();
 
@@ -447,16 +534,29 @@ public class TuiUI implements UI, LogObserver {
         }
     }
 
+    /**
+     * Focus is set on a specific player in the user interface.
+     *
+     * @param nickname the player nickname
+     */
     @Override
     public void showPlayerFocus(String nickname) {
-        // focus is updated conceptually, screen triggers will be resolved in specific panels
+        // focus is injected into the in game scene
+        inGameScene.setPlayerFocus(nickname);
+
+        // log message is generated
         LogManager.getInstance().log(LogLevel.INFO, "[VIEW] Focus set to: " + (nickname == null ? "none" : nickname));
+
+        // screen is redrawn if currently in game
+        if (currentState == TuiState.IN_GAME) {
+            safeRender();
+        }
     }
 
     /**
      * Game start is shown.
      *
-     * @param event the game started event.
+     * @param event the game started event
      */
     @Override
     public void showGameStarted(GameStartedEvent event) {
@@ -473,9 +573,9 @@ public class TuiUI implements UI, LogObserver {
     }
 
     /**
-     * Game state is restored and rendered on the terminal.
+     * Game state is restored.
      *
-     * @param event the game state event.
+     * @param event the game state event
      */
     @Override
     public void restoreGameState(GameStateEvent event) {
@@ -492,6 +592,11 @@ public class TuiUI implements UI, LogObserver {
         }
     }
 
+    /**
+     * Game phase is updated.
+     *
+     * @param event the game phase changed event
+     */
     @Override
     public void updateGamePhase(GamePhaseChangedEvent event) {
         // phase change is logged
@@ -500,19 +605,34 @@ public class TuiUI implements UI, LogObserver {
         updateStateAndScene(TuiState.IN_GAME);
     }
 
+    /**
+     * Round summary is shown.
+     *
+     * @param event the round-ended event
+     */
     @Override
-    public void showRoundSummary(RoundEndedEvent event) {
+    public void showRoundEnded(RoundEndedEvent event) {
         // round summary is logged
         LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Round " + event.getRound() + " ended.");
     }
 
+    /**
+     * Game results are shown.
+     *
+     * @param event the game ended event
+     */
     @Override
-    public void showGameResults(GameEndedEvent event) {
+    public void showGameEnded(GameEndedEvent event) {
         // state and scene are updated
         endGameScene.setWinners(event.getResults().getWinners());
         updateStateAndScene(TuiState.END_GAME);
     }
 
+    /**
+     * Join game error is shown.
+     *
+     * @param event the lobby error event
+     */
     @Override
     public void showLobbyError(LobbyErrorEvent event) {
         // error is logged
@@ -524,48 +644,96 @@ public class TuiUI implements UI, LogObserver {
         }
     }
 
+    /**
+     * Totem placement is shown.
+     *
+     * @param event the totem placed event
+     */
     @Override
     public void showTotemPlaced(TotemPlacedEvent event) {
         // totem placement is logged
         LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Totem placed by " + event.getPlayer() + " on tile " + event.getOfferTileId() + ".");
+        // scene is redrawn
+        updateStateAndScene(TuiState.IN_GAME);
     }
 
+    /**
+     * Action resolution is shown.
+     *
+     * @param event the action resolved event
+     */
     @Override
     public void showActionResolved(ActionResolvedEvent event) {
         // action resolution is logged
         LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Action resolved by " + event.getPlayer() + ".");
+        // scene is redrawn
+        updateStateAndScene(TuiState.IN_GAME);
     }
 
+    /**
+     * Event resolution is shown.
+     *
+     * @param event the event resolved event
+     */
     @Override
     public void showEventResolved(EventResolvedEvent event) {
         // event resolution is logged
         LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Event " + event.getEventCardId() + " resolved.");
+        // scene is redrawn
+        updateStateAndScene(TuiState.IN_GAME);
     }
 
+    /**
+     * Extra acquisition is shown.
+     *
+     * @param event the extra acquisition resolved event
+     */
     @Override
     public void showExtraAcquisition(ExtraAcquisitionResolvedEvent event) {
         // extra acquisition is logged
         LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Extra card acquired by " + event.getPlayer() + ".");
+        // scene is redrawn
+        updateStateAndScene(TuiState.IN_GAME);
     }
 
+    /**
+     * Error message is shown.
+     *
+     * @param event the game error event
+     */
     @Override
-    public void showError(GameErrorEvent event) {
+    public void showGameError(GameErrorEvent event) {
         // error is logged
         LogManager.getInstance().log(LogLevel.ERROR, "[GAME] " + event.getErrorMessage());
     }
 
+    /**
+     * Player disconnection is shown.
+     *
+     * @param event the player disconnected event
+     */
     @Override
     public void showPlayerDisconnected(PlayerDisconnectedEvent event) {
         // disconnection warning is logged
         LogManager.getInstance().log(LogLevel.WARNING, "[GAME] Player disconnected: " + event.getPlayer());
     }
 
+    /**
+     * Player reconnection is shown.
+     *
+     * @param event the player reconnected event
+     */
     @Override
     public void showPlayerReconnected(PlayerReconnectedEvent event) {
         // reconnection is logged
         LogManager.getInstance().log(LogLevel.INFO, "[GAME] Player reconnected: " + event.getPlayer());
     }
 
+    /**
+     * Game suspension is shown.
+     *
+     * @param event the game suspended event
+     */
     @Override
     public void showGameSuspended(GameSuspendedEvent event) {
         // suspension warning is logged
@@ -574,6 +742,11 @@ public class TuiUI implements UI, LogObserver {
         updateStateAndScene(TuiState.SUSPENDED);
     }
 
+    /**
+     * Game resumption is shown.
+     *
+     * @param event the game resumed event
+     */
     @Override
     public void showGameResumed(GameResumedEvent event) {
         // resumption is logged
@@ -582,13 +755,44 @@ public class TuiUI implements UI, LogObserver {
         updateStateAndScene(TuiState.IN_GAME);
     }
 
+    /**
+     * Fatal connection loss is shown.
+     *
+     * @param message the error message
+     */
     @Override
-    public void notifyDisconnection(String message) {
+    public void showConnectionLost(String message) {
         // critical error is logged
         LogManager.getInstance().log(LogLevel.ERROR, "[NETWORK] Connection lost: " + message);
 
+        // state and connection flags are reset
+        this.isNetworkConnected = false;
+        this.isLoggedIn = false;
+        this.currentState = null;
+
+        // old controller is shut down and discarded
+        if (this.controller != null) {
+            this.controller.shutdown();
+            this.controller = null;
+        }
+
+        // wait flag is cleared and thread is notified
+        synchronized (this) {
+            isWaitingResponse = false;
+            notifyAll();
+        }
+    }
+
+    /**
+     * Voluntary quit confirmation is shown.
+     */
+    @Override
+    public void showQuitConfirmation() {
+        // goodbye message is logged
+        LogManager.getInstance().log(LogLevel.INFO, "[SYSTEM] Disconnected successfully. Goodbye!");
+
         // exit reason is set
-        this.exitReason = ExitReason.CONNECTION_LOST;
+        this.exitReason = ExitReason.USER_QUIT;
         // loop is terminated
         this.isRunning = false;
 
@@ -596,14 +800,6 @@ public class TuiUI implements UI, LogObserver {
         synchronized (this) {
             isWaitingResponse = false;
             notifyAll();
-        }
-
-        // delay is added for better user experience before returning to setup
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            // interruption is safely ignored
-            Thread.currentThread().interrupt();
         }
 
         // main ui thread is interrupted to break line reader blocking
