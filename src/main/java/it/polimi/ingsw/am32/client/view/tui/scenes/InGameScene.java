@@ -21,11 +21,11 @@ public class InGameScene implements Scene {
     /**
      * The in game scene is instantiated.
      *
-     * @param headerPanel the header panel instance.
-     * @param boardPanel the board panel instance.
-     * @param sidePanel the side panel instance.
-     * @param logPanel the log panel instance.
-     * @param legendPanel the legend panel instance.
+     * @param headerPanel the header panel instance
+     * @param boardPanel the board panel instance
+     * @param sidePanel the side panel instance
+     * @param logPanel the log panel instance
+     * @param legendPanel the legend panel instance
      */
     public InGameScene(HeaderPanel headerPanel, BoardPanel boardPanel, SidePanel sidePanel, LogPanel logPanel, LegendPanel legendPanel) {
         this.headerPanel = headerPanel;
@@ -38,16 +38,26 @@ public class InGameScene implements Scene {
     /**
      * The game state is injected into the child panels.
      *
-     * @param state the current light game state.
+     * @param state the current light game state
      */
     public void updateData(LightGameState state) {
         // game state components are extracted and forwarded
         if (state != null) {
             String phase = state.getCurrentPhase() != null ? state.getCurrentPhase().name() : "WAITING";
-            headerPanel.updateData(phase, state.getCurrentRound(), state.getCurrentEra());
+            headerPanel.updateData(phase, state.getCurrentRound(), state.getCurrentEra(), state.getTribeDeckSize(), state.getTribeDeckTopCardEra());
             boardPanel.updateData(state);
             sidePanel.updateData(state);
         }
+    }
+
+    /**
+     * The player focus is propagated to the side panel.
+     *
+     * @param nickname the player nickname or null to clear
+     */
+    public void setPlayerFocus(String nickname) {
+        // focus is forwarded to the side panel
+        sidePanel.setFocus(nickname);
     }
 
     @Override
@@ -55,11 +65,17 @@ public class InGameScene implements Scene {
         // fixed layout bounds are defined
         int headerHeight = 3;
         int inputHeight = 2;
-        int sideWidth = Math.min(45, width / 3);
+
+        // top section widths are defined
+        int sideWidth = Math.min(38, width / 3);
         int boardWidth = width - sideWidth;
 
-        // log panel height is increased to 8 to accommodate the help command and borders
-        int logHeight = 8;
+        // bottom section widths are defined with restored and increased legend size
+        int legendWidth = Math.min(49, width / 3 + 4);
+        int logWidth = width - legendWidth;
+
+        // log panel height is defined
+        int logHeight = 7;
 
         // main height is calculated dynamically
         int mainHeight = height - headerHeight - logHeight - inputHeight;
@@ -69,8 +85,8 @@ public class InGameScene implements Scene {
         boardPanel.draw(terminal, 1, headerHeight + 1, boardWidth, mainHeight);
         sidePanel.draw(terminal, boardWidth + 1, headerHeight + 1, sideWidth, mainHeight);
 
-        // bottom section is split between log and legend
-        logPanel.draw(terminal, 1, height - logHeight - inputHeight + 1, boardWidth, logHeight);
-        legendPanel.draw(terminal, boardWidth + 1, height - logHeight - inputHeight + 1, sideWidth, logHeight);
+        // bottom section is split using the specific widths
+        logPanel.draw(terminal, 1, height - logHeight - inputHeight + 1, logWidth, logHeight);
+        legendPanel.draw(terminal, logWidth + 1, height - logHeight - inputHeight + 1, legendWidth, logHeight);
     }
 }

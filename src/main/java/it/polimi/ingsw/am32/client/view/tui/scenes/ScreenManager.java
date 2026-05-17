@@ -66,16 +66,16 @@ public class ScreenManager {
 
         // fallback dimensions are applied if terminal is dumb
         if (width == 0 || height == 0) {
-            width = 120;
-            height = 30;
+            width = 145;
+            height = 43;
         }
 
         // screen is cleared
         terminal.puts(InfoCmp.Capability.clear_screen);
 
-        if (width < 60 || height < 30) {
+        if (width < 145 || height < 43) {
             // warning is printed for insufficient terminal size
-            terminal.writer().print("\033[" + (height / 2) + ";" + (Math.max(1, width / 2 - 15)) + "H");
+            terminal.writer().print("\033[" + (height / 2) + ";" + (Math.max(1, width / 2 - 17)) + "H");
             terminal.writer().print("Terminal too small. Please resize");
         } else {
             // active scene is drawn
