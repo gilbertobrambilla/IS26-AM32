@@ -72,6 +72,13 @@ public class NetworkFactory {
      * @return the virtual server instance, or null if the connection fails
      */
     public static VirtualServer createSocketConnection(String ip, Runnable onFatalError) {
+        // fast fail socket check is performed
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(ip, SOCKET_PORT), 2000);
+        } catch (Exception e) {
+            return null;
+        }
+
         try {
             // socket server connection is created
             SocketServerProxy socketConnection = new SocketServerProxy(ip, SOCKET_PORT);

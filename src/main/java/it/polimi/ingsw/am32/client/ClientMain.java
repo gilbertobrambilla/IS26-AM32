@@ -4,6 +4,7 @@ import it.polimi.ingsw.am32.client.view.gui.GuiApp;
 import it.polimi.ingsw.am32.client.view.tui.TuiUI;
 import javafx.application.Application;
 
+import java.net.InetAddress;
 import java.util.Scanner;
 
 /**
@@ -40,10 +41,24 @@ public class ClientMain {
         System.out.println("\033[36m"  + "     /:/  /       \\:\\__\\        \\::/  /       \\::/  /       \\::/  /   " + "\033[0m");
         System.out.println("\033[36m"  + "     \\/__/         \\/__/         \\/__/         \\/__/         \\/__/    " + "\033[0m\n");
 
-        // ip is requested
-        System.out.print("\nEnter server IP [" + defaultIp + "] (press Enter to use default): ");
-        String ipInput = scanner.nextLine().trim();
-        String currentIp = ipInput.isEmpty() ? defaultIp : ipInput;
+        // ip is requested and validated
+        String currentIp;
+        while (true) {
+            System.out.print("\nEnter server IP [" + defaultIp + "] (press Enter to use default): ");
+            String ipInput = scanner.nextLine().trim();
+            currentIp = ipInput.isEmpty() ? defaultIp : ipInput;
+
+            try {
+                // host reachability is checked
+                if (InetAddress.getByName(currentIp).isReachable(2500)) {
+                    break;
+                } else {
+                    System.out.println("[SYSTEM] Server is unreachable. Please try again.");
+                }
+            } catch (Exception e) {
+                System.out.println("[SYSTEM] Invalid IP address or network error. Please try again.");
+            }
+        }
 
         // ui is requested
         boolean useTui;
