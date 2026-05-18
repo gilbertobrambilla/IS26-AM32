@@ -6,7 +6,6 @@ import it.polimi.ingsw.am32.client.view.gui.controllers.ViewController;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
 
 /**
  * JavaFX implementation of the UI interface.

@@ -16,9 +16,8 @@ import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 /**
- * Custom JavaFX component representing an Offer Tile on the board.
- * It manages the background image rendering and the dynamic overlay
- * showing if a player's totem is currently placed on it.
+ * custom javafx component is implemented to represent an offer tile on the board.
+ * background image rendering and dynamic overlay are managed.
  */
 public class OfferView extends StackPane {
 
@@ -26,99 +25,107 @@ public class OfferView extends StackPane {
     private final ImageView backgroundImageView;
     private final StackPane totemOverlay;
 
-    // Standard dimensions for tiles
+    // standard dimensions for tiles are defined
     private static final double TILE_WIDTH = 100.0;
     private static final double TILE_HEIGHT = 100.0;
     private static final double HOVER_SCALE = 1.08;
     private static final int ANIMATION_DURATION_MS = 150;
     private static final Color TOTEM_COLOR = Color.web("#4a5d23");
-    /**
-     * Constructs a new OfferView based on the provided data model.
-     *
-     * @param tileData The state of the offer tile.
-     */
+
     public OfferView(LightOfferTile tileData) {
         this.tileData = tileData;
         this.backgroundImageView = new ImageView();
         this.totemOverlay = new StackPane();
 
+        // component is initialized
         initializeComponent();
+
+        // tile image is loaded
         loadTileImage();
+
+        // totem state is rendered
         renderTotemState();
+
+        // interaction effects are configured
         setupInteractionEffects();
     }
 
-    /**
-     * Sets up the geometry and layers of the StackPane.
-     */
     private void initializeComponent() {
+        // layout constraints are set
         this.setPrefSize(TILE_WIDTH, TILE_HEIGHT);
         this.setMinSize(TILE_WIDTH, TILE_HEIGHT);
         this.setMaxSize(TILE_WIDTH, TILE_HEIGHT);
 
+        // background image properties are configured
         backgroundImageView.setFitWidth(TILE_WIDTH);
         backgroundImageView.setFitHeight(TILE_HEIGHT);
         backgroundImageView.setPreserveRatio(true);
         backgroundImageView.setSmooth(true);
 
-        // Ensure the totem indicator is centered over the tile
+        // totem indicator is centered over the tile
         totemOverlay.setAlignment(Pos.CENTER);
 
-        // Z-Index: Background first, Overlay on top
+        // layers are added to the stackpane (background first, overlay on top)
         this.getChildren().addAll(backgroundImageView, totemOverlay);
     }
 
-    /**
-     * Loads the specific tile PNG using the Flyweight pattern.
-     */
     private void loadTileImage() {
         if (tileData != null && tileData.getId() != null) {
             String validId = normalizeId(tileData.getId());
-            String assetPath = AssetManager.getInstance().getUiAsset(validId);
 
-            if (assetPath != null) {
+            // correct dto is retrieved from asset manager
+            var dto = AssetManager.getInstance().getOfferTile(validId);
+
+            if (dto != null && dto.getAssetPath() != null) {
+                String assetPath = dto.getAssetPath();
+                // image is fetched from cache
                 Image image = ImageCache.getInstance().getImage(assetPath);
+
                 if (image != null) {
                     backgroundImageView.setImage(image);
                 } else {
-                    System.err.println("[GUI] ImageCache failed to load asset for offer tile ID: " + validId);
+                    // error is logged if cache fails
+                    System.err.println("[OfferView] imagecache failed to load asset for offer tile id: " + validId);;
                 }
             } else {
-                System.err.println("[GUI] Missing asset path in AssetManager for offer tile ID: " + validId);
+                // error is logged if dto or path is missing
+                System.err.println("[OfferView] missing asset path in assetmanager for offer tile id: " + validId);
             }
         }
     }
-    /**
-     * Updates the overlay to display a player's totem if one is placed here.
-     */
+
     public void renderTotemState() {
+        // overlay children are cleared
         totemOverlay.getChildren().clear();
 
         String occupyingPlayer = tileData.getOccupyingPlayer();
 
         if (occupyingPlayer != null && !occupyingPlayer.isEmpty()) {
+            // totem graphic is instantiated
             Circle totemShape = new Circle(20, TOTEM_COLOR);
             totemShape.setStroke(Color.WHITE);
             totemShape.setStrokeWidth(2);
 
+            // player label is formatted and instantiated
             Label nameLabel = new Label(occupyingPlayer.substring(0, Math.min(occupyingPlayer.length(), 3)).toUpperCase());
             nameLabel.setTextFill(Color.WHITE);
             nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 10px;");
 
+            // elements are added to the overlay
             totemOverlay.getChildren().addAll(totemShape, nameLabel);
 
+            // tile interaction is disabled
             this.setDisable(true);
             this.setOpacity(0.8);
         } else {
+            // tile interaction is enabled
             this.setDisable(false);
             this.setOpacity(1.0);
         }
     }
 
-    /**
-     * Sets up hover animations, active only if the tile is unoccupied.
-     */
     private void setupInteractionEffects() {
+        // animations are initialized
         ScaleTransition scaleIn = new ScaleTransition(Duration.millis(ANIMATION_DURATION_MS), this);
         scaleIn.setToX(HOVER_SCALE);
         scaleIn.setToY(HOVER_SCALE);
@@ -129,6 +136,7 @@ public class OfferView extends StackPane {
 
         DropShadow shadow = new DropShadow(10, Color.BLACK);
 
+        // hover enter event is assigned
         this.setOnMouseEntered(e -> {
             if (!this.isDisabled()) {
                 this.setCursor(Cursor.HAND);
@@ -138,6 +146,7 @@ public class OfferView extends StackPane {
             }
         });
 
+        // hover exit event is assigned
         this.setOnMouseExited(e -> {
             if (!this.isDisabled()) {
                 this.setCursor(Cursor.DEFAULT);
@@ -148,26 +157,21 @@ public class OfferView extends StackPane {
         });
     }
 
-    /**
-     * Updates the internal data reference and refreshes the visual state.
-     * Necessary for the controller's caching mechanism.
-     *
-     * @param newTile The updated tile data from the server.
-     */
     public void updateTile(LightOfferTile newTile) {
+        // tile data is updated
         this.tileData = newTile;
+        // visual state is refreshed
         renderTotemState();
     }
 
-    /**
-     * @return The underlying tile data.
-     */
     public LightOfferTile getTileData() {
+        // tile data is returned
         return tileData;
     }
 
     private String normalizeId(String rawId) {
         if (rawId == null) return null;
+        // id format is normalized
         return rawId.replace("offertile_", "offer_tile_");
     }
 }

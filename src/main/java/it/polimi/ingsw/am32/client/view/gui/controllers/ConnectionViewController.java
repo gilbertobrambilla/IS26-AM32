@@ -26,7 +26,6 @@ public class ConnectionViewController implements ViewController {
 
     @FXML
     public void initialize() {
-        // Passive View: no initialization logic required here.
     }
 
     @FXML
@@ -50,25 +49,16 @@ public class ConnectionViewController implements ViewController {
         errorLabel.setVisible(false);
         setButtonsDisabled(true);
 
-        // Callback definition in case of a critical crash
         Runnable onFatalError = () -> Platform.runLater(() ->
                 SceneManager.forceDisconnect("Connection lost with the server.")
         );
 
-        /*
-         * CompletableFuture for asynchronous orchestration.
-         * 1. supplyAsync: Executes the network connection in a background thread (ForkJoinPool).
-         * 2. thenAcceptAsync: If supplyAsync succeeds, updates the UI by passing the result,
-         * forcing it on the JavaFX Application Thread via Platform::runLater.
-         * 3. exceptionally: Catches any exception thrown in the chain and updates the UI accordingly.
-         */
         CompletableFuture.supplyAsync(() -> {
             System.out.println("[GUI] Attempting background connection to " + ip + "...");
             VirtualServer vs = isRMI ? NetworkFactory.createRmiConnection(ip, onFatalError)
                     : NetworkFactory.createSocketConnection(ip, onFatalError);
 
             if (vs == null) {
-                // This exception will be caught by the .exceptionally() block
                 throw new RuntimeException("Server unreachable at address " + ip);
             }
 
@@ -87,7 +77,6 @@ public class ConnectionViewController implements ViewController {
             controller.requestConnect();
 
         }, Platform::runLater).exceptionally(ex -> {
-            // Extract the real message (ex is often wrapped in a CompletionException)
             String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
 
             Platform.runLater(() -> {

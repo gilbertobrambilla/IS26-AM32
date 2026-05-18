@@ -34,7 +34,7 @@ public class WaitingRoomViewController implements ViewController {
     }
 
     /**
-     * Polimorphic handling of the lobby room structural update.
+     * Polymorphic handling of the lobby room structural update.
      * This method is triggered dynamically by GuiUI whenever a player joins or leaves the room.
      *
      * @param event The event containing updated information about the lobby room state.
