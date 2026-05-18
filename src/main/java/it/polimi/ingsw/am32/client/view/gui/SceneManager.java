@@ -6,10 +6,12 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.function.Consumer;
 
 /**
  * Utility class responsible for managing JavaFX scenes and loading FXML files.
@@ -34,28 +36,27 @@ public class SceneManager {
         clientController = controller;
     }
 
-    /**
-     * Loads an FXML file, instantiates its controller (injecting dependencies),
-     * and switches the primary stage to the new scene.
-     *
-     * @param viewPath the absolute path to the FXML file within the resources folder (e.g., "/fxml/login-view.fxml").
-     */
     public static void switchScene(ViewPaths viewPath) {
-        if (primaryStage == null || clientController == null) {
+        switchScene(viewPath, null);
+    }
+
+    public static void switchScene(ViewPaths viewPath, Consumer<ViewController> onLoaded) {
+        if (primaryStage == null) {
             throw new IllegalStateException("SceneManager has not been initialized yet.");
         }
 
-        // scene switch is always guaranteed to run on the JavaFX Application Thread
         Runnable sceneSwitch = () -> {
             try {
                 FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(viewPath.getPath()));
 
                 loader.setControllerFactory(controllerClass -> {
                     try {
+                        if (clientController == null) {
+                            return controllerClass.getDeclaredConstructor().newInstance();
+                        }
                         return controllerClass.getConstructor(ClientController.class).newInstance(clientController);
                     } catch (Exception e) {
-                        throw new RuntimeException("Failed to instantiate controller: " + controllerClass.getName() +
-                                ". Ensure it has a constructor accepting ClientController.", e);
+                        throw new RuntimeException("Failed to instantiate controller: " + controllerClass.getName(), e);
                     }
                 });
 
@@ -64,7 +65,7 @@ public class SceneManager {
 
                 Scene currentScene = primaryStage.getScene();
                 if (currentScene == null) {
-                    currentScene = new Scene(root, 1440, 900);;
+                    currentScene = new Scene(root, 1440, 900);
                     primaryStage.setScene(currentScene);
                 } else {
                     currentScene.setRoot(root);
@@ -77,12 +78,14 @@ public class SceneManager {
                     if (!currentScene.getStylesheets().contains(cssUrl)) {
                         currentScene.getStylesheets().add(cssUrl);
                     }
-                } else {
-                    System.err.println("[GUI WARNING] Style resource not found: /css/global.css");
                 }
 
                 primaryStage.show();
                 System.out.println("[GUI] Switched to scene: " + viewPath.name());
+
+                if (onLoaded != null) {
+                    onLoaded.accept(currentController);
+                }
 
             } catch (IOException e) {
                 System.err.println("[GUI ERROR] Failed to load FXML file: " + viewPath.getPath());
@@ -91,11 +94,43 @@ public class SceneManager {
         };
 
         if (Platform.isFxApplicationThread()) {
-            // already on JavaFX thread — execute directly to avoid unnecessary queuing
             sceneSwitch.run();
         } else {
             Platform.runLater(sceneSwitch);
         }
+    }
+
+    /**
+     * Instantly destroys the current scene, returns to the Connection view,
+     * and shows an error message. Crucial for ungraceful disconnections (resiliency).
+     *
+     * @param reason the reason for the disconnection.
+     */
+    public static void forceDisconnect(String reason) {
+        Runnable disconnectTask = () -> {
+            System.err.println("[GUI] Forced disconnect: " + reason);
+            if (clientController != null) {
+                clientController.shutdown();
+                clientController = null;
+            }
+            switchScene(ViewPaths.CONNECTION);
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Connection Lost");
+            alert.setHeaderText("Disconnected from server");
+            alert.setContentText(reason);
+            alert.showAndWait();
+        };
+
+        if (Platform.isFxApplicationThread()) {
+            disconnectTask.run();
+        } else {
+            Platform.runLater(disconnectTask);
+        }
+    }
+
+    public static void setClientController(ClientController controller) {
+        clientController = controller;
     }
 
     public static ViewController getCurrentController() {

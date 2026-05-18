@@ -35,43 +35,60 @@ public class GuiUI implements UI {
         Platform.runLater(() -> {
             if (event.isSuccess()) {
                 System.out.println("[GUI] Connection successful!");
-                SceneManager.switchScene(ViewPaths.LOBBY);
-                ViewController ctrl = SceneManager.getCurrentController();
-                if (ctrl != null) ctrl.onConnectionResult(event);
+                SceneManager.switchScene(ViewPaths.LOGIN, ctrl -> ctrl.onConnectionResult(event));
             } else {
                 System.err.println("[GUI] Connection failed: " + event.getMessage());
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Connection Error");
-                alert.setHeaderText("Failed to connect to the server");
-                alert.setContentText(event.getMessage());
-                alert.showAndWait();
+                ViewController ctrl = SceneManager.getCurrentController();
+                if (ctrl != null) ctrl.onConnectionResult(event);
             }
         });
     }
 
     @Override
     public void showLoginResult(LoginResultEvent event) {
-
+        Platform.runLater(() -> {
+            if (event.isSuccess()) {
+                System.out.println("[GUI] Login successful!");
+                SceneManager.switchScene(ViewPaths.LOBBY_SELECTION, ctrl -> ctrl.onLoginResult(event));
+            } else {
+                System.err.println("[GUI] Login failed: " + event.getMessage());
+                ViewController ctrl = SceneManager.getCurrentController();
+                if (ctrl != null) ctrl.onLoginResult(event);
+            }
+        });
     }
-
     @Override
     public void showConnectionLost(String message) {
-
+        SceneManager.forceDisconnect(message);
     }
 
     @Override
     public void showQuitConfirmation() {
-
+        Platform.runLater(() -> {
+            System.out.println("[GUI] Application closed by user.");
+            Platform.exit();
+            System.exit(0);
+        });
     }
 
     @Override
     public void updateAvailableLobbies(AvailableLobbiesEvent event) {
-
+        Platform.runLater(() -> {
+            ViewController ctrl = SceneManager.getCurrentController();
+            if (ctrl != null) {
+                ctrl.onAvailableLobbies(event);
+            }
+        });
     }
 
     @Override
     public void updateLobbyRoom(LobbyRoomUpdateEvent event) {
-
+        Platform.runLater(() -> {
+            ViewController ctrl = SceneManager.getCurrentController();
+            if (ctrl != null) {
+                ctrl.onLobbyRoomUpdate(event);
+            }
+        });
     }
 
     // --- LOBBY PHASE ---
