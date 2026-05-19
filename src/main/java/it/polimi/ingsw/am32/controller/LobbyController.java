@@ -181,7 +181,7 @@ public class LobbyController implements GameLifecycleCallback, Runnable {
                 game.enqueueSystemTask(() -> game.processReconnect(nickname, view));
             } else {
                 // successful login result is notified
-                view.notifyLoginResult(new LoginResultEvent(true, "authentication successful", false));
+                view.notifyLoginResult(new LoginResultEvent(true, "login successful", false));
                 // available lobby list is broadcasted
                 view.notifyAvailableLobbies(buildAvailableLobbiesEvent());
             }

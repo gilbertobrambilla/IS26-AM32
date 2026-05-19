@@ -6,10 +6,15 @@ import it.polimi.ingsw.am32.log.LogLevel;
 import it.polimi.ingsw.am32.log.LogManager;
 import it.polimi.ingsw.am32.network.rmi.server.RMIServerDispatcher;
 import it.polimi.ingsw.am32.network.socket.server.SocketServer;
+import it.polimi.ingsw.am32.network.utils.NetworkUtils;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Main entry point for the server application.
@@ -22,15 +27,54 @@ public class ServerMain {
     /**
      * Server application is launched.
      *
-     * @param args the command line arguments.
      */
-    public static void main(String[] args) {
-        if (args.length > 0) {
-            // rmi host property is set
-            System.setProperty("java.rmi.server.hostname", args[0]);
-            // host configuration is logged
-            LogManager.getInstance().log(LogLevel.INFO, "[SYSTEM] RMI Hostname forced to: " + args[0]);
+    public static void main() {
+        // scanner is instantiated
+        Scanner scanner = new Scanner(System.in);
+
+        // available ips are retrieved
+        Map<String, String> availableIps = NetworkUtils.getAvailableIpv4Addresses();
+        List<String> ipList = new ArrayList<>(availableIps.keySet());
+
+        // prompt is printed
+        System.out.println("Available network interfaces for hosting the server:");
+
+        // options are printed
+        for (int i = 0; i < ipList.size(); i++) {
+            String ip = ipList.get(i);
+            String name = availableIps.get(ip);
+            System.out.println((i + 1) + ": " + ip + " (" + name + ")");
         }
+
+        int customOption = ipList.size() + 1;
+        System.out.println(customOption + ": Custom IP (Manual entry)");
+
+        // selected ip is evaluated
+        String selectedIp = "";
+        while (selectedIp.isEmpty()) {
+            System.out.print("Select an option: ");
+            String input = scanner.nextLine().trim();
+            try {
+                int choice = Integer.parseInt(input);
+                if (choice > 0 && choice <= ipList.size()) {
+                    // ip from list is selected
+                    selectedIp = ipList.get(choice - 1);
+                } else if (choice == customOption) {
+                    // custom ip is requested
+                    System.out.print("Enter the IP address manually: ");
+                    selectedIp = scanner.nextLine().trim();
+                } else {
+                    // invalid input is notified
+                    System.out.println("Invalid selection");
+                }
+            } catch (NumberFormatException e) {
+                // invalid input is notified
+                System.out.println("Invalid selection");
+            }
+        }
+
+        // rmi host property is set
+        System.setProperty("java.rmi.server.hostname", selectedIp);
 
         // rmi timeouts are configured
         System.setProperty("sun.rmi.transport.tcp.responseTimeout", "5000");
@@ -79,7 +123,7 @@ public class ServerMain {
             }));
 
             // final ready state is guaranteed to be logged last
-            LogManager.getInstance().log(LogLevel.INFO, "[SYSTEM] === SERVER READY AND LISTENING ===");
+            LogManager.getInstance().log(LogLevel.INFO, "[SYSTEM] === SERVER READY AND LISTENING ON IP: " + selectedIp + " ===");
 
         } catch (Exception e) {
             // critical startup error is logged
