@@ -106,6 +106,10 @@
     -fx-border-radius: 8px;
 }
 
+.card-view {
+    -fx-background-color: transparent;
+}
+
 /* --- SEMANTIC TEXT CLASSES --- */
 
 .text-main {
@@ -180,4 +184,30 @@ scroll-pane, .scroll-pane > .viewport {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-padding: 0;
+}
+
+/* --- TURN ORDER OVERRIDES --- */
+.turn-order-opponent {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f0f0f0;
+    /* subtle shadow is applied for readability over the tile graphic */
+    -fx-effect: dropshadow(two-pass-box, rgba(0,0,0,0.8), 3, 0.0, 1, 1);
+}
+
+.turn-order-local-player {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffcc00;
+    -fx-effect: dropshadow(two-pass-box, rgba(0,0,0,0.8), 3, 0.0, 1, 1);
+}
+
+/* active player slot highlighting */
+.turn-slot-active {
+    -fx-background-color: rgba(255, 204, 0, 0.25);
+    -fx-background-radius: 8px;
+    -fx-border-color: rgba(255, 204, 0, 0.7);
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-padding: 2px 8px;
 }

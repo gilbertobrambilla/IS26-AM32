@@ -23,8 +23,8 @@ public class CardView extends StackPane {
     private final Optional<String> cardIdFallback;
 
     // UI Constants (Aligned with global.css)
-    private static final double DEFAULT_WIDTH = 120.0;
-    private static final double DEFAULT_HEIGHT = 180.0;
+    private static final double DEFAULT_WIDTH = 80.0;
+    private static final double DEFAULT_HEIGHT = 120.0;
     private static final double HOVER_SCALE = 1.1;
     private static final int ANIMATION_DURATION_MS = 150;
 

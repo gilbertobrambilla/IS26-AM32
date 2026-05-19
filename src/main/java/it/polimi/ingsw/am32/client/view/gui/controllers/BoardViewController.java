@@ -1,18 +1,25 @@
 package it.polimi.ingsw.am32.client.view.gui.controllers;
 
+import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.client.model.LightGameState;
 import it.polimi.ingsw.am32.client.model.LightOfferTile;
+import it.polimi.ingsw.am32.client.model.LightPlayer;
 import it.polimi.ingsw.am32.client.model.LightTurnOrderTile;
 import it.polimi.ingsw.am32.client.view.gui.components.CardView;
 import it.polimi.ingsw.am32.client.view.gui.components.OfferView;
+import it.polimi.ingsw.am32.client.view.gui.components.TotemView;
 import it.polimi.ingsw.am32.client.view.gui.utils.AnimationUtils;
+import it.polimi.ingsw.am32.client.view.gui.utils.ImageCache;
 import it.polimi.ingsw.am32.model.enums.GamePhase;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.util.*;
@@ -50,7 +57,8 @@ public class BoardViewController {
         // dynamic rendering based on incoming state is performed
         renderBoardRows(state);
         renderOfferTiles(state.getOfferTrack());
-        renderTurnOrder(state.getTurnOrderTile());
+        // whole state is passed to resolve local player colors and active turn
+        renderTurnOrder(state);
     }
 
     public void clearContainers() {
@@ -142,27 +150,97 @@ public class BoardViewController {
         offersContainer.getChildren().setAll(orderedViews);
     }
 
-    private void renderTurnOrder(LightTurnOrderTile turnOrderTile) {
+    private void renderTurnOrder(LightGameState state) {
+        LightTurnOrderTile turnOrderTile = state.getTurnOrderTile();
         if (turnOrderTile == null) return;
 
         List<Node> newNodes = new ArrayList<>();
 
+        // header label is generated
         Label titleLabel = new Label("TURN ORDER");
         titleLabel.getStyleClass().add("subtitle-text");
+        // add a bit of bottom margin to detach it from the image
+        VBox.setMargin(titleLabel, new javafx.geometry.Insets(0, 0, 10.0, 0));
         newNodes.add(titleLabel);
 
-        List<String> players = turnOrderTile.getPlayers();
-        for (int i = 0; i < players.size(); i++) {
-            Label playerLabel = new Label((i + 1) + ". " + players.get(i));
-            if (players.get(i).equals(clientController.getLightGameState().getMyNickname())) {
-                playerLabel.getStyleClass().add("turn-order-local-player");
-            } else {
-                playerLabel.getStyleClass().add("turn-order-opponent");
+        StackPane compositeTile = new StackPane();
+        compositeTile.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+
+        String tileId = turnOrderTile.getTileId();
+        var dto = AssetManager.getInstance().getTurnOrderTile(tileId);
+
+        if (dto != null && dto.getAssetPath() != null) {
+            ImageView tileBackground = new ImageView();
+            javafx.scene.image.Image bgImg = it.polimi.ingsw.am32.client.view.gui.utils.ImageCache.getInstance().getImage(dto.getAssetPath());
+            if (bgImg != null) {
+                tileBackground.setImage(bgImg);
+                // INVECE DI LARGHEZZA, BLOCCALA SULL'ALTEZZA!
+                tileBackground.setFitHeight(210.0);
+                tileBackground.setPreserveRatio(true);
             }
-            newNodes.add(playerLabel);
+            compositeTile.getChildren().add(tileBackground);
         }
 
-        // turn order box is repopulated
+        VBox slotsBox = new VBox();
+        slotsBox.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+
+        slotsBox.setSpacing(2.0);
+        slotsBox.setPadding(new javafx.geometry.Insets(55.0, 0, 0, 0));
+
+        List<String> players = turnOrderTile.getPlayers();
+        String activePlayer = state.getCurrentPlayer();
+
+        for (String nickname : players) {
+            HBox slotBox = new HBox(5.0);
+            slotBox.setAlignment(javafx.geometry.Pos.CENTER);
+
+            slotBox.setPrefWidth(90.0);
+            slotBox.setMinHeight(24.0);
+            slotBox.setMaxHeight(24.0);
+
+            LightPlayer player = state.getPlayers().get(nickname);
+
+            if (player != null) {
+                // custom totem component is instantiated
+                TotemView totem = new TotemView(player.getTotemColor());
+
+                // nickname label is created and truncated to avoid layout breakages
+                String displayName = nickname.substring(0, Math.min(nickname.length(), 4)).toUpperCase();
+                Label nameLabel = new Label(displayName);
+
+                // local styling is applied
+                if (nickname.equals(state.getMyNickname())) {
+                    nameLabel.getStyleClass().add("turn-order-local-player");
+                } else {
+                    nameLabel.getStyleClass().add("turn-order-opponent");
+                }
+
+                slotBox.getChildren().addAll(totem, nameLabel);
+
+                // active turn passive highlighting is evaluated
+                if (nickname.equals(activePlayer)) {
+                    slotBox.getStyleClass().add("turn-slot-active");
+
+                    // infinite pulse animation is assigned strictly to the active totem
+                    javafx.animation.ScaleTransition pulse = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(800), totem);
+                    pulse.setFromX(1.0);
+                    pulse.setFromY(1.0);
+                    pulse.setToX(1.15);
+                    pulse.setToY(1.15);
+                    pulse.setCycleCount(javafx.animation.Animation.INDEFINITE);
+                    pulse.setAutoReverse(true);
+                    pulse.play();
+                }
+            }
+            // slot is appended to the vertical list
+            slotsBox.getChildren().add(slotBox);
+        }
+
+        // slots are pushed as the top layer
+        compositeTile.getChildren().add(slotsBox);
+        newNodes.add(compositeTile);
+
+        // main container is flushed and repopulated
         turnOrderContainer.getChildren().setAll(newNodes);
     }
 
