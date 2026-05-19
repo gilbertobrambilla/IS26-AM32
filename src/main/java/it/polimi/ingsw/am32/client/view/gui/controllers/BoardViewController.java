@@ -107,7 +107,7 @@ public class BoardViewController {
 
         for (String cardId : allIds) {
             if (!availableCardViewCache.containsKey(cardId)) {
-                CardView cardView = new CardView(cardId);
+                CardView cardView = new CardView(cardId, 80.0, 120.0);
                 // click listener is assigned
                 cardView.setOnMouseClicked(e -> handleCardSelection(cardView));
                 availableCardViewCache.put(cardId, cardView);
@@ -156,11 +156,9 @@ public class BoardViewController {
 
         List<Node> newNodes = new ArrayList<>();
 
-        // header label is generated
         Label titleLabel = new Label("TURN ORDER");
         titleLabel.getStyleClass().add("subtitle-text");
-        // add a bit of bottom margin to detach it from the image
-        VBox.setMargin(titleLabel, new javafx.geometry.Insets(0, 0, 10.0, 0));
+        VBox.setMargin(titleLabel, new javafx.geometry.Insets(0, 0, 8.0, 0));
         newNodes.add(titleLabel);
 
         StackPane compositeTile = new StackPane();
@@ -171,44 +169,48 @@ public class BoardViewController {
 
         if (dto != null && dto.getAssetPath() != null) {
             ImageView tileBackground = new ImageView();
-            javafx.scene.image.Image bgImg = it.polimi.ingsw.am32.client.view.gui.utils.ImageCache.getInstance().getImage(dto.getAssetPath());
+            javafx.scene.image.Image bgImg =
+                    it.polimi.ingsw.am32.client.view.gui.utils.ImageCache
+                            .getInstance()
+                            .getImage(dto.getAssetPath());
+
             if (bgImg != null) {
                 tileBackground.setImage(bgImg);
-                // INVECE DI LARGHEZZA, BLOCCALA SULL'ALTEZZA!
-                tileBackground.setFitHeight(210.0);
+                tileBackground.setFitHeight(165.0);
                 tileBackground.setPreserveRatio(true);
             }
+
             compositeTile.getChildren().add(tileBackground);
         }
 
         VBox slotsBox = new VBox();
         slotsBox.setAlignment(javafx.geometry.Pos.TOP_CENTER);
-
-        slotsBox.setSpacing(2.0);
-        slotsBox.setPadding(new javafx.geometry.Insets(55.0, 0, 0, 0));
+        slotsBox.setSpacing(3.0);
+        slotsBox.setPadding(new javafx.geometry.Insets(42.0, 0, 0, 0));
 
         List<String> players = turnOrderTile.getPlayers();
         String activePlayer = state.getCurrentPlayer();
 
         for (String nickname : players) {
-            HBox slotBox = new HBox(5.0);
+            HBox slotBox = new HBox(4.0);
             slotBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-            slotBox.setPrefWidth(90.0);
-            slotBox.setMinHeight(24.0);
-            slotBox.setMaxHeight(24.0);
+            slotBox.setPrefWidth(82.0);
+            slotBox.setMinWidth(82.0);
+            slotBox.setMaxWidth(82.0);
+
+            slotBox.setPrefHeight(22.0);
+            slotBox.setMinHeight(22.0);
+            slotBox.setMaxHeight(22.0);
 
             LightPlayer player = state.getPlayers().get(nickname);
 
             if (player != null) {
-                // custom totem component is instantiated
                 TotemView totem = new TotemView(player.getTotemColor());
 
-                // nickname label is created and truncated to avoid layout breakages
                 String displayName = nickname.substring(0, Math.min(nickname.length(), 4)).toUpperCase();
                 Label nameLabel = new Label(displayName);
 
-                // local styling is applied
                 if (nickname.equals(state.getMyNickname())) {
                     nameLabel.getStyleClass().add("turn-order-local-player");
                 } else {
@@ -217,12 +219,11 @@ public class BoardViewController {
 
                 slotBox.getChildren().addAll(totem, nameLabel);
 
-                // active turn passive highlighting is evaluated
                 if (nickname.equals(activePlayer)) {
                     slotBox.getStyleClass().add("turn-slot-active");
 
-                    // infinite pulse animation is assigned strictly to the active totem
-                    javafx.animation.ScaleTransition pulse = new javafx.animation.ScaleTransition(javafx.util.Duration.millis(800), totem);
+                    javafx.animation.ScaleTransition pulse =
+                            new javafx.animation.ScaleTransition(javafx.util.Duration.millis(800), totem);
                     pulse.setFromX(1.0);
                     pulse.setFromY(1.0);
                     pulse.setToX(1.15);
@@ -232,15 +233,13 @@ public class BoardViewController {
                     pulse.play();
                 }
             }
-            // slot is appended to the vertical list
+
             slotsBox.getChildren().add(slotBox);
         }
 
-        // slots are pushed as the top layer
         compositeTile.getChildren().add(slotsBox);
         newNodes.add(compositeTile);
 
-        // main container is flushed and repopulated
         turnOrderContainer.getChildren().setAll(newNodes);
     }
 

@@ -22,7 +22,7 @@ public class PlayerDashboardViewController {
     @FXML private HBox myCardsContainer;
 
     private final Map<String, CardView> myCardsCache = new HashMap<>();
-    private static final double CASCADE_SPACING = -150.0;
+    private static final double CASCADE_SPACING = -85.0;
 
     public PlayerDashboardViewController(ClientController clientController) {
         this.clientController = clientController;
@@ -58,7 +58,7 @@ public class PlayerDashboardViewController {
 
         for (String cardId : allMyCards) {
             if (!myCardsCache.containsKey(cardId)) {
-                CardView cardView = new CardView(cardId);
+                CardView cardView = new CardView(cardId, 72.0, 108.0);
                 myCardsCache.put(cardId, cardView);
             }
         }
@@ -71,12 +71,19 @@ public class PlayerDashboardViewController {
         }
 
         myCardsContainer.getChildren().clear();
+        myCardsContainer.setSpacing(16.0);
 
         // cascaded columns are constructed
         for (Map.Entry<String, List<CardView>> entry : groupedCards.entrySet()) {
             VBox column = new VBox();
             column.setAlignment(Pos.TOP_CENTER);
             column.setSpacing(CASCADE_SPACING);
+
+            column.setFillWidth(false);
+            column.setMinWidth(90.0);
+            column.setPrefWidth(90.0);
+            column.setMaxWidth(90.0);
+
             column.getChildren().addAll(entry.getValue());
             myCardsContainer.getChildren().add(column);
         }

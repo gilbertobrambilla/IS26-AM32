@@ -28,13 +28,22 @@ public class CardView extends StackPane {
     private static final double HOVER_SCALE = 1.1;
     private static final int ANIMATION_DURATION_MS = 150;
 
+    private final double cardWidth;
+    private final double cardHeight;
+
     /**
      * Constructs a CardView from a given DTO.
      * @param cardId The DTO containing card information, specifically the ID for image lookup.
      */
     public CardView(String cardId) {
+        this(cardId, 80.0, 120.0);
+    }
+
+    public CardView(String cardId, double cardWidth, double cardHeight) {
         this.cardIdFallback = Optional.ofNullable(cardId);
         this.imageView = new ImageView();
+        this.cardWidth = cardWidth;
+        this.cardHeight = cardHeight;
 
         initializeComponent();
         loadCardImage();
@@ -45,17 +54,14 @@ public class CardView extends StackPane {
      * Sets up the basic layout properties and CSS classes.
      */
     private void initializeComponent() {
-        // Set dimensions
-        this.setPrefSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-        this.setMinSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-        this.setMaxSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        this.setPrefSize(cardWidth, cardHeight);
+        this.setMinSize(cardWidth, cardHeight);
+        this.setMaxSize(cardWidth, cardHeight);
 
-        // Styling
         this.getStyleClass().add("card-view");
 
-        // Image scaling properties
-        imageView.setFitWidth(DEFAULT_WIDTH);
-        imageView.setFitHeight(DEFAULT_HEIGHT);
+        imageView.setFitWidth(cardWidth);
+        imageView.setFitHeight(cardHeight);
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
 

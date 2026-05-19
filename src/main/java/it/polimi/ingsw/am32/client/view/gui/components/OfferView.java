@@ -26,8 +26,8 @@ public class OfferView extends StackPane {
     private final StackPane totemOverlay;
 
     // standard dimensions for tiles are defined
-    private static final double TILE_WIDTH = 80.0;
-    private static final double TILE_HEIGHT = 80.0;
+    private static final double TILE_WIDTH = 88.0;
+    private static final double TILE_HEIGHT = 88.0;
     private static final double HOVER_SCALE = 1.08;
     private static final int ANIMATION_DURATION_MS = 150;
     private static final Color TOTEM_COLOR = Color.web("#4a5d23");

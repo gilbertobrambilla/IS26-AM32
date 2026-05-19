@@ -102,8 +102,9 @@
 
 .card-selected {
     -fx-border-color: -fx-text-gold;
-    -fx-border-width: 3px;
+    -fx-border-width: 2px;
     -fx-border-radius: 8px;
+    -fx-effect: dropshadow(two-pass-box, rgba(255, 204, 0, 0.35), 10, 0.0, 0, 0);
 }
 
 .card-view {
