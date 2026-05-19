@@ -7,11 +7,13 @@ public interface ViewController {
 
     default void onConnectionResult(ConnectionResultEvent event) {}
     default void onDisconnection(String message) {}
+    default void onLoginResult(LoginResultEvent event) {}
 
     default void onAvailableGamesUpdated(AvailableLobbiesEvent event) {}
     default void onLobbyRoomUpdated(LobbyRoomUpdateEvent event) {}
     default void onLobbyError(LobbyErrorEvent event) {}
-
+    default void onAvailableLobbies(AvailableLobbiesEvent event) {}
+    default void onLobbyRoomUpdate(LobbyRoomUpdateEvent event) {}
     default void onGameStarted(GameStartedEvent event) {}
     default void onGameStateRestored(GameStateEvent event) {}
     default void onGamePhaseUpdated(GamePhaseChangedEvent event) {}

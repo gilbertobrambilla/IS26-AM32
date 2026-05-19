@@ -1,23 +1,18 @@
 package it.polimi.ingsw.am32.client.view.gui.controllers;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
-import it.polimi.ingsw.am32.client.view.gui.GuiApp;
+import it.polimi.ingsw.am32.dto.messages.lobby.events.LoginResultEvent;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-/**
- * Controller for the Login view.
- * Handles nickname input and delegates the connection request to ClientController.
- * Note: server address and port are configured interactively at startup — the network
- * connection is already established before the GUI launches.
- */
 public class LoginViewController implements ViewController {
 
     private final ClientController clientController;
 
     @FXML private TextField usernameField;
-    @FXML private Label serverInfoLabel;
     @FXML private Label errorLabel;
 
     public LoginViewController(ClientController clientController) {
@@ -26,31 +21,39 @@ public class LoginViewController implements ViewController {
 
     @FXML
     public void initialize() {
-        errorLabel.setVisible(false);
-        serverInfoLabel.setText("Connected to: " + GuiApp.getServerAddress());
+        usernameField.setOnAction(this::handleLogin);
     }
 
     @FXML
-    private void handleConnect() {
-        String username = usernameField.getText().trim();
+    public void handleLogin(ActionEvent event) {
+        String nickname = usernameField.getText().trim();
 
-        if (username.isEmpty()) {
-            showErrorMessage("Nickname is required");
-            return;
-        }
-
-        if (username.length() > 15) {
-            showErrorMessage("Nickname cannot exceed 15 characters");
+        if (nickname.isEmpty()) {
+            showError("Nickname cannot be empty.");
             return;
         }
 
         errorLabel.setVisible(false);
+        usernameField.setDisable(true);
 
-        // 3. Chiamata corretta al ClientController
-        clientController.requestConnect();
+        System.out.println("[GUI] Requesting login for nickname: " + nickname);
+
+        clientController.requestLogin(nickname);
     }
 
-    private void showErrorMessage(String message) {
+    @Override
+    public void onLoginResult(LoginResultEvent event) {
+        Platform.runLater(() -> {
+            usernameField.setDisable(false);
+
+            if (!event.isSuccess()) {
+                showError("Login failed: " + event.getMessage());
+                usernameField.requestFocus();
+            }
+        });
+    }
+
+    private void showError(String message) {
         errorLabel.setText(message);
         errorLabel.setVisible(true);
     }

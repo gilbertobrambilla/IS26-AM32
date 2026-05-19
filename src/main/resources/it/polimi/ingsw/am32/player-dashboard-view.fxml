@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<HBox alignment="CENTER_LEFT" spacing="30.0" styleClass="mesos-panel"
+      xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.PlayerDashboardViewController">
+
+    <padding>
+        <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
+    </padding>
+
+    <VBox alignment="CENTER_LEFT" minWidth="150.0" spacing="10.0">
+        <Label styleClass="text-main" text="MY RESOURCES">
+            <font><Font name="System Bold" size="16.0" /></font>
+        </Label>
+
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <Label styleClass="text-dim" text="Food:" />
+            <Label fx:id="myFoodLabel" styleClass="text-main" text="0">
+                <font><Font name="System Bold" size="18.0" /></font>
+            </Label>
+        </HBox>
+
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <Label styleClass="text-dim" text="Prestige:" />
+            <Label fx:id="myPrestigeLabel" styleClass="text-gold" text="0">
+                <font><Font name="System Bold" size="18.0" /></font>
+            </Label>
+        </HBox>
+    </VBox>
+
+    <VBox HBox.hgrow="ALWAYS" spacing="10.0">
+        <Label styleClass="text-main" text="YOUR CARDS">
+            <font><Font name="System Bold" size="16.0" /></font>
+        </Label>
+        <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" style="-fx-background: transparent; -fx-background-color: transparent;">
+            <content>
+                <HBox fx:id="myCardsContainer" alignment="CENTER_LEFT" spacing="20.0">
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </HBox>
+            </content>
+        </ScrollPane>
+    </VBox>
+</HBox>

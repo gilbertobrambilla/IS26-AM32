@@ -55,41 +55,27 @@ public class GuiApp extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
-        if (pendingController == null) {
-            System.err.println("[GUI ERROR] ClientController was not set before launching GuiApp.");
-            Platform.exit();
-            System.exit(1);
-        }
-
         System.out.println("[SYSTEM] Loading game assets...");
         try {
             AssetManager.getInstance().loadAssets();
-
             InputStream dictionaryStream = AssetManager.getInstance().getDictionaryStream("/assets/strings_en.json");
             GameDictionary.getInstance().loadFromJson(dictionaryStream);
-
         } catch (Exception e) {
             System.err.println("[GUI ERROR] Failed to load assets/dictionary");
             e.printStackTrace();
         }
 
-        // initialize the UI bridge (links the controller's callbacks to JavaFX)
-        GuiUI guiUI = new GuiUI(pendingController);
+        SceneManager.initialize(primaryStage, null);
 
-        // initialize the SceneManager with the stage and controller
-        SceneManager.initialize(primaryStage, pendingController);
-
-        // configure the primary stage (the OS window)
         primaryStage.setTitle("Mesos - Digital Edition");
-        primaryStage.setResizable(true); // Fixed size to maintain layout consistency during early developmentnt
+        primaryStage.setResizable(true);
 
-        // ensure all network threads and the JVM shut down cleanly when the window is closed
         primaryStage.setOnCloseRequest(event -> {
             System.out.println("[GUI] Window close requested.");
             System.exit(0);
         });
 
-        SceneManager.switchScene(ViewPaths.LOGIN);
+        SceneManager.switchScene(ViewPaths.CONNECTION);
     }
 
     /**

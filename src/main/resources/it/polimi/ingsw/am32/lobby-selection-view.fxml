@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" spacing="20.0" style="-fx-background-color: #65896e;"
+      styleClass="root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.LobbySelectionViewController">
+
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+
+    <Label styleClass="title-text" text="GAME LOBBY" textFill="#cc1414">
+        <font>
+            <Font name="System Bold" size="29.0" />
+        </font>
+    </Label>
+
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" styleClass="game-panel" style="-fx-background-color: #fbb85c; -fx-background-radius: 8px;">
+        <tabs>
+            <Tab text="JOIN EXISTING GAME">
+                <VBox spacing="15.0" alignment="CENTER">
+                    <padding>
+                        <Insets top="15.0" bottom="15.0" left="15.0" right="15.0"/>
+                    </padding>
+                    <Label styleClass="subtitle-text" text="Available Games">
+                        <font>
+                            <Font size="20.0" />
+                        </font>
+                    </Label>
+                    <ListView fx:id="lobbyListView" VBox.vgrow="ALWAYS" />
+                    <Label fx:id="errorLabelJoin" styleClass="error-text" visible="false" />
+                    <Button fx:id="joinButton" maxWidth="Infinity" onAction="#handleJoinGame" styleClass="button-accent" text="JOIN SELECTED GAME" />
+                </VBox>
+            </Tab>
+
+            <Tab text="CREATE NEW GAME">
+                <VBox spacing="20.0" alignment="CENTER">
+                    <padding>
+                        <Insets top="30.0" bottom="30.0" left="30.0" right="30.0"/>
+                    </padding>
+                    <Label styleClass="subtitle-text" text="Start a new adventure">
+                        <font>
+                            <Font size="20.0" />
+                        </font>
+                    </Label>
+                    <VBox alignment="CENTER" spacing="10.0">
+                        <Label text="Number of Players:" />
+                        <Spinner fx:id="playerCountSpinner" editable="true" initialValue="3" max="5" min="2" prefWidth="150.0" />
+                    </VBox>
+                    <Label fx:id="errorLabelCreate" styleClass="error-text" visible="false" />
+                    <Button maxWidth="200.0" onAction="#handleCreateGame" styleClass="button-accent" text="CREATE GAME" />
+                </VBox>
+            </Tab>
+        </tabs>
+    </TabPane>
+
+</VBox>

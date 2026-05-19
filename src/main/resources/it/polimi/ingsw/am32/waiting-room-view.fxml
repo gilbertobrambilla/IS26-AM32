@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" spacing="25.0" style="-fx-background-color: #65896e;"
+      styleClass="root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.WaitingRoomViewController">
+
+    <padding>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+    </padding>
+
+    <VBox alignment="CENTER" spacing="10.0">
+        <Label styleClass="title-text" text="WAITING ROOM" textFill="#cc1414">
+            <font>
+                <Font name="System Bold" size="32.0" />
+            </font>
+        </Label>
+        <Label fx:id="lobbyTitleLabel" styleClass="subtitle-text" text="Connecting to game..." textFill="WHITE">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+    </VBox>
+
+    <VBox maxWidth="450.0" spacing="20.0" style="-fx-background-color: #fbb85c; -fx-background-radius: 10px;" styleClass="game-panel" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+        </padding>
+
+        <Label styleClass="text-main" text="Players currently in the lobby:" >
+            <font>
+                <Font name="System Bold" size="14.0" />
+            </font>
+        </Label>
+
+        <ListView fx:id="playersListView" VBox.vgrow="ALWAYS" style="-fx-background-radius: 5px;" />
+
+        <HBox alignment="CENTER" spacing="15.0">
+            <ProgressIndicator prefHeight="24.0" prefWidth="24.0" />
+            <Label fx:id="statusLabel" styleClass="text-main" text="Waiting for additional players to join..." />
+        </HBox>
+    </VBox>
+
+</VBox>

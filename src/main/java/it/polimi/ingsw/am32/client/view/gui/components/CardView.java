@@ -69,23 +69,47 @@ public class CardView extends StackPane {
         cardIdFallback.ifPresentOrElse(
                 id -> {
                     String validId = normalizeId(id);
-                    String resolvedPath = AssetManager.getInstance().getUiAsset(validId);
+                    String resolvedPath = null;
+
+                    // correct dto is retrieved based on prefix
+                    if (validId.startsWith("building")) {
+                        var dto = AssetManager.getInstance().getBuildingCard(validId);
+                        if (dto != null) resolvedPath = dto.getAssetPath();
+                    } else if (validId.startsWith("character")) {
+                        var dto = AssetManager.getInstance().getCharacterCard(validId);
+                        if (dto != null) resolvedPath = dto.getAssetPath();
+                    } else if (validId.startsWith("event")) {
+                        var dto = AssetManager.getInstance().getEventCard(validId);
+                        if (dto != null) resolvedPath = dto.getAssetPath();
+                    }
+
                     if (resolvedPath == null) {
-                        System.err.println("[CardView] No asset path for id: " + validId);
+                        // error is logged
+                        System.err.println("[CardView] no asset path found for id: " + validId);
                         return;
                     }
+
+                    // image is fetched from cache
                     Image image = ImageCache.getInstance().getImage(resolvedPath);
                     if (image != null) {
                         imageView.setImage(image);
                     } else {
-                        System.err.println("[CardView] Missing asset for card id: " + validId);
+                        // error is logged
+                        System.err.println("[CardView] image loading failed for path: " + resolvedPath);
                     }
                 },
                 () -> {
-                    System.out.println("[CardView] Card id is absent. Rendering card back.");
-                    Image backImage = ImageCache.getInstance().getImage("card_back");
-                    if (backImage != null) {
-                        imageView.setImage(backImage);
+                    System.out.println("[CardView] card id is absent. rendering card back.");
+
+                    // fallback card back path is requested
+                    String backPath = AssetManager.getInstance().getCardBack("card_back");
+
+                    if (backPath != null) {
+                        // image is fetched from cache
+                        Image backImage = ImageCache.getInstance().getImage(backPath);
+                        if (backImage != null) {
+                            imageView.setImage(backImage);
+                        }
                     }
                 }
         );

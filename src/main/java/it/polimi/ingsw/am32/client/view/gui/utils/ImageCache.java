@@ -2,6 +2,7 @@ package it.polimi.ingsw.am32.client.view.gui.utils;
 
 import javafx.scene.image.Image;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,19 +13,11 @@ public class ImageCache {
     private static ImageCache instance;
     private final Map<String, Image> cache;
 
-    /**
-     * Gui image cache is instantiated.
-     */
     private ImageCache() {
         // internal map is initialized
         this.cache = new HashMap<>();
     }
 
-    /**
-     * Singleton instance is retrieved.
-     *
-     * @return the gui image cache instance.
-     */
     public static ImageCache getInstance() {
         // instance is created if null
         if (instance == null) {
@@ -34,16 +27,9 @@ public class ImageCache {
         return instance;
     }
 
-    /**
-     * Image is retrieved from the cache or loaded if absent.
-     *
-     * @param path the path of the image.
-     * @return the loaded javafx image.
-     */
     public Image getImage(String path) {
         // path is checked for nullity
         if (path == null || path.isEmpty()) {
-            // null is returned
             return null;
         }
 
@@ -52,10 +38,17 @@ public class ImageCache {
 
         // image is loaded if null
         if (img == null) {
-            // new image is instantiated
-            img = new Image(path);
-            // image is stored in cache
-            cache.put(path, img);
+            // resource stream is opened from classpath
+            InputStream is = ImageCache.class.getResourceAsStream(path);
+            if (is != null) {
+                // new image is instantiated
+                img = new Image(is);
+                // image is stored in cache
+                cache.put(path, img);
+            } else {
+                // error is logged if resource is missing
+                System.err.println("[ImageCache] missing resource: " + path);
+            }
         }
 
         // image is returned

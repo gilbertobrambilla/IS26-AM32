@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+
+<HBox alignment="CENTER" prefHeight="60.0" spacing="50.0" style="-fx-background-color: #65896e;"
+      xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.TopBarViewController">
+
+    <HBox alignment="CENTER" spacing="10.0">
+        <Label text="ERA:">
+            <font><Font name="System Bold" size="18.0" /></font>
+        </Label>
+        <Label fx:id="eraLabel" text="I" textFill="#ffd700">
+            <font><Font name="System Bold" size="24.0" /></font>
+        </Label>
+    </HBox>
+
+    <HBox alignment="CENTER" spacing="10.0">
+        <Label text="ROUND:">
+            <font><Font name="System Bold" size="18.0" /></font>
+        </Label>
+        <Label fx:id="roundLabel" text="1" textFill="WHITE">
+            <font><Font name="System Bold" size="24.0" /></font>
+        </Label>
+    </HBox>
+
+    <HBox alignment="CENTER" spacing="10.0">
+        <Label text="PHASE:">
+            <font><Font name="System Bold" size="18.0" /></font>
+        </Label>
+        <Label fx:id="phaseLabel" text="TOTEM PLACEMENT" textFill="#88ccff">
+            <font><Font name="System Bold" size="20.0" /></font>
+        </Label>
+    </HBox>
+
+</HBox>
