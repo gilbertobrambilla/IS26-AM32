@@ -203,15 +203,13 @@ public class LightGameState {
             return false;
         }
 
-        // check if the user missed an affordable card in the upper row
-        if (selectedUpper < reqUpper && hasAffordableUnselectedCards(
-                this.upperTribeRow, this.upperBuildingRow, selUpper, selBuildings, player)) {
+        // check if the user missed a required character card in the upper row
+        if (selectedUpper < reqUpper && hasRequiredUnselectedCards(this.upperTribeRow, selUpper)) {
             return false;
         }
 
-        // check if the user missed an affordable card in the lower row
-        if (selectedLower < reqLower && hasAffordableUnselectedCards(
-                this.lowerTribeRow, this.lowerBuildingRow, selLower, selBuildings, player)) {
+        // check if the user missed a required character card in the lower row
+        if (selectedLower < reqLower && hasRequiredUnselectedCards(this.lowerTribeRow, selLower)) {
             return false;
         }
 
@@ -220,28 +218,16 @@ public class LightGameState {
     }
 
     /**
-     * Helper method to check if there is at least one affordable card left in the specified rows.
+     * Helper method to check if there is at least one character card left in the specified row.
      */
-    private boolean hasAffordableUnselectedCards(
-            List<String> tribeRow, List<String> buildingRow,
-            List<String> selectedInRow, List<String> allSelectedBuildings, LightPlayer player) {
-
-        // ensure we only count IDs that look like characters
+    private boolean hasRequiredUnselectedCards(List<String> tribeRow, List<String> selectedInRow) {
+        // ensure we only count IDs that look like characters (which are mandatory to pick)
         long freeCharacters = tribeRow.stream()
                 .filter(id -> id.startsWith("character_"))
                 .filter(id -> !selectedInRow.contains(id))
                 .count();
 
-        if (freeCharacters > 0) return true;
-
-        // ensure we only count IDs that look like buildings
-        long affordableBuildings = buildingRow.stream()
-                .filter(id -> id.startsWith("building"))
-                .filter(id -> !selectedInRow.contains(id))
-                .filter(id -> player.canAffordAdditionalBuilding(allSelectedBuildings, id))
-                .count();
-
-        return affordableBuildings > 0;
+        return freeCharacters > 0;
     }
 
     // getters

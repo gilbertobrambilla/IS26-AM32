@@ -365,6 +365,7 @@ public class GameState {
         int affordableLowerSize = requestedLower;
 
         affordableLowerSize += Math.toIntExact(this.lowerTribeRow.stream()
+                .filter(c -> c.getId().startsWith("character_"))
                 .filter(c -> !chosenCharacterCardsIds.contains(c.getId()))
                 .count());
 
@@ -372,6 +373,31 @@ public class GameState {
                 .filter(b -> !chosenBuildingCardsIds.contains(b.getId()))
                 .filter(b -> player.canAffordAdditionalBuilding(foundBuildings, b))
                 .count());
+
+        // validate that the player has not omitted any available characters when choosing fewer cards than allowed
+        long unselectedCharactersUpper = this.upperTribeRow.stream()
+                .filter(c -> c.getId().startsWith("character_"))
+                .filter(c -> !chosenCharacterCardsIds.contains(c.getId()))
+                .count();
+
+        if (requestedUpper < targetTile.getAction().getDrawsFromUpperRow() && unselectedCharactersUpper > 0) {
+            throw new InvalidGameActionException(
+                    GameErrorReason.INVALID_SELECTION_AMOUNT,
+                    "Selected cards do not match offer tile constraints or the player omitted available character cards."
+            );
+        }
+
+        long unselectedCharactersLower = this.lowerTribeRow.stream()
+                .filter(c -> c.getId().startsWith("character_"))
+                .filter(c -> !chosenCharacterCardsIds.contains(c.getId()))
+                .count();
+
+        if (requestedLower < targetTile.getAction().getDrawsFromLowerRow() && unselectedCharactersLower > 0) {
+            throw new InvalidGameActionException(
+                    GameErrorReason.INVALID_SELECTION_AMOUNT,
+                    "Selected cards do not match offer tile constraints or the player omitted available character cards."
+            );
+        }
 
         // validate the action using the affordable sizes
         if (!targetTile.isValidSelection(requestedUpper, requestedLower, affordableUpperSize, affordableLowerSize)) {
