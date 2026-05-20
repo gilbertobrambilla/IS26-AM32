@@ -144,6 +144,11 @@ public class GuiUI implements UI {
         });
     }
 
+    @Override
+    public void showLeaderboard(LeaderboardEvent event) {
+
+    }
+
     // --- GAMEPLAY ACTIONS ---
 
     @Override

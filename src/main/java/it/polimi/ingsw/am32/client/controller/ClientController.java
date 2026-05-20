@@ -264,6 +264,18 @@ public class ClientController {
         });
     }
 
+    /**
+     * Leaderboard event is processed.
+     *
+     * @param event the leaderboard event
+     */
+    public void onLeaderboardReceived(LeaderboardEvent event) {
+        runOnUIThread(() -> {
+            // ui is updated
+            if (ui != null) ui.showLeaderboard(event);
+        });
+    }
+
     public void onTotemPlaced(TotemPlacedEvent event) {
         runOnUIThread(() -> {
             // state is updated

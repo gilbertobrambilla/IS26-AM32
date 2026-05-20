@@ -31,6 +31,13 @@ public interface GameView {
     void notifyGameEnded(GameEndedEvent resultDTO);
 
     /**
+     * Leaderboard event is notified to the client.
+     *
+     * @param dto the leaderboard event
+     */
+    void notifyLeaderboard(LeaderboardEvent dto);
+
+    /**
      * A game-related error is notified to the client.
      *
      * @param dto the game error event
