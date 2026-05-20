@@ -33,23 +33,39 @@ public class Action  {
         return foodBonus;
     }
 
-    public boolean isValidSelection(int requestedUpper, int requestedLower, int availableUpper, int availableLower) {
+    public boolean isValidSelection(
+            int requestedUpper, int requestedLower,
+            int characterCardsUpper, int characterCardsLower,
+            int affordableBuildingsUpper, int affordableBuildingsLower) {
+
         if (requestedUpper < 0) {
             throw new IllegalArgumentException("requestedUpper cannot be negative");
         }
         if (requestedLower < 0) {
             throw new IllegalArgumentException("requestedLower cannot be negative");
         }
-        if (availableUpper < 0) {
-            throw new IllegalArgumentException("availableUpper cannot be negative");
+        if (characterCardsUpper < 0) {
+            throw new IllegalArgumentException("characterCardsUpper cannot be negative");
         }
-        if (availableLower < 0) {
-            throw new IllegalArgumentException("availableLower cannot be negative");
+        if (characterCardsLower < 0) {
+            throw new IllegalArgumentException("characterCardsLower cannot be negative");
+        }
+        if (affordableBuildingsUpper < 0) {
+            throw new IllegalArgumentException("affordableBuildingsUpper cannot be negative");
+        }
+        if (affordableBuildingsLower < 0) {
+            throw new IllegalArgumentException("affordableBuildingsLower cannot be negative");
         }
 
-        boolean isUpperValid = (requestedUpper <= this.drawsFromUpperRow) && (requestedUpper <= availableUpper);
-        boolean isLowerValid = (requestedLower <= this.drawsFromLowerRow) && (requestedLower <= availableLower);
+        // the player must take at least all available character cards, up to the tile limit
+        int mandatoryUpper = Math.min(this.drawsFromUpperRow, characterCardsUpper);
+        int mandatoryLower = Math.min(this.drawsFromLowerRow, characterCardsLower);
 
-        return isUpperValid && isLowerValid;
+        // after mandatory characters are taken, remaining slots can be optionally filled with buildings
+        int maxUpper = Math.min(this.drawsFromUpperRow, characterCardsUpper + affordableBuildingsUpper);
+        int maxLower = Math.min(this.drawsFromLowerRow, characterCardsLower + affordableBuildingsLower);
+
+        return requestedUpper >= mandatoryUpper && requestedUpper <= maxUpper
+            && requestedLower >= mandatoryLower && requestedLower <= maxLower;
     }
 }

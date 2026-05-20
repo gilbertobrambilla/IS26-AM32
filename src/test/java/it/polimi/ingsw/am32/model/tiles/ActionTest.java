@@ -10,13 +10,13 @@ class ActionTest {
 
     @BeforeEach
     void setUp() {
-        //creo una action standard prima di ogni test (può pescare max 2 sopra, max 1 sotto, dà 3 cibo)
+        // Create a standard action before each test (max 2 upper, max 1 lower, 3 food bonus)
         action = new Action(2, 1, 3);
     }
 
     @Test
     void constructorShouldSetValuesCorrectly() {
-        //act and assert: verifico che i getter restituiscano i valori inseriti nel setup
+        // Act and Assert: verify that getters return the setup values
         assertEquals(2, action.getDrawsFromUpperRow());
         assertEquals(1, action.getDrawsFromLowerRow());
         assertEquals(3, action.getFoodBonus());
@@ -24,7 +24,7 @@ class ActionTest {
 
     @Test
     void constructorShouldThrowExceptionIfDrawsFromUpperRowIsNegative() {
-        //arrange, act and assert: eccezione se la pescata superiore è negativa
+        // Arrange, Act and Assert: exception expected if upper draw is negative
         assertThrows(IllegalArgumentException.class, () -> {
             new Action(-1, 1, 3);
         });
@@ -32,7 +32,7 @@ class ActionTest {
 
     @Test
     void constructorShouldThrowExceptionIfDrawsFromLowerRowIsNegative() {
-        //arrange, act and assert: eccezione se la pescata inferiore è negativa
+        // Arrange, Act and Assert: exception expected if lower draw is negative
         assertThrows(IllegalArgumentException.class, () -> {
             new Action(2, -1, 3);
         });
@@ -40,7 +40,7 @@ class ActionTest {
 
     @Test
     void constructorShouldThrowExceptionIfFoodBonusIsNegative() {
-        //arrange, act and assert: eccezione se il bonus cibo è negativo
+        // Arrange, Act and Assert: exception expected if food bonus is negative
         assertThrows(IllegalArgumentException.class, () -> {
             new Action(2, 1, -3);
         });
@@ -48,54 +48,53 @@ class ActionTest {
 
     @Test
     void isValidSelectionShouldReturnTrueForValidRequests() {
-        //act and assert: valido se chiedo esattamente il massimo consentito e disponibile
-        assertTrue(action.isValidSelection(2, 1, 5, 5));
+        // Act and Assert: valid if requested exactly the maximum allowed, covered by character cards
+        assertTrue(action.isValidSelection(2, 1, 5, 5, 0, 0));
 
-        //act and assert: valido se chiedo meno del massimo consentito
-        assertTrue(action.isValidSelection(1, 0, 2, 2));
+        // Act and Assert: valid if requested less than maximum (e.g. 1) because there are no mandatory
+        // character cards to pick, but buildings are available
+        assertTrue(action.isValidSelection(1, 0, 0, 0, 2, 2));
 
-        //act and assert: valido se chiedo 0 (se permesso dal gioco)
-        assertTrue(action.isValidSelection(0, 0, 0, 0));
+        // Act and Assert: valid if requested 0 and the table is actually empty
+        assertTrue(action.isValidSelection(0, 0, 0, 0, 0, 0));
     }
 
     @Test
     void isValidSelectionShouldReturnFalseIfRequestedExceedsAllowed() {
-        //act and assert: falso se chiedo 3 carte sopra ma ne sono permesse solo 2
-        assertFalse(action.isValidSelection(3, 1, 5, 5));
+        // Act and Assert: false if requesting 3 upper cards but only 2 are allowed by the action
+        assertFalse(action.isValidSelection(3, 1, 5, 5, 0, 0));
 
-        //act and assert: falso se chiedo 2 carte sotto ma ne è permessa solo 1
-        assertFalse(action.isValidSelection(2, 2, 5, 5));
+        // Act and Assert: false if requesting 2 lower cards but only 1 is allowed by the action
+        assertFalse(action.isValidSelection(2, 2, 5, 5, 0, 0));
     }
 
     @Test
     void isValidSelectionShouldReturnFalseIfRequestedExceedsAvailable() {
-        //act and assert: falso se chiedo 2 carte sopra ma ce n'è solo 1 disponibile sul tavolo
-        assertFalse(action.isValidSelection(2, 1, 1, 5));
+        // Act and Assert: false if requesting 2 upper cards but only 1 is globally available on the table
+        assertFalse(action.isValidSelection(2, 1, 1, 5, 0, 0));
 
-        //act and assert: falso se chiedo 1 carta sotto ma il tavolo è vuoto sotto
-        assertFalse(action.isValidSelection(2, 1, 5, 0));
+        // Act and Assert: false if requesting 1 lower card but the lower table row is empty
+        assertFalse(action.isValidSelection(2, 1, 5, 0, 0, 0));
+    }
+
+    @Test
+    void isValidSelectionShouldReturnFalseIfMandatoryCharactersNotTaken() {
+        // Act and Assert: false if requesting only 1 upper card, but there are 2 or more character cards
+        // available (which are mandatory up to the action limit of 2)
+        assertFalse(action.isValidSelection(1, 1, 2, 1, 0, 0));
+
+        // Act and Assert: false if requesting 0 lower cards, but there is at least 1 mandatory character card
+        assertFalse(action.isValidSelection(2, 0, 2, 1, 0, 0));
     }
 
     @Test
     void isValidSelectionShouldThrowExceptionForNegativeParameters() {
-        //arrange, act and assert: eccezione per requestedUpper negativo
-        assertThrows(IllegalArgumentException.class, () -> {
-            action.isValidSelection(-1, 0, 0, 0);
-        });
-
-        //arrange, act and assert: eccezione per requestedLower negativo
-        assertThrows(IllegalArgumentException.class, () -> {
-            action.isValidSelection(0, -1, 0, 0);
-        });
-
-        //arrange, act and assert: eccezione per availableUpper negativo
-        assertThrows(IllegalArgumentException.class, () -> {
-            action.isValidSelection(0, 0, -1, 0);
-        });
-
-        //arrange, act and assert: eccezione per availableLower negativo
-        assertThrows(IllegalArgumentException.class, () -> {
-            action.isValidSelection(0, 0, 0, -1);
-        });
+        // Arrange, Act and Assert: exception expected for negative parameters
+        assertThrows(IllegalArgumentException.class, () -> action.isValidSelection(-1, 0, 0, 0, 0, 0));
+        assertThrows(IllegalArgumentException.class, () -> action.isValidSelection(0, -1, 0, 0, 0, 0));
+        assertThrows(IllegalArgumentException.class, () -> action.isValidSelection(0, 0, -1, 0, 0, 0));
+        assertThrows(IllegalArgumentException.class, () -> action.isValidSelection(0, 0, 0, -1, 0, 0));
+        assertThrows(IllegalArgumentException.class, () -> action.isValidSelection(0, 0, 0, 0, -1, 0));
+        assertThrows(IllegalArgumentException.class, () -> action.isValidSelection(0, 0, 0, 0, 0, -1));
     }
 }

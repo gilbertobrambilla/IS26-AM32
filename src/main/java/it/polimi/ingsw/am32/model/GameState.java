@@ -347,65 +347,36 @@ public class GameState {
             }
         }
 
-        // calculate the effectively affordable cards in the upper row
-        int affordableUpperSize = requestedUpper;
-
-        affordableUpperSize += Math.toIntExact(this.upperTribeRow.stream()
+        // count character cards present in each tribe row (includes already-chosen ones; player consumes them)
+        int characterCardsUpper = Math.toIntExact(this.upperTribeRow.stream()
                 .filter(c -> c.getId().startsWith("character_"))
-                .filter(c -> !chosenCharacterCardsIds.contains(c.getId()))
                 .count());
 
-        affordableUpperSize += Math.toIntExact(this.upperBuildingRow.stream()
-                .filter(b -> b.getId().startsWith("building_"))
+        int characterCardsLower = Math.toIntExact(this.lowerTribeRow.stream()
+                .filter(c -> c.getId().startsWith("character_"))
+                .count());
+
+        // count buildings the player could still afford in each row (excludes already chosen ones)
+        int affordableBuildingsUpper = Math.toIntExact(this.upperBuildingRow.stream()
                 .filter(b -> !chosenBuildingCardsIds.contains(b.getId()))
                 .filter(b -> player.canAffordAdditionalBuilding(foundBuildings, b))
                 .count());
 
-        // calculate the effectively affordable cards in the lower row
-        int affordableLowerSize = requestedLower;
-
-        affordableLowerSize += Math.toIntExact(this.lowerTribeRow.stream()
-                .filter(c -> c.getId().startsWith("character_"))
-                .filter(c -> !chosenCharacterCardsIds.contains(c.getId()))
-                .count());
-
-        affordableLowerSize += Math.toIntExact(this.lowerBuildingRow.stream()
+        int affordableBuildingsLower = Math.toIntExact(this.lowerBuildingRow.stream()
                 .filter(b -> !chosenBuildingCardsIds.contains(b.getId()))
                 .filter(b -> player.canAffordAdditionalBuilding(foundBuildings, b))
                 .count());
 
-        // validate that the player has not omitted any available characters when choosing fewer cards than allowed
-        long unselectedCharactersUpper = this.upperTribeRow.stream()
-                .filter(c -> c.getId().startsWith("character_"))
-                .filter(c -> !chosenCharacterCardsIds.contains(c.getId()))
-                .count();
-
-        if (requestedUpper < targetTile.getAction().getDrawsFromUpperRow() && unselectedCharactersUpper > 0) {
+        // delegate all selection validation to Action, which encodes all mandatory/optional rules
+        if (!targetTile.isValidSelection(requestedUpper, requestedLower,
+                characterCardsUpper, characterCardsLower,
+                affordableBuildingsUpper, affordableBuildingsLower)) {
             throw new InvalidGameActionException(
                     GameErrorReason.INVALID_SELECTION_AMOUNT,
                     "Selected cards do not match offer tile constraints or the player omitted available character cards."
             );
         }
 
-        long unselectedCharactersLower = this.lowerTribeRow.stream()
-                .filter(c -> c.getId().startsWith("character_"))
-                .filter(c -> !chosenCharacterCardsIds.contains(c.getId()))
-                .count();
-
-        if (requestedLower < targetTile.getAction().getDrawsFromLowerRow() && unselectedCharactersLower > 0) {
-            throw new InvalidGameActionException(
-                    GameErrorReason.INVALID_SELECTION_AMOUNT,
-                    "Selected cards do not match offer tile constraints or the player omitted available character cards."
-            );
-        }
-
-        // validate the action using the affordable sizes
-        if (!targetTile.isValidSelection(requestedUpper, requestedLower, affordableUpperSize, affordableLowerSize)) {
-            throw new InvalidGameActionException(
-                    GameErrorReason.INVALID_SELECTION_AMOUNT,
-                    "Selected cards do not match offer tile constraints or the player omitted affordable cards."
-            );
-        }
 
         List<PlayerStatsChangeReceipt> statsChanges = new ArrayList<>();
 

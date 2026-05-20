@@ -14,23 +14,24 @@ class OfferTileTest {
 
     @BeforeEach
     void setUp() {
-        //creo una action fittizia per i test
-        //nota: se action non ha un costruttore vuoto, dovrai adattare questa riga
+        // Create a dummy action for testing purposes
         dummyAction = new Action(1, 0, 0) {
             @Override
-            public boolean isValidSelection(int requestedUpper, int requestedLower, int availableUpper, int availableLower) {
-                //restituisco true solo se requestedUpper è uguale a 1 per testare la delega
+            public boolean isValidSelection(int requestedUpper, int requestedLower,
+                                            int characterCardsUpper, int characterCardsLower,
+                                            int affordableBuildingsUpper, int affordableBuildingsLower) {
+                // Return true only if requestedUpper is equal to 1 to test the delegation
                 return requestedUpper == 1;
             }
         };
 
-        //inizializzo la tessera offerta prima di ogni test
+        // Initialize the offer tile before each test
         offerTile = new OfferTile("OT_01", 3, dummyAction);
     }
 
     @Test
     void constructorShouldSetValuesAndInitiallyBeFree() {
-        //act and assert: verifico i valori iniziali tramite i getter
+        // Act and Assert: verify initial values via getters
         assertEquals("OT_01", offerTile.getId());
         assertEquals(3, offerTile.getRequiredPlayers());
         assertEquals(dummyAction, offerTile.getAction());
@@ -40,7 +41,7 @@ class OfferTileTest {
 
     @Test
     void constructorShouldThrowExceptionIfActionIsNull() {
-        //arrange, act and assert: verifico eccezione per action nulla
+        // Arrange, Act and Assert: verify exception for null action
         assertThrows(NullPointerException.class, () -> {
             new OfferTile("OT_02", 3, null);
         });
@@ -48,20 +49,20 @@ class OfferTileTest {
 
     @Test
     void placePlayerShouldSetOccupyingPlayerAndMakeTileNotFree() {
-        //arrange: creo un giocatore
+        // Arrange: create a player
         Player player = new Player("Alice");
 
-        //act: piazzo il giocatore
+        // Act: place the player on the tile
         offerTile.placePlayer(player);
 
-        //assert: verifico che la tessera sia occupata da alice
+        // Assert: verify that the tile is occupied by Alice
         assertFalse(offerTile.isFree());
         assertEquals(player, offerTile.getOccupyingPlayer());
     }
 
     @Test
     void placePlayerShouldThrowExceptionIfPlayerIsNull() {
-        //arrange, act and assert: verifico eccezione per giocatore nullo
+        // Arrange, Act and Assert: verify exception for null player
         assertThrows(NullPointerException.class, () -> {
             offerTile.placePlayer(null);
         });
@@ -69,10 +70,10 @@ class OfferTileTest {
 
     @Test
     void placePlayerShouldThrowExceptionIfTileIsAlreadyOccupied() {
-        //arrange: piazzo un primo giocatore
+        // Arrange: place a first player
         offerTile.placePlayer(new Player("Alice"));
 
-        //act and assert: piazzarne un altro deve lanciare eccezione
+        // Act and Assert: placing another player must throw an exception
         assertThrows(InvalidGameActionException.class, () -> {
             offerTile.placePlayer(new Player("Bob"));
         });
@@ -80,28 +81,45 @@ class OfferTileTest {
 
     @Test
     void removePlayerShouldFreeTheTile() {
-        //arrange: piazzo un giocatore
+        // Arrange: place a player
         offerTile.placePlayer(new Player("Charlie"));
         assertFalse(offerTile.isFree());
 
-        //act: rimuovo il giocatore
+        // Act: remove the player
         offerTile.removePlayer();
 
-        //assert: la tessera deve tornare libera
+        // Assert: the tile must become free again
         assertTrue(offerTile.isFree());
         assertNull(offerTile.getOccupyingPlayer());
     }
 
     @Test
     void isValidSelectionShouldDelegateToAction() {
-        //act: richiamo il metodo con requestedUpper = 1 (che il mio dummy action valuta come true)
-        boolean resultTrue = offerTile.isValidSelection(1, 0, 0, 0);
+        // Act: invoke the method with requestedUpper = 1 (evaluated as true by the dummy action)
+        boolean resultTrue = offerTile.isValidSelection(1, 0, 0, 0, 0, 0);
 
-        //act: richiamo il metodo con requestedUpper diverso da 1 (valutato come false)
-        boolean resultFalse = offerTile.isValidSelection(2, 0, 0, 0);
+        // Act: invoke the method with requestedUpper different from 1 (evaluated as false)
+        boolean resultFalse = offerTile.isValidSelection(2, 0, 0, 0, 0, 0);
 
-        //assert: la risposta deve coincidere con la logica del dummy action
+        // Assert: the response must match the logic of the dummy action
         assertTrue(resultTrue);
         assertFalse(resultFalse);
+    }
+
+    @Test
+    void isOccupiedByShouldReturnTrueOnlyForOccupyingPlayer() {
+        // Arrange: create two players
+        Player player1 = new Player("Alice");
+        Player player2 = new Player("Bob");
+
+        // Assert: the empty tile is not occupied by player1
+        assertFalse(offerTile.isOccupiedBy(player1));
+
+        // Act: place player 1
+        offerTile.placePlayer(player1);
+
+        // Assert: it must be occupied only by player1
+        assertTrue(offerTile.isOccupiedBy(player1));
+        assertFalse(offerTile.isOccupiedBy(player2));
     }
 }

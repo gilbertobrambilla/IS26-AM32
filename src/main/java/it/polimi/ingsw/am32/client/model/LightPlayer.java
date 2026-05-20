@@ -56,11 +56,18 @@ public class LightPlayer {
 
         int baseCost = buildingDTO.getCost();
 
-        // Count the "Builder" characters owned by the player to calculate the discount
-        int discount = (int) this.getCharacterCards().stream()
+        // Sum the buildingDiscount values of all "Builder" characters owned by the player
+        int discount = this.getCharacterCards().stream()
                 .map(id -> AssetManager.getInstance().getCharacterCard(id))
                 .filter(dto -> dto != null && "BUILDER".equals(dto.getCharacterType()))
-                .count();
+                .mapToInt(dto -> {
+                    var params = dto.getCharacterParams();
+                    if (params != null && params.has("buildingDiscount")) {
+                        return params.get("buildingDiscount").asInt();
+                    }
+                    return 0;
+                })
+                .sum();
 
         return Math.max(0, baseCost - discount);
     }

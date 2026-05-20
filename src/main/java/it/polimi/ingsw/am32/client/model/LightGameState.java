@@ -193,41 +193,30 @@ public class LightGameState {
         int selectedUpper = selUpper.size();
         int selectedLower = selLower.size();
 
-        // exact match with the offer tile requirements
-        if (selectedUpper == reqUpper && selectedLower == reqLower) {
-            return true;
-        }
-
-        // invalid UI state: the user selected more cards than required
+        // cannot select more than the tile allows
         if (selectedUpper > reqUpper || selectedLower > reqLower) {
             return false;
         }
 
-        // check if the user missed a required character card in the upper row
-        if (selectedUpper < reqUpper && hasRequiredUnselectedCards(this.upperTribeRow, selUpper)) {
+        // mapToInt combined with sum natively returns an int, avoiding long-to-int downcasting
+        int availableUpperCharacters = this.upperTribeRow.stream()
+                .mapToInt(id -> id.startsWith("character_") ? 1 : 0)
+                .sum();
+
+        int availableLowerCharacters = this.lowerTribeRow.stream()
+                .mapToInt(id -> id.startsWith("character_") ? 1 : 0)
+                .sum();
+
+        // the player must take all available character cards up to the tile limit
+        int mandatoryUpper = Math.min(reqUpper, availableUpperCharacters);
+        int mandatoryLower = Math.min(reqLower, availableLowerCharacters);
+
+        if (selectedUpper < mandatoryUpper || selectedLower < mandatoryLower) {
             return false;
         }
 
-        // check if the user missed a required character card in the lower row
-        if (selectedLower < reqLower && hasRequiredUnselectedCards(this.lowerTribeRow, selLower)) {
-            return false;
-        }
-
-        // the user hasn't met the exact requirements, but they are legitimately stuck
+        // selection meets mandatory minimum and does not exceed maximum: complete or legitimately stuck
         return true;
-    }
-
-    /**
-     * Helper method to check if there is at least one character card left in the specified row.
-     */
-    private boolean hasRequiredUnselectedCards(List<String> tribeRow, List<String> selectedInRow) {
-        // ensure we only count IDs that look like characters (which are mandatory to pick)
-        long freeCharacters = tribeRow.stream()
-                .filter(id -> id.startsWith("character_"))
-                .filter(id -> !selectedInRow.contains(id))
-                .count();
-
-        return freeCharacters > 0;
     }
 
     // getters
