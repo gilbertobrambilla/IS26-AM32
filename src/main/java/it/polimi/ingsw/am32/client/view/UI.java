@@ -98,6 +98,13 @@ public interface UI {
      */
     void showGameEnded(GameEndedEvent event);
 
+    /**
+     * Global leaderboard results are shown.
+     *
+     * @param event the leaderboard event
+     */
+    void showLeaderboard(LeaderboardEvent event);
+
 
     // gameplay actions
 

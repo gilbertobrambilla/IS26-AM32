@@ -111,7 +111,9 @@ public class TuiUI implements UI, LogObserver {
         commandRegistry.put(TuiState.LOBBY, Map.of("quit", quit, "help", help));
         commandRegistry.put(TuiState.IN_GAME, inGameRegistry);
         commandRegistry.put(TuiState.SUSPENDED, Map.of("quit", quit, "help", help));
-        commandRegistry.put(TuiState.END_GAME, Map.of("quit", quit, "help", help));
+
+        // only quit command is mapped for endgame state
+        commandRegistry.put(TuiState.END_GAME, Map.of("quit", quit));
     }
 
     /**
@@ -644,6 +646,19 @@ public class TuiUI implements UI, LogObserver {
         // state and scene are updated
         endGameScene.setWinners(event.getResults().getWinners());
         updateStateAndScene(TuiState.END_GAME);
+    }
+
+    /**
+     * Global leaderboard results are shown.
+     *
+     * @param event the leaderboard event
+     */
+    @Override
+    public void showLeaderboard(LeaderboardEvent event) {
+        // leaderboard results are injected into the scene
+        endGameScene.setGlobalLeaderboard(event.getGlobalLeaderboard(), event.getGlobalPosition(), event.isDbAvailable());
+        // screen is redrawn
+        safeRender();
     }
 
     /**

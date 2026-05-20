@@ -115,4 +115,10 @@ public class MessageDispatcher implements ClientMessageVisitor {
     public void visit(GameEndedEvent message) {
         controller.onGameEnded(message);
     }
+
+    @Override
+    public void visit(LeaderboardEvent message) {
+        // leaderboard event is dispatched to controller
+        controller.onLeaderboardReceived(message);
+    }
 }

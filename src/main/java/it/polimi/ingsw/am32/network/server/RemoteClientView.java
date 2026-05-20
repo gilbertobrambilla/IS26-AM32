@@ -194,6 +194,12 @@ public class RemoteClientView implements VirtualView, NetworkNode {
     }
 
     @Override
+    public void notifyLeaderboard(LeaderboardEvent dto) {
+        // dto pushed to client
+        sendMessageToClient(dto);
+    }
+
+    @Override
     public void handleDisconnect() {
         if (isRunning.compareAndSet(true, false)) {
             // heartbeat stopped

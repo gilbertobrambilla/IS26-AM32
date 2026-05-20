@@ -152,4 +152,11 @@ public interface ClientMessageVisitor {
      * @param message the message to be visited
      */
     void visit(GameEndedEvent message);
+
+    /**
+     * Visits a leaderboard event.
+     *
+     * @param message the message to be visited
+     */
+    void visit(LeaderboardEvent message);
 }

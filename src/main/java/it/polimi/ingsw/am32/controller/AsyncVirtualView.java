@@ -160,6 +160,17 @@ public class AsyncVirtualView implements VirtualView, Runnable {
     }
 
     /**
+     * The global leaderboard is notified to the client asynchronously.
+     *
+     * @param dto the leaderboard event
+     */
+    @Override
+    public void notifyLeaderboard(LeaderboardEvent dto) {
+        // task is added to queue
+        this.messageQueue.add(() -> this.realView.notifyLeaderboard(dto));
+    }
+
+    /**
      * A game-related error is notified to the client asynchronously.
      *
      * @param dto the game error event
@@ -257,7 +268,7 @@ public class AsyncVirtualView implements VirtualView, Runnable {
     /**
      * A round end is notified to the client asynchronously.
      *
-     * @param dto the round ended event
+     * @param dto the round-ended event
      */
     @Override
     public void notifyRoundEnded(RoundEndedEvent dto) {

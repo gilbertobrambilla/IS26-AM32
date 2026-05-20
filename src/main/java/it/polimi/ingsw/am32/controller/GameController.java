@@ -21,6 +21,7 @@ import it.polimi.ingsw.am32.model.receipts.*;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -850,7 +851,7 @@ public class GameController implements Runnable {
     }
 
     /**
-     * The game is ended, an asynchronous worker is spawned to calculate results and clients are notified.
+     * The game is ended, local results are broadcasted and an asynchronous worker is spawned for database operations.
      */
     private void processGameEnd() {
         GameResult modelResult = this.gameState.calculateResults();
@@ -861,13 +862,27 @@ public class GameController implements Runnable {
                 .map(Player::getNickname)
                 .collect(Collectors.toList());
 
+        // local scores are extracted
+        Map<String, int[]> fullMatchScores = new HashMap<>();
+        for (Map.Entry<Player, int[]> entry : modelResult.getLeaderboard().entrySet()) {
+            fullMatchScores.put(entry.getKey().getNickname(), entry.getValue());
+        }
+
+        // local game result dto is built
+        GameResultDTO resultDTO = new GameResultDTO(winners, fullMatchScores);
+        GameEndedEvent endedEventDTO = new GameEndedEvent(resultDTO);
+
+        // local game-ended event is sent immediately to active clients
+        for (PlayerSession session : this.activeClients.values()) {
+            session.getView().notifyGameEnded(endedEventDTO);
+        }
+
         // asynchronous worker is instantiated and started
         LeaderboardWorker worker = new LeaderboardWorker(
                 this.gameId,
                 this.activeClients,
                 modelResult,
                 numOfPlayers,
-                winners,
                 this.lifecycleCallback
         );
         new Thread(worker).start();
