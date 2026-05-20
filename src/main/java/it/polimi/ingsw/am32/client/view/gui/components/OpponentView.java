@@ -1,107 +1,138 @@
 package it.polimi.ingsw.am32.client.view.gui.components;
 
 import it.polimi.ingsw.am32.client.model.LightPlayer;
+import it.polimi.ingsw.am32.model.enums.TotemColor;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
- * Custom JavaFX Node representing a concise summary of an opponent's state.
- * It displays their nickname, resources (food, prestige), totem color,
- * and the total count of acquired cards.
+ * Custom JavaFX component displaying a compact summary of an opponent's state
+ * in the opponents sidebar.
+ *
+ * <p>Shows the player's nickname, totem icon, food counter, and prestige counter.
+ * The component fills the full width of its parent container.</p>
+ *
+ * <p>The {@link TotemView} is rebuilt only when the player's {@link TotemColor}
+ * changes (which in practice happens at most once, during game setup). Repeated
+ * calls to {@link #updateValues(LightPlayer)} therefore allocate no new nodes.</p>
+ *
+ * <p>All visual styling is driven by CSS classes defined in {@code global.css}.
+ * No inline {@code setStyle()} calls are used.</p>
  */
-public class OpponentView extends VBox {
+public class OpponentView extends HBox {
 
-    private final LightPlayer opponentData;
+    private static final double ROW_HEIGHT = 70.0;
 
-    // UI Elements that require dynamic updates when the game state changes
-    private final Label prestigeLabel;
-    private final Label foodLabel;
-    private final Label totemLabel;
-    private final Label cardsSummaryLabel;
+    private final Label nameLabel     = new Label();
+    private final Label foodLabel     = new Label();
+    private final Label prestigeLabel = new Label();
+    private final HBox  totemSlot     = new HBox();
+
+    /** Tracks the last rendered color to avoid rebuilding the TotemView unnecessarily. */
+    private TotemColor lastTotemColor = null;
 
     /**
-     * Constructs a new OpponentView using the provided data model.
+     * Constructs an {@code OpponentView} and immediately populates it with the
+     * player's initial state.
      *
-     * @param opponent The LightPlayer representing the opponent's current state.
+     * @param player the light model containing the opponent's data
      */
-    public OpponentView(LightPlayer opponent) {
-        this.opponentData = opponent;
-
-        this.prestigeLabel = new Label();
-        this.foodLabel = new Label();
-        this.totemLabel = new Label();
-        this.cardsSummaryLabel = new Label();
-
-        setupUI();
-        updateValues(opponent);
+    public OpponentView(LightPlayer player) {
+        initLayout();
+        updateValues(player);
     }
 
     /**
-     * Configures the internal layout and styles, relying on global.css classes
-     * to avoid Magic Numbers for styling and maintaining a clean design.
-     */
-    private void setupUI() {
-        this.setAlignment(Pos.CENTER_LEFT);
-        this.setSpacing(8.0);
-        this.getStyleClass().add("game-panel");
-
-        // Minor inline padding adjustment (can also be completely delegated to CSS)
-        this.setPadding(new Insets(10.0, 15.0, 10.0, 15.0));
-        this.setPrefWidth(200.0);
-
-        // Player Name
-        Label nameLabel = new Label(opponentData.getNickname());
-        nameLabel.getStyleClass().add("title-text");
-
-        // Stats rows
-        HBox prestigeBox = createStatRow("Prestige:", prestigeLabel, "text-gold");
-        HBox foodBox = createStatRow("Food:", foodLabel, "text-dim");
-        HBox totemBox = createStatRow("Totem:", totemLabel, "text-main");
-
-        // Label for the number of acquired cards
-        cardsSummaryLabel.getStyleClass().add("subtitle-text");
-
-        this.getChildren().addAll(nameLabel, prestigeBox, foodBox, totemBox, cardsSummaryLabel);
-    }
-
-    /**
-     * Helper method to create consistent horizontal rows for player statistics.
-     */
-    private HBox createStatRow(String labelText, Label valueLabel, String valueStyleClass) {
-        HBox row = new HBox(10.0);
-        row.setAlignment(Pos.CENTER_LEFT);
-
-        Label title = new Label(labelText);
-        title.getStyleClass().add("subtitle-text");
-
-        valueLabel.getStyleClass().add(valueStyleClass);
-
-        row.getChildren().addAll(title, valueLabel);
-        return row;
-    }
-
-    /**
-     * Updates the text values based on the model's current state.
-     * This ensures the UI remains a "dumb" reflection of the LightPlayer data.
+     * Refreshes all displayed values to reflect the latest player state.
+     * Only rebuilds the {@link TotemView} when the player's color has changed.
      *
-     * @param data The updated LightPlayer state.
+     * @param player the updated player model; no-op if {@code null}
      */
-    public void updateValues(LightPlayer data) {
-        prestigeLabel.setText(String.valueOf(data.getPrestige()));
-        foodLabel.setText(String.valueOf(data.getFood()));
+    public void updateValues(LightPlayer player) {
+        if (player == null) return;
 
-        // Display the Totem Color assigned to this player
-        if (data.getTotemColor() != null) {
-            totemLabel.setText(data.getTotemColor().toString());
-        } else {
-            totemLabel.setText("N/A");
+        nameLabel.setText(player.getNickname().toUpperCase());
+        foodLabel.setText(String.valueOf(player.getFood()));
+        prestigeLabel.setText(String.valueOf(player.getPrestige()));
+
+        TotemColor color = player.getTotemColor();
+        if (color != lastTotemColor) {
+            lastTotemColor = color;
+            totemSlot.getChildren().clear();
+            if (color != null) {
+                totemSlot.getChildren().add(new TotemView(color, player.getNickname()));
+            }
         }
+    }
 
-        // Calculate the total number of acquired cards (Characters + Buildings)
-        int totalCardsCount = data.getCharacterCards().size() + data.getBuildingCards().size();
-        cardsSummaryLabel.setText("Cards acquired: " + totalCardsCount);
+    // -------------------------------------------------------------------------
+    // Layout
+    // -------------------------------------------------------------------------
+
+    private void initLayout() {
+        setMinHeight(ROW_HEIGHT);
+        setPrefHeight(ROW_HEIGHT);
+        setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(this, Priority.ALWAYS);
+
+        getStyleClass().add("opponent-card");
+        setAlignment(Pos.CENTER_LEFT);
+        setPadding(new Insets(10.0));
+
+        getChildren().addAll(buildIdentityBox(), buildSpacer(), buildStatsBox());
+    }
+
+    private VBox buildIdentityBox() {
+        // CSS class "opponent-name" (global.css) sets font-weight, size, and fill.
+        nameLabel.getStyleClass().addAll("text-main", "opponent-name");
+
+        totemSlot.setAlignment(Pos.CENTER_LEFT);
+
+        VBox box = new VBox(4.0);
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.getChildren().addAll(nameLabel, totemSlot);
+        return box;
+    }
+
+    private static Region buildSpacer() {
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        return spacer;
+    }
+
+    private VBox buildStatsBox() {
+        HBox foodRow     = buildStatRow("Food:",     foodLabel,     "text-main");
+        HBox prestigeRow = buildStatRow("Prestige:", prestigeLabel, "text-gold");
+
+        VBox box = new VBox(4.0);
+        box.setAlignment(Pos.CENTER_RIGHT);
+        box.getChildren().addAll(foodRow, prestigeRow);
+        return box;
+    }
+
+    /**
+     * Builds a {@code caption : value} row for the stats panel.
+     *
+     * @param caption    static text (e.g. {@code "Food:"})
+     * @param valueLabel the mutable label whose text is updated by {@link #updateValues}
+     * @param colorClass CSS utility class applied to the value label (e.g. {@code "text-gold"})
+     */
+    private static HBox buildStatRow(String caption, Label valueLabel, String colorClass) {
+        Label captionLabel = new Label(caption);
+        captionLabel.getStyleClass().add("text-dim");
+
+        // CSS class "stat-value" (global.css) sets font-weight: bold.
+        // The color class (text-main / text-gold) is applied separately.
+        valueLabel.getStyleClass().addAll("stat-value", colorClass);
+
+        HBox row = new HBox(6.0);
+        row.setAlignment(Pos.CENTER_RIGHT);
+        row.getChildren().addAll(captionLabel, valueLabel);
+        return row;
     }
 }

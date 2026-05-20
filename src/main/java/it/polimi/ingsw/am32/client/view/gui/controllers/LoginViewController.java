@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.client.view.gui.controllers;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LoginResultEvent;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -36,7 +37,7 @@ public class LoginViewController implements ViewController {
         errorLabel.setVisible(false);
         usernameField.setDisable(true);
 
-        System.out.println("[GUI] Requesting login for nickname: " + nickname);
+        GuiLogger.info("[GUI] Requesting login for nickname: " + nickname);
 
         clientController.requestLogin(nickname);
     }

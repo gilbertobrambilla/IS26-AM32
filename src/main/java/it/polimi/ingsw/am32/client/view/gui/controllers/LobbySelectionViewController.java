@@ -3,6 +3,7 @@ package it.polimi.ingsw.am32.client.view.gui.controllers;
 import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.client.view.gui.SceneManager;
 import it.polimi.ingsw.am32.client.view.gui.ViewPaths;
+import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.AvailableLobbiesEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyErrorEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyRoomUpdateEvent;
@@ -100,7 +101,7 @@ public class LobbySelectionViewController implements ViewController {
 
     @Override
     public void onLobbyRoomUpdate(LobbyRoomUpdateEvent event) {
-        System.out.println("[GUI] Successfully entered a room. Transitioning to Waiting Room...");
+        GuiLogger.info("[GUI] Successfully entered a room. Transitioning to Waiting Room");
         SceneManager.switchScene(ViewPaths.WAITING_ROOM, nextCtrl -> nextCtrl.onLobbyRoomUpdate(event));
     }
 

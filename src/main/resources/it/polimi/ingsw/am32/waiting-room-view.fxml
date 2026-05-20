@@ -7,10 +7,15 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import java.lang.String?>
 
-<VBox alignment="CENTER" spacing="25.0" style="-fx-background-color: #65896e;"
-      styleClass="root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+<VBox alignment="CENTER" spacing="25.0"
+      xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.WaitingRoomViewController">
+    <styleClass>
+        <String fx:value="root" />
+        <String fx:value="page-root-green" />
+    </styleClass>
 
     <padding>
         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
@@ -29,7 +34,11 @@
         </Label>
     </VBox>
 
-    <VBox maxWidth="450.0" spacing="20.0" style="-fx-background-color: #fbb85c; -fx-background-radius: 10px;" styleClass="game-panel" VBox.vgrow="ALWAYS">
+    <VBox maxWidth="450.0" spacing="20.0" VBox.vgrow="ALWAYS">
+        <styleClass>
+            <String fx:value="game-panel" />
+            <String fx:value="sand-panel" />
+        </styleClass>
         <padding>
             <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
         </padding>
@@ -40,7 +49,7 @@
             </font>
         </Label>
 
-        <ListView fx:id="playersListView" VBox.vgrow="ALWAYS" style="-fx-background-radius: 5px;" />
+        <ListView fx:id="playersListView" VBox.vgrow="ALWAYS" styleClass="rounded-list-view" />
 
         <HBox alignment="CENTER" spacing="15.0">
             <ProgressIndicator prefHeight="24.0" prefWidth="24.0" />

@@ -2,70 +2,102 @@ package it.polimi.ingsw.am32.client.view.gui.utils;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Node;
 import javafx.util.Duration;
 
 /**
- * utility class is implemented to provide reusable javafx animations.
- * micro-interactions for error feedback are centralized here.
+ * Utility class providing reusable JavaFX micro-animations for UI feedback.
+ *
+ * <p>All methods are stateless and operate directly on the supplied {@link Node}.
+ * This class is not instantiable.</p>
  */
-public class AnimationUtils {
+public final class AnimationUtils {
+
+    // --- shake ---
+    private static final int    SHAKE_STEP_MS   = 50;
+    private static final double SHAKE_OFFSET_PX = 8.0;
+    private static final int    SHAKE_CYCLES    = 6;
+
+    // --- toast ---
+    private static final int    TOAST_FADE_IN_MS      = 250;
+    private static final double TOAST_HOLD_SECONDS    = 3.5;
+    private static final int    TOAST_FADE_OUT_MS     = 300;
+
+    // --- pulse ---
+    private static final int    PULSE_PERIOD_MS = 800;
+    private static final double PULSE_SCALE_MAX = 1.25;
+
+    private AnimationUtils() {}
 
     /**
-     * horizontal shake animation is applied to the specified node to indicate an invalid action.
+     * Plays a horizontal shake animation on {@code node} to signal an invalid action.
      *
-     * @param node the javafx node to be animated
+     * @param node the target node; silently ignored if {@code null}
      */
     public static void shakeNode(Node node) {
         if (node == null) return;
 
-        // translate transition is instantiated with short duration
-        TranslateTransition transition = new TranslateTransition(Duration.millis(50), node);
-
-        // horizontal offset is defined
-        transition.setFromX(0f);
-        transition.setByX(8f);
-
-        // rapid back-and-forth movement is configured
-        transition.setCycleCount(6);
-        transition.setAutoReverse(true);
-
-        // animation is played
-        transition.playFromStart();
+        TranslateTransition shake = new TranslateTransition(Duration.millis(SHAKE_STEP_MS), node);
+        shake.setFromX(0.0);
+        shake.setByX(SHAKE_OFFSET_PX);
+        shake.setCycleCount(SHAKE_CYCLES);
+        shake.setAutoReverse(true);
+        shake.playFromStart();
     }
 
     /**
-     * smooth entry, pause, and exit animation sequence is applied to the toast notification node.
+     * Plays a fade-in → hold → fade-out sequence on {@code node},
+     * suitable for transient toast notifications.
      *
-     * @param node the javafx node representing the toast layout container
+     * <p>The node is made visible and fully transparent before the animation starts
+     * and hidden again when the sequence completes.</p>
+     *
+     * @param node the toast container node; silently ignored if {@code null}
      */
     public static void playToastAnimation(Node node) {
         if (node == null) return;
 
-        // node is prepared and made visible before transitions begin
         node.setVisible(true);
         node.setOpacity(0.0);
 
-        // fade-in transition is configured
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(250), node);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(TOAST_FADE_IN_MS), node);
         fadeIn.setFromValue(0.0);
         fadeIn.setToValue(1.0);
 
-        // display duration pause is configured
-        PauseTransition stayVisible = new PauseTransition(Duration.seconds(3.5));
+        PauseTransition hold = new PauseTransition(Duration.seconds(TOAST_HOLD_SECONDS));
 
-        // fade-out transition is configured
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(300), node);
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(TOAST_FADE_OUT_MS), node);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
+        fadeOut.setOnFinished(e -> node.setVisible(false));
 
-        // visibility is completely disabled after fade-out completion
-        fadeOut.setOnFinished(event -> node.setVisible(false));
+        new SequentialTransition(fadeIn, hold, fadeOut).playFromStart();
+    }
 
-        // sequential pipeline is assembled and executed
-        SequentialTransition sequence = new SequentialTransition(fadeIn, stayVisible, fadeOut);
-        sequence.playFromStart();
+    /**
+     * Starts an indefinite pulsing scale animation on {@code node}, cycling between
+     * its natural size and {@value #PULSE_SCALE_MAX}×. Intended for turn-order highlights.
+     *
+     * <p>The returned {@link ScaleTransition} is already playing; call {@code stop()} on it
+     * and reset scale to 1.0 to cancel.</p>
+     *
+     * @param node the target node; silently ignored if {@code null}
+     * @return the running transition, or {@code null} if node was null
+     */
+    public static ScaleTransition playPulse(Node node) {
+        if (node == null) return null;
+
+        ScaleTransition pulse = new ScaleTransition(Duration.millis(PULSE_PERIOD_MS), node);
+        pulse.setFromX(1.0);
+        pulse.setFromY(1.0);
+        pulse.setToX(PULSE_SCALE_MAX);
+        pulse.setToY(PULSE_SCALE_MAX);
+        pulse.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        pulse.setAutoReverse(true);
+        pulse.play();
+        return pulse;
     }
 }

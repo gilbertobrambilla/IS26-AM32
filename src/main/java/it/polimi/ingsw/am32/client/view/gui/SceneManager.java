@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.client.view.gui;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.gui.controllers.ViewController;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -51,10 +52,14 @@ public class SceneManager {
 
                 loader.setControllerFactory(controllerClass -> {
                     try {
-                        if (clientController == null) {
-                            return controllerClass.getDeclaredConstructor().newInstance();
+                        if (clientController != null) {
+                            try {
+                                return controllerClass.getConstructor(ClientController.class).newInstance(clientController);
+                            } catch (NoSuchMethodException ignored) {
+                                // Some nested controllers are stateless and intentionally expose only a no-arg constructor.
+                            }
                         }
-                        return controllerClass.getConstructor(ClientController.class).newInstance(clientController);
+                        return controllerClass.getDeclaredConstructor().newInstance();
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to instantiate controller: " + controllerClass.getName(), e);
                     }
@@ -81,15 +86,14 @@ public class SceneManager {
                 }
 
                 primaryStage.show();
-                System.out.println("[GUI] Switched to scene: " + viewPath.name());
+                GuiLogger.info("[GUI] Switched to scene: " + viewPath.name());
 
                 if (onLoaded != null) {
                     onLoaded.accept(currentController);
                 }
 
             } catch (IOException e) {
-                System.err.println("[GUI ERROR] Failed to load FXML file: " + viewPath.getPath());
-                e.printStackTrace();
+                GuiLogger.error("[GUI] Failed to load FXML file: " + viewPath.getPath(), e);
             }
         };
 
@@ -108,7 +112,7 @@ public class SceneManager {
      */
     public static void forceDisconnect(String reason) {
         Runnable disconnectTask = () -> {
-            System.err.println("[GUI] Forced disconnect: " + reason);
+            GuiLogger.error("[GUI] Forced disconnect: " + reason);
             if (clientController != null) {
                 clientController.shutdown();
                 clientController = null;

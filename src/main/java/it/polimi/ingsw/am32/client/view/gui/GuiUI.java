@@ -2,6 +2,7 @@ package it.polimi.ingsw.am32.client.view.gui;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.client.view.UI;
+import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.gui.controllers.ViewController;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
@@ -33,10 +34,10 @@ public class GuiUI implements UI {
     public void showConnectionResult(ConnectionResultEvent event) {
         Platform.runLater(() -> {
             if (event.isSuccess()) {
-                System.out.println("[GUI] Connection successful!");
+                GuiLogger.info("[GUI] Connection successful");
                 SceneManager.switchScene(ViewPaths.LOGIN, ctrl -> ctrl.onConnectionResult(event));
             } else {
-                System.err.println("[GUI] Connection failed: " + event.getMessage());
+                GuiLogger.error("[GUI] Connection failed: " + event.getMessage());
                 ViewController ctrl = SceneManager.getCurrentController();
                 if (ctrl != null) ctrl.onConnectionResult(event);
             }
@@ -47,10 +48,10 @@ public class GuiUI implements UI {
     public void showLoginResult(LoginResultEvent event) {
         Platform.runLater(() -> {
             if (event.isSuccess()) {
-                System.out.println("[GUI] Login successful!");
+                GuiLogger.info("[GUI] Login successful");
                 SceneManager.switchScene(ViewPaths.LOBBY_SELECTION, ctrl -> ctrl.onLoginResult(event));
             } else {
-                System.err.println("[GUI] Login failed: " + event.getMessage());
+                GuiLogger.error("[GUI] Login failed: " + event.getMessage());
                 ViewController ctrl = SceneManager.getCurrentController();
                 if (ctrl != null) ctrl.onLoginResult(event);
             }
@@ -64,7 +65,7 @@ public class GuiUI implements UI {
     @Override
     public void showQuitConfirmation() {
         Platform.runLater(() -> {
-            System.out.println("[GUI] Application closed by user.");
+            GuiLogger.info("[GUI] Application closed by user");
             Platform.exit();
             System.exit(0);
         });
