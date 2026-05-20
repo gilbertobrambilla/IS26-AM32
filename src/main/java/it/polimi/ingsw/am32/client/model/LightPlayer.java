@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am32.client.model;
 
+import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +23,46 @@ public class LightPlayer {
         this.isConnected = isConnected;
         this.characterCards = new ArrayList<>(characterCards);
         this.buildingCards = new ArrayList<>(buildingCards);
+    }
+
+    /**
+     * Checks if the player can afford an additional building card,
+     * considering the cumulative cost of the buildings they have already selected in the UI.
+     *
+     * @param alreadySelectedBuildingIds the list of building IDs already selected in the UI
+     * @param additionalBuildingId the extra building ID to evaluate
+     * @return true if the player has enough food, false otherwise
+     */
+    public boolean canAffordAdditionalBuilding(List<String> alreadySelectedBuildingIds, String additionalBuildingId) {
+        if (additionalBuildingId == null || !additionalBuildingId.startsWith("building")) {
+            return true;
+        }
+
+        int totalCost = 0;
+        for (String id : alreadySelectedBuildingIds) {
+            totalCost += getSingleBuildingCost(id);
+        }
+        int additionalCost = getSingleBuildingCost(additionalBuildingId);
+
+        return (totalCost + additionalCost) <= this.getFood();
+    }
+
+    /**
+     * Calculates the discounted cost of a single building for this specific player.
+     */
+    private int getSingleBuildingCost(String buildingId) {
+        var buildingDTO = AssetManager.getInstance().getBuildingCard(buildingId);
+        if (buildingDTO == null) return 0;
+
+        int baseCost = buildingDTO.getCost();
+
+        // Count the "Builder" characters owned by the player to calculate the discount
+        int discount = (int) this.getCharacterCards().stream()
+                .map(id -> AssetManager.getInstance().getCharacterCard(id))
+                .filter(dto -> dto != null && "BUILDER".equals(dto.getCharacterType()))
+                .count();
+
+        return Math.max(0, baseCost - discount);
     }
 
     public String getNickname() {

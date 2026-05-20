@@ -347,14 +347,37 @@ public class GameState {
             }
         }
 
-        // action validity is checked against tile constraints
-        int totalUpperSize = this.upperTribeRow.size() + this.upperBuildingRow.size();
-        int totalLowerSize = this.lowerTribeRow.size() + this.lowerBuildingRow.size();
+        // calculate the effectively affordable cards in the upper row
+        int affordableUpperSize = requestedUpper;
 
-        if (!targetTile.isValidSelection(requestedUpper, requestedLower, totalUpperSize, totalLowerSize)) {
+        affordableUpperSize += Math.toIntExact(this.upperTribeRow.stream()
+                .filter(c -> c.getId().startsWith("character_"))
+                .filter(c -> !chosenCharacterCardsIds.contains(c.getId()))
+                .count());
+
+        affordableUpperSize += Math.toIntExact(this.upperBuildingRow.stream()
+                .filter(b -> b.getId().startsWith("building_"))
+                .filter(b -> !chosenBuildingCardsIds.contains(b.getId()))
+                .filter(b -> player.canAffordAdditionalBuilding(foundBuildings, b))
+                .count());
+
+        // calculate the effectively affordable cards in the lower row
+        int affordableLowerSize = requestedLower;
+
+        affordableLowerSize += Math.toIntExact(this.lowerTribeRow.stream()
+                .filter(c -> !chosenCharacterCardsIds.contains(c.getId()))
+                .count());
+
+        affordableLowerSize += Math.toIntExact(this.lowerBuildingRow.stream()
+                .filter(b -> !chosenBuildingCardsIds.contains(b.getId()))
+                .filter(b -> player.canAffordAdditionalBuilding(foundBuildings, b))
+                .count());
+
+        // validate the action using the affordable sizes
+        if (!targetTile.isValidSelection(requestedUpper, requestedLower, affordableUpperSize, affordableLowerSize)) {
             throw new InvalidGameActionException(
                     GameErrorReason.INVALID_SELECTION_AMOUNT,
-                    "selected cards do not match offer tile constraints"
+                    "Selected cards do not match offer tile constraints or the player omitted affordable cards."
             );
         }
 

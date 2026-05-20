@@ -171,6 +171,79 @@ public class LightGameState {
         }
     }
 
+    /**
+     * Determines if the player's current selection satisfies the offer tile requirements,
+     * or if the player is legitimately stuck because there are no other affordable cards left.
+     *
+     * @param nickname The nickname of the player performing the action.
+     * @param reqUpper The number of cards required from the upper row.
+     * @param reqLower The number of cards required from the lower row.
+     * @param selUpper The list of card IDs currently selected from the upper row.
+     * @param selLower The list of card IDs currently selected from the lower row.
+     * @param selBuildings The list of building card IDs currently selected across all rows.
+     * @return true if the selection is complete or the player cannot afford any more required cards.
+     */
+    public boolean isSelectionCompleteOrStuck(
+            String nickname, int reqUpper, int reqLower,
+            List<String> selUpper, List<String> selLower, List<String> selBuildings) {
+
+        LightPlayer player = this.players.get(nickname);
+        if (player == null) return false;
+
+        int selectedUpper = selUpper.size();
+        int selectedLower = selLower.size();
+
+        // exact match with the offer tile requirements
+        if (selectedUpper == reqUpper && selectedLower == reqLower) {
+            return true;
+        }
+
+        // invalid UI state: the user selected more cards than required
+        if (selectedUpper > reqUpper || selectedLower > reqLower) {
+            return false;
+        }
+
+        // check if the user missed an affordable card in the upper row
+        if (selectedUpper < reqUpper && hasAffordableUnselectedCards(
+                this.upperTribeRow, this.upperBuildingRow, selUpper, selBuildings, player)) {
+            return false;
+        }
+
+        // check if the user missed an affordable card in the lower row
+        if (selectedLower < reqLower && hasAffordableUnselectedCards(
+                this.lowerTribeRow, this.lowerBuildingRow, selLower, selBuildings, player)) {
+            return false;
+        }
+
+        // the user hasn't met the exact requirements, but they are legitimately stuck
+        return true;
+    }
+
+    /**
+     * Helper method to check if there is at least one affordable card left in the specified rows.
+     */
+    private boolean hasAffordableUnselectedCards(
+            List<String> tribeRow, List<String> buildingRow,
+            List<String> selectedInRow, List<String> allSelectedBuildings, LightPlayer player) {
+
+        // ensure we only count IDs that look like characters
+        long freeCharacters = tribeRow.stream()
+                .filter(id -> id.startsWith("character_"))
+                .filter(id -> !selectedInRow.contains(id))
+                .count();
+
+        if (freeCharacters > 0) return true;
+
+        // ensure we only count IDs that look like buildings
+        long affordableBuildings = buildingRow.stream()
+                .filter(id -> id.startsWith("building"))
+                .filter(id -> !selectedInRow.contains(id))
+                .filter(id -> player.canAffordAdditionalBuilding(allSelectedBuildings, id))
+                .count();
+
+        return affordableBuildings > 0;
+    }
+
     // getters
 
     public String getMyNickname() {

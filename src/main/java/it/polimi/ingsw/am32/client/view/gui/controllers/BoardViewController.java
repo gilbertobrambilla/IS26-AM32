@@ -291,16 +291,25 @@ public class BoardViewController {
         }
 
         List<String> targetList = cardId.startsWith("building") ? selectedBuildingIds : selectedCharacterIds;
+        LightPlayer player = state.getPlayers().get(state.getMyNickname());
 
         if (targetList.contains(cardId)) {
             targetList.remove(cardId);
             selectedCard.setHighlight(false);
         } else {
+            // check if the card limit for the offer tile is reached
             if (!canSelectCard(cardId, state, requirements)) {
                 AnimationUtils.shakeNode(selectedCard);
-                GuiLogger.info("[BoardViewController] card selection rejected: offer tile selection limit reached");
+                GuiLogger.info("[BoardViewController] Card selection rejected: limit reached.");
                 return;
             }
+            // ask the player model if they can afford this new addition
+            if (!player.canAffordAdditionalBuilding(selectedBuildingIds, cardId)) {
+                AnimationUtils.shakeNode(selectedCard);
+                GuiLogger.info("[BoardViewController] Card selection rejected: not enough food.");
+                return;
+            }
+
             targetList.add(cardId);
             selectedCard.setHighlight(true);
         }
@@ -360,7 +369,7 @@ public class BoardViewController {
     private void updateConfirmButtonState(LightGameState state) {
         if (confirmActionButton == null) return;
 
-        boolean visible = isMyTurnAndPhase(state, GamePhase.RESOLVE_ACTIONS);
+        boolean visible = isMyTurnAndPhase(state, it.polimi.ingsw.am32.model.enums.GamePhase.RESOLVE_ACTIONS);
         confirmActionButton.setVisible(visible);
         confirmActionButton.setManaged(visible);
 
@@ -372,10 +381,23 @@ public class BoardViewController {
         OfferRequirements requirements = getCurrentOfferRequirements(state);
         boolean complete = requirements != null && isSelectionComplete(state, requirements);
 
-        confirmActionButton.setText(requirements != null && requirements.totalCards() == 0
-                ? "Resolve Action"
-                : "Confirm Selection");
-        confirmActionButton.setDisable(!complete);
+        if (!complete) {
+            confirmActionButton.setText("Confirm Selection");
+            confirmActionButton.setDisable(true);
+        } else {
+            int selectedUpper = countSelectedUpperCards(state);
+            int selectedLower = countSelectedLowerCards(state);
+
+            if (requirements.totalCards() == 0) {
+                confirmActionButton.setText("Resolve Action");
+            } else if (selectedUpper < requirements.upperCards() || selectedLower < requirements.lowerCards()) {
+                // explicit UX feedback: the model allowed completion because the player is stuck
+                confirmActionButton.setText("Force Confirm (Resources Depleted)");
+            } else {
+                confirmActionButton.setText("Confirm Selection");
+            }
+            confirmActionButton.setDisable(false);
+        }
     }
 
     private boolean canSelectCard(String cardId, LightGameState state, OfferRequirements requirements) {
@@ -389,8 +411,17 @@ public class BoardViewController {
     }
 
     private boolean isSelectionComplete(LightGameState state, OfferRequirements requirements) {
-        return countSelectedUpperCards(state) == requirements.upperCards()
-                && countSelectedLowerCards(state) == requirements.lowerCards();
+        List<String> selUpper = selectedCardIds().stream().filter(id -> isUpperCard(id, state)).toList();
+        List<String> selLower = selectedCardIds().stream().filter(id -> isLowerCard(id, state)).toList();
+
+        return state.isSelectionCompleteOrStuck(
+                state.getMyNickname(),
+                requirements.upperCards(),
+                requirements.lowerCards(),
+                selUpper,
+                selLower,
+                selectedBuildingIds
+        );
     }
 
     private OfferRequirements getCurrentOfferRequirements(LightGameState state) {
