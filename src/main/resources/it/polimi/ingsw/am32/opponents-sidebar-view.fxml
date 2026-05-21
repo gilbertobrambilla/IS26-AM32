@@ -6,9 +6,10 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" prefWidth="280.0" spacing="15.0" styleClass="mesos-panel"
+<VBox alignment="TOP_CENTER" prefWidth="250.0" minWidth="200.0" maxWidth="350.0" spacing="15.0" styleClass="mesos-panel"
       xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.OpponentsSidebarViewController">
+      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.OpponentsSidebarViewController"
+      maxHeight="Infinity" VBox.vgrow="ALWAYS">
 
     <padding>
         <Insets bottom="20.0" left="15.0" right="15.0" top="20.0" />
@@ -20,9 +21,9 @@
         </font>
     </Label>
 
-    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS" maxHeight="Infinity">
         <content>
-            <VBox fx:id="opponentsContainer" alignment="TOP_CENTER" spacing="15.0">
+            <VBox fx:id="opponentsContainer" alignment="TOP_CENTER" spacing="15.0" VBox.vgrow="ALWAYS" maxHeight="Infinity">
                 <padding>
                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                 </padding>

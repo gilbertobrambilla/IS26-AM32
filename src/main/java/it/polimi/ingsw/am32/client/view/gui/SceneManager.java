@@ -5,13 +5,10 @@ import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.gui.controllers.ViewController;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -19,9 +16,8 @@ import java.net.URL;
 import java.util.function.Consumer;
 
 /**
- * Utility class responsible for managing JavaFX scenes and loading FXML files.
- * It implements a custom Controller Factory to automatically inject the ClientController
- * into every loaded ViewController.
+ * Utility class responsible for managing JavaFX scenes and loading FXML files fluently.
+ * Implements a completely fluid layout that automatically adapts to any display size.
  */
 public class SceneManager {
 
@@ -29,9 +25,8 @@ public class SceneManager {
     private static ClientController clientController;
     private static ViewController currentController;
 
-    // Risoluzione logica di base su cui è disegnata la grafica del gioco
-    private static final double LOGICAL_WIDTH = 1280.0;
-    private static final double LOGICAL_HEIGHT = 720.0;
+    // Larghezza base di riferimento per calcolare la proporzione dei font
+    private static final double BASE_WIDTH = 1280.0;
 
     public static void initialize(Stage stage, ClientController controller) {
         primaryStage = stage;
@@ -68,32 +63,16 @@ public class SceneManager {
                 Parent root = loader.load();
                 currentController = loader.getController();
 
-                // --- SISTEMA LETTERBOX INFALLIBILE ---
-
-                // 1. Blocchiamo il pannello del gioco alle dimensioni native (16:9)
+                // 1. Configurazione per consentire il ridimensionamento fluido completo (niente più bande nere)
                 if (root instanceof Region) {
                     Region region = (Region) root;
-                    region.setPrefSize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
-                    region.setMinSize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
-                    region.setMaxSize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                    region.setMaxWidth(Double.MAX_VALUE);
+                    region.setMaxHeight(Double.MAX_VALUE);
                 }
-
-                // 2. Creiamo lo zoom con punto di ancoraggio fisso in alto a sinistra (0,0)
-                Scale scale = new Scale(1, 1, 0, 0);
-                root.getTransforms().clear(); // Rimuove eventuali zoom precedenti
-                root.getTransforms().add(scale);
-
-                // 3. Congeliamo il layout in un Group
-                Group group = new Group(root);
-
-                // 4. Lo StackPane esterno farà da sfondo (bande nere) e centrerà il Group automaticamente
-                StackPane wrapper = new StackPane(group);
-                wrapper.setStyle("-fx-background-color: #1a1a1a;");
 
                 Scene currentScene = primaryStage.getScene();
                 if (currentScene == null) {
-                    // Creazione iniziale
-                    currentScene = new Scene(wrapper, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                    currentScene = new Scene(root);
                     primaryStage.setScene(currentScene);
 
                     currentScene.setOnKeyPressed(event -> {
@@ -104,33 +83,26 @@ public class SceneManager {
                         }
                     });
                 } else {
-                    // Sostituzione scena esistente
-                    currentScene.setRoot(wrapper);
+                    currentScene.setRoot(root);
                 }
 
-                // 5. La formula per aggiornare lo zoom
-                Runnable updateScale = () -> {
-                    // CHIAVE: Leggiamo la dimensione del WRAPPER (la finestra fisica)
-                    double w = wrapper.getWidth();
-                    double h = wrapper.getHeight();
-
-                    // Previene crash se la finestra è ridotta a icona
-                    if (w <= 0 || h <= 0) return;
-
-                    // Calcola il fattore di scala mantenendo l'aspect ratio (prende il minore)
-                    double scaleFactor = Math.min(w / LOGICAL_WIDTH, h / LOGICAL_HEIGHT);
-                    scale.setX(scaleFactor);
-                    scale.setY(scaleFactor);
+                // 2. Sistema di Responsive Typography basato sulla larghezza della finestra
+                final Parent finalRoot = root;
+                Runnable updateFontSize = () -> {
+                    double width = primaryStage.getWidth();
+                    if (width > 0) {
+                        // Calcola un fattore di scala (limitato tra 0.8x e 1.5x per evitare testi microscopici o enormi)
+                        double scaleFactor = Math.max(0.8, Math.min(1.5, width / BASE_WIDTH));
+                        double calculatedFontSize = 14.0 * scaleFactor;
+                        finalRoot.setStyle("-fx-font-size: " + calculatedFontSize + "px;");
+                    }
                 };
 
-                // CHIAVE: Colleghiamo i listener al wrapper, reagendo ai cambi di dimensione
-                wrapper.widthProperty().addListener((obs, oldVal, newVal) -> updateScale.run());
-                wrapper.heightProperty().addListener((obs, oldVal, newVal) -> updateScale.run());
+                // Aggiorna il font ogni volta che l'utente ridimensiona la finestra
+                primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> updateFontSize.run());
+                Platform.runLater(updateFontSize); // Prima applicazione immediata
 
-                // Forza il primo ricalcolo non appena l'interfaccia è pronta
-                Platform.runLater(updateScale);
-                // -----------------------------------------------------
-
+                // 3. Caricamento del CSS globale
                 URL cssResource = SceneManager.class.getResource("/css/global.css");
                 if (cssResource != null) {
                     String cssUrl = cssResource.toExternalForm();
