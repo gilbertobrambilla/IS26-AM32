@@ -2,6 +2,7 @@ package it.polimi.ingsw.am32.client.view.gui;
 
 import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -55,14 +56,13 @@ public class GuiApp extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
-        System.out.println("[SYSTEM] Loading game assets...");
+        GuiLogger.info("[SYSTEM] Loading game assets");
         try {
             AssetManager.getInstance().loadAssets();
             InputStream dictionaryStream = AssetManager.getInstance().getDictionaryStream("/assets/strings_en.json");
             GameDictionary.getInstance().loadFromJson(dictionaryStream);
         } catch (Exception e) {
-            System.err.println("[GUI ERROR] Failed to load assets/dictionary");
-            e.printStackTrace();
+            GuiLogger.error("[GUI] Failed to load assets/dictionary", e);
         }
 
         SceneManager.initialize(primaryStage, null);
@@ -71,7 +71,7 @@ public class GuiApp extends Application {
         primaryStage.setResizable(true);
 
         primaryStage.setOnCloseRequest(event -> {
-            System.out.println("[GUI] Window close requested.");
+            GuiLogger.info("[GUI] Window close requested");
             System.exit(0);
         });
 
@@ -83,10 +83,10 @@ public class GuiApp extends Application {
      */
     @Override
     public void stop() {
-        System.out.println("[GUI] Executing graceful shutdown...");
+        GuiLogger.info("[GUI] Executing graceful shutdown");
         if (pendingController != null) {
             pendingController.shutdown();
         }
-        System.out.println("[GUI] All services stopped. Goodbye.");
+        GuiLogger.info("[GUI] All services stopped");
     }
 }

@@ -20,7 +20,7 @@
         </font>
     </Label>
 
-    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background: transparent; -fx-background-color: transparent;" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
         <content>
             <VBox fx:id="opponentsContainer" alignment="TOP_CENTER" spacing="15.0">
                 <padding>

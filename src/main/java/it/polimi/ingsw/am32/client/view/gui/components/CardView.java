@@ -1,8 +1,10 @@
 package it.polimi.ingsw.am32.client.view.gui.components;
 
 import it.polimi.ingsw.am32.client.assets.AssetManager;
+import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.gui.utils.ImageCache;
 import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.scene.Cursor;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -10,168 +12,216 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-import java.util.Optional;
 
 /**
- * Custom JavaFX component representing a game card (Tribe or Building).
- * It uses the Flyweight pattern through ImageCache to manage memory efficiently
- * and provides smooth visual feedback for user interactions.
+ * Custom JavaFX component representing a single game card (Tribe card, Building card,
+ * or Event card).
+ *
+ * <p>Uses {@link ImageCache} (Flyweight) for memory-efficient image loading.
+ * When constructed with a {@code null} id the card renders its back face.</p>
+ *
+ * <p>Hover feedback consists of a scale-up animation; an optional vertical slide-up
+ * can be enabled for hand/dashboard cards via {@link #setSlideUpEnabled(boolean)}.</p>
  */
 public class CardView extends StackPane {
 
-    private final ImageView imageView;
-    private final Optional<String> cardIdFallback;
+    // --- layout ---
+    private static final double DEFAULT_WIDTH    = 80.0;
+    private static final double DEFAULT_HEIGHT   = 120.0;
 
-    // UI Constants (Aligned with global.css)
-    private static final double DEFAULT_WIDTH = 120.0;
-    private static final double DEFAULT_HEIGHT = 180.0;
-    private static final double HOVER_SCALE = 1.1;
-    private static final int ANIMATION_DURATION_MS = 150;
+    // --- hover animation ---
+    private static final double HOVER_SCALE      = 1.1;
+    private static final double SLIDE_UP_PX      = -40.0;   // negative = upward
+    private static final int    ANIMATION_MS     = 150;
+    private static final double SHADOW_RADIUS_PX = 20.0;
+
+    // ---
+
+    private final ImageView imageView = new ImageView();
 
     /**
-     * Constructs a CardView from a given DTO.
-     * @param cardId The DTO containing card information, specifically the ID for image lookup.
+     * The card identifier used to look up assets.
+     * {@code null} signals "render card back".
      */
+    private final String cardId;
+
+    private final double cardWidth;
+    private final double cardHeight;
+    private boolean slideUpEnabled = false;
+
+    // --- constructors ---
+
     public CardView(String cardId) {
-        this.cardIdFallback = Optional.ofNullable(cardId);
-        this.imageView = new ImageView();
-
-        initializeComponent();
-        loadCardImage();
-        setupInteractionEffects();
+        this(cardId, DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
+    public CardView(String cardId, double cardWidth, double cardHeight) {
+        this.cardId    = cardId;
+        this.cardWidth = cardWidth;
+        this.cardHeight = cardHeight;
+        initLayout();
+        loadImage();
+        setupHoverEffects();
+    }
+
+    // --- public API ---
+
     /**
-     * Sets up the basic layout properties and CSS classes.
+     * Enables or disables the vertical slide-up animation on hover.
+     * Should be {@code true} for cards displayed in the player's hand.
+     *
+     * @param enabled {@code true} to slide the card upward on hover
      */
-    private void initializeComponent() {
-        // Set dimensions
-        this.setPrefSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-        this.setMinSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-        this.setMaxSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-
-        // Styling
-        this.getStyleClass().add("card-view");
-
-        // Image scaling properties
-        imageView.setFitWidth(DEFAULT_WIDTH);
-        imageView.setFitHeight(DEFAULT_HEIGHT);
-        imageView.setPreserveRatio(true);
-        imageView.setSmooth(true);
-
-        this.getChildren().add(imageView);
+    public void setSlideUpEnabled(boolean enabled) {
+        this.slideUpEnabled = enabled;
     }
 
     /**
-     * Fetches the image from the singleton ImageCache using the card's ID.
+     * Returns the card identifier, or {@code null} if this view shows the card back.
      */
-    private void loadCardImage() {
-        cardIdFallback.ifPresentOrElse(
-                id -> {
-                    String validId = normalizeId(id);
-                    String resolvedPath = null;
-
-                    // correct dto is retrieved based on prefix
-                    if (validId.startsWith("building")) {
-                        var dto = AssetManager.getInstance().getBuildingCard(validId);
-                        if (dto != null) resolvedPath = dto.getAssetPath();
-                    } else if (validId.startsWith("character")) {
-                        var dto = AssetManager.getInstance().getCharacterCard(validId);
-                        if (dto != null) resolvedPath = dto.getAssetPath();
-                    } else if (validId.startsWith("event")) {
-                        var dto = AssetManager.getInstance().getEventCard(validId);
-                        if (dto != null) resolvedPath = dto.getAssetPath();
-                    }
-
-                    if (resolvedPath == null) {
-                        // error is logged
-                        System.err.println("[CardView] no asset path found for id: " + validId);
-                        return;
-                    }
-
-                    // image is fetched from cache
-                    Image image = ImageCache.getInstance().getImage(resolvedPath);
-                    if (image != null) {
-                        imageView.setImage(image);
-                    } else {
-                        // error is logged
-                        System.err.println("[CardView] image loading failed for path: " + resolvedPath);
-                    }
-                },
-                () -> {
-                    System.out.println("[CardView] card id is absent. rendering card back.");
-
-                    // fallback card back path is requested
-                    String backPath = AssetManager.getInstance().getCardBack("card_back");
-
-                    if (backPath != null) {
-                        // image is fetched from cache
-                        Image backImage = ImageCache.getInstance().getImage(backPath);
-                        if (backImage != null) {
-                            imageView.setImage(backImage);
-                        }
-                    }
-                }
-        );
+    public String getCardId() {
+        return cardId;
     }
 
     /**
-     * Configures animations and cursor changes for mouse hover events.
-     */
-    private void setupInteractionEffects() {
-        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(ANIMATION_DURATION_MS), this);
-        scaleIn.setToX(HOVER_SCALE);
-        scaleIn.setToY(HOVER_SCALE);
-
-        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(ANIMATION_DURATION_MS), this);
-        scaleOut.setToX(1.0);
-        scaleOut.setToY(1.0);
-
-        DropShadow shadow = new DropShadow(15, Color.BLACK);
-        shadow.setRadius(20);
-
-        this.setOnMouseEntered(e -> {
-            this.setCursor(Cursor.HAND);
-            this.setEffect(shadow);
-            scaleOut.stop();
-            scaleIn.playFromStart();
-        });
-
-        this.setOnMouseExited(e -> {
-            this.setCursor(Cursor.DEFAULT);
-            this.setEffect(null);
-            scaleIn.stop();
-            scaleOut.playFromStart();
-        });
-    }
-
-    /**
-     * Gets the data associated with this card view.
-     * @return The CardDTO object.
-     */
-
-    public Optional<String> getCardId() {
-        return cardIdFallback;
-    }
-
-    /**
-     * Highlights the card (e.g., when selected for an action).
-     * @param selected True to apply highlight, false to remove.
+     * Applies or removes the golden selection highlight (CSS class {@code card-selected}).
+     *
+     * @param selected {@code true} to highlight, {@code false} to clear
      */
     public void setHighlight(boolean selected) {
         if (selected) {
-            if (!this.getStyleClass().contains("card-selected")) {
-                this.getStyleClass().add("card-selected");
+            if (!getStyleClass().contains("card-selected")) {
+                getStyleClass().add("card-selected");
             }
         } else {
-            this.getStyleClass().remove("card-selected");
+            getStyleClass().remove("card-selected");
         }
     }
 
-    private String normalizeId(String rawId) {
-        if (rawId == null) return null;
+    // --- initialization ---
+
+    private void initLayout() {
+        setPrefSize(cardWidth, cardHeight);
+        setMinSize(cardWidth, cardHeight);
+        setMaxSize(cardWidth, cardHeight);
+        getStyleClass().add("card-view");
+
+        imageView.setFitWidth(cardWidth);
+        imageView.setFitHeight(cardHeight);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+
+        getChildren().add(imageView);
+    }
+
+    private void loadImage() {
+        String path = resolveAssetPath();
+        if (path == null) return;
+
+        Image image = ImageCache.getInstance().getImage(path);
+        if (image == null) {
+            GuiLogger.warning("[CardView] image load failed for path: " + path);
+            return;
+        }
+        imageView.setImage(image);
+    }
+
+    /**
+     * Resolves the classpath image path for this card's {@link #cardId}.
+     * Falls back to the card-back asset when {@code cardId} is {@code null}.
+     *
+     * @return the resolved path, or {@code null} if no asset was found
+     */
+    private String resolveAssetPath() {
+        if (cardId == null) {
+            return resolveCardBack();
+        }
+
+        String id = normalizeId(cardId);
+
+        if (id.startsWith("building")) {
+            var dto = AssetManager.getInstance().getBuildingCard(id);
+            if (dto != null) return dto.getAssetPath();
+
+        } else if (id.startsWith("character")) {
+            var dto = AssetManager.getInstance().getCharacterCard(id);
+            if (dto != null) return dto.getAssetPath();
+
+        } else if (id.startsWith("event")) {
+            var dto = AssetManager.getInstance().getEventCard(id);
+            if (dto != null) return dto.getAssetPath();
+        }
+
+        GuiLogger.warning("[CardView] no asset found for id: " + id);
+        return null;
+    }
+
+    private String resolveCardBack() {
+        String path = AssetManager.getInstance().getCardBack("card_back");
+        if (path == null) {
+            GuiLogger.warning("[CardView] card-back asset not registered in AssetManager");
+        }
+        return path;
+    }
+
+    /**
+     * Normalises legacy id prefixes sent by the server that differ from the asset-registry
+     * convention used in {@code assets.json}.
+     *
+     * <p><em>Note:</em> this translation is a transitional shim. The correct long-term fix
+     * is to align the server DTO id format with the asset registry so the view layer
+     * does not need to know about id conventions.</p>
+     */
+    private static String normalizeId(String rawId) {
         return rawId
-                .replace("char_", "character_")
+                .replace("char_",  "character_")
                 .replace("build_", "building_");
+    }
+
+    // --- hover / interaction ---
+
+    private void setupHoverEffects() {
+        ScaleTransition scaleIn   = buildScale(HOVER_SCALE);
+        ScaleTransition scaleOut  = buildScale(1.0);
+        TranslateTransition slideUp   = buildTranslateY(SLIDE_UP_PX);
+        TranslateTransition slideDown = buildTranslateY(0.0);
+        DropShadow shadow = new DropShadow(SHADOW_RADIUS_PX, Color.BLACK);
+
+        setOnMouseEntered(e -> {
+            setCursor(Cursor.HAND);
+            setEffect(shadow);
+            scaleOut.stop();
+            scaleIn.playFromStart();
+            if (slideUpEnabled) {
+                setViewOrder(-1.0);
+                slideDown.stop();
+                slideUp.playFromStart();
+            }
+        });
+
+        setOnMouseExited(e -> {
+            setCursor(Cursor.DEFAULT);
+            setEffect(null);
+            scaleIn.stop();
+            scaleOut.playFromStart();
+            if (slideUpEnabled) {
+                setViewOrder(0.0);
+                slideUp.stop();
+                slideDown.playFromStart();
+            }
+        });
+    }
+
+    private ScaleTransition buildScale(double target) {
+        ScaleTransition t = new ScaleTransition(Duration.millis(ANIMATION_MS), this);
+        t.setToX(target);
+        t.setToY(target);
+        return t;
+    }
+
+    private TranslateTransition buildTranslateY(double toY) {
+        TranslateTransition t = new TranslateTransition(Duration.millis(ANIMATION_MS), this);
+        t.setToY(toY);
+        return t;
     }
 }

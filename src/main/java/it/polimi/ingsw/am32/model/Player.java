@@ -184,6 +184,24 @@ public class Player implements Comparable<Player> {
         card.applyAcquireEffect(this, gameState);
     }
 
+    /**
+     * Checks if the player can afford an additional building card,
+     * considering the cost of the buildings they have already selected.
+     *
+     * @param alreadySelected the list of buildings already selected in the current action
+     * @param additionalBuilding the extra building to evaluate
+     * @return true if the player has enough food, false otherwise
+     */
+    public boolean canAffordAdditionalBuilding(List<BuildingCard> alreadySelected, BuildingCard additionalBuilding) {
+        int totalCost = 0;
+        for (BuildingCard b : alreadySelected) {
+            totalCost += b.getDiscountedCost(this.buildingDiscount);
+        }
+        int additionalCost = additionalBuilding.getDiscountedCost(this.buildingDiscount);
+
+        return (totalCost + additionalCost) <= this.food;
+    }
+
     public void acquireCharacter(CharacterCard card) {
         Objects.requireNonNull(card, "card cannot be null");
 
@@ -351,7 +369,7 @@ public class Player implements Comparable<Player> {
             this.removeFood(netCost);
         } else {
             // unfed characters penalty is applied
-            int unfedCharacters = (netCost - this.food) / grossCostPerCharacter;
+            int unfedCharacters = grossCostPerCharacter == 0 ? 0 : (netCost - this.food) / grossCostPerCharacter;
             this.removeFood(this.food);
             this.removePrestige(unfedCharacters * prestigePenalty);
         }

@@ -48,8 +48,13 @@ public class OfferTile extends Tile{
         return this.occupyingPlayer == null;
     }
 
-    public boolean isValidSelection(int requestedUpper, int requestedLower, int availableUpper, int availableLower) {
-        return this.action.isValidSelection(requestedUpper, requestedLower, availableUpper, availableLower);
+    public boolean isValidSelection(
+            int requestedUpper, int requestedLower,
+            int characterCardsUpper, int characterCardsLower,
+            int affordableBuildingsUpper, int affordableBuildingsLower) {
+        return this.action.isValidSelection(requestedUpper, requestedLower,
+                characterCardsUpper, characterCardsLower,
+                affordableBuildingsUpper, affordableBuildingsLower);
     }
 
     /**

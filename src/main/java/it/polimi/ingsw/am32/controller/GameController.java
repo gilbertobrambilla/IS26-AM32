@@ -471,11 +471,16 @@ public class GameController implements Runnable {
         if (currentPlayer == null) return;
         String currentNickname = currentPlayer.getNickname();
         GamePhase currentPhase = this.gameState.getCurrentPhase();
+
         if (currentPhase == GamePhase.PLACE_TOTEMS) {
             List<OfferTile> track = this.gameState.getOfferTrack();
             for (int i = track.size() - 1; i >= 0; i--) {
                 if (track.get(i).isFree()) {
                     String tileId = track.get(i).getId();
+
+                    // capture phase state for synchronization
+                    GamePhase phaseBefore = this.gameState.getCurrentPhase();
+
                     // totem is placed automatically on available tile
                     this.gameState.placeTotem(currentNickname, tileId);
                     // next player is retrieved from model
@@ -487,6 +492,17 @@ public class GameController implements Runnable {
                     for (PlayerSession session : this.activeClients.values()) {
                         session.getView().notifyTotemPlaced(eventDTO);
                     }
+
+                    // notify phase change if triggered by auto-placement
+                    GamePhase phaseAfter = this.gameState.getCurrentPhase();
+                    if (phaseBefore != phaseAfter) {
+                        GamePhaseChangedEvent phaseDTO = new GamePhaseChangedEvent(phaseAfter, nextPlayer);
+                        for (PlayerSession s : this.activeClients.values()) {
+                            s.getView().notifyGamePhaseChanged(phaseDTO);
+                        }
+                    }
+
+                    autoAdvanceGameIfNecessary();
                     return;
                 }
             }
@@ -512,6 +528,7 @@ public class GameController implements Runnable {
             for (PlayerSession session : this.activeClients.values()) {
                 session.getView().notifyActionResolved(eventDTO);
             }
+            autoAdvanceGameIfNecessary();
         } else if (currentPhase == GamePhase.EXTRA_ACQUISITION) {
             // phase is advanced manually on the model
             this.gameState.setCurrentPhase(GamePhase.RESOLVE_EVENTS);
@@ -528,6 +545,7 @@ public class GameController implements Runnable {
             for (PlayerSession session : this.activeClients.values()) {
                 session.getView().notifyExtraAcquisitionResolved(eventDTO);
             }
+            autoAdvanceGameIfNecessary();
         }
     }
 

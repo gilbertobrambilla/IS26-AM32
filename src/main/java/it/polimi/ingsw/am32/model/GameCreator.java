@@ -195,8 +195,9 @@ public class GameCreator {
         // deck is instantiated
         Deck<BuildingCard> deck = new Deck<>();
 
-        // sub-list is extracted
-        List<BuildingCard> subList = cards.subList(0, count);
+        // sub-list is extracted defensively
+        int targetCount = Math.min(count, cards.size());
+        List<BuildingCard> subList = cards.subList(0, targetCount);
 
         // cards are added to the deck
         subList.forEach(deck::addCard);

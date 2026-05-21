@@ -5,6 +5,7 @@ import it.polimi.ingsw.am32.client.network.NetworkFactory;
 import it.polimi.ingsw.am32.client.view.gui.GuiApp;
 import it.polimi.ingsw.am32.client.view.gui.GuiUI;
 import it.polimi.ingsw.am32.client.view.gui.SceneManager;
+import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.ConnectionResultEvent;
 import it.polimi.ingsw.am32.network.client.VirtualServer;
 import javafx.application.Platform;
@@ -54,7 +55,7 @@ public class ConnectionViewController implements ViewController {
         );
 
         CompletableFuture.supplyAsync(() -> {
-            System.out.println("[GUI] Attempting background connection to " + ip + "...");
+            GuiLogger.info("[GUI] Attempting background connection to " + ip);
             VirtualServer vs = isRMI ? NetworkFactory.createRmiConnection(ip, onFatalError)
                     : NetworkFactory.createSocketConnection(ip, onFatalError);
 
@@ -69,7 +70,7 @@ public class ConnectionViewController implements ViewController {
             return controller;
 
         }).thenAcceptAsync(controller -> {
-            System.out.println("[GUI] Connection initialized correctly.");
+            GuiLogger.info("[GUI] Connection initialized correctly");
             GuiUI guiUI = new GuiUI(controller);
             controller.setUI(guiUI);
             SceneManager.setClientController(controller);

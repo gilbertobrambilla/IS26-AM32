@@ -5,55 +5,89 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="30.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+<VBox alignment="TOP_CENTER"
+      spacing="12.0"
+      xmlns="http://javafx.com/javafx/26"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.BoardViewController">
 
     <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+        <Insets top="10.0" right="10.0" bottom="10.0" left="10.0" />
     </padding>
 
-    <VBox alignment="CENTER" spacing="10.0">
-        <Label text="UPPER DECK">
-            <font><Font name="System Bold" size="14.0" /></font>
-        </Label>
-        <HBox fx:id="upperRowCardsContainer" alignment="CENTER" minHeight="160.0" spacing="15.0" style="-fx-background-color: #ef4a23; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
-            <padding><Insets bottom="10.0" left="10.0" right="10.0" top="10.0" /></padding>
+    <!-- ── Upper card row ─────────────────────────────────────────────────── -->
+    <VBox alignment="CENTER" spacing="5.0">
+        <Label styleClass="board-section-label" text="UPPER DECK" />
+
+        <HBox fx:id="upperRowCardsContainer"
+              alignment="CENTER"
+              spacing="10.0"
+              prefHeight="124.0" minHeight="124.0" maxHeight="124.0"
+              styleClass="board-card-row">
+            <padding>
+                <Insets top="6.0" right="10.0" bottom="6.0" left="10.0" />
+            </padding>
         </HBox>
     </VBox>
 
-    <HBox alignment="CENTER" spacing="40.0" VBox.vgrow="NEVER">
-        <VBox alignment="CENTER" spacing="5.0">
-            <Label text="TURN ORDER TILE">
-                <font><Font name="System Bold" size="14.0" /></font>
-            </Label>
-            <VBox fx:id="turnOrderContainer" alignment="TOP_CENTER" minHeight="120.0" minWidth="80.0" spacing="5.0" style="-fx-background-color: #714b4d; -fx-background-radius: 5; -fx-border-color: #666; -fx-border-radius: 5;">
-                <padding>
-                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                </padding>
-            </VBox>
+    <!-- ── Middle row: turn order + offer track ───────────────────────────── -->
+    <HBox alignment="CENTER" spacing="18.0">
+
+        <VBox fx:id="turnOrderContainer"
+              alignment="TOP_CENTER"
+              prefWidth="138.0" minWidth="138.0" maxWidth="138.0"
+              spacing="5.0"
+              styleClass="board-track-panel">
+            <padding>
+                <Insets top="6.0" right="6.0" bottom="6.0" left="6.0" />
+            </padding>
         </VBox>
 
-        <VBox alignment="CENTER" spacing="5.0">
-            <Label text="OFFER TRACK">
-                <font><Font name="System Bold" size="14.0" /></font>
-            </Label>
-            <HBox fx:id="offersContainer" alignment="CENTER" minHeight="120.0" prefHeight="120.0" prefWidth="562.0" spacing="10.0" style="-fx-background-color: #714b4d;" />
+        <VBox alignment="TOP_CENTER" spacing="5.0">
+            <Label styleClass="board-section-label" text="OFFER TRACK" />
+
+            <HBox fx:id="offersContainer"
+                  alignment="CENTER"
+                  spacing="14.0"
+                  prefWidth="730.0" minWidth="730.0" maxWidth="730.0"
+                  prefHeight="88.0" minHeight="88.0" maxHeight="88.0"
+                  styleClass="board-track-panel">
+                <padding>
+                    <Insets top="6.0" right="10.0" bottom="6.0" left="10.0" />
+                </padding>
+            </HBox>
         </VBox>
     </HBox>
 
-    <VBox alignment="CENTER" spacing="10.0">
-        <Label text="LOWER DECK">
-            <font><Font name="System Bold" size="14.0" /></font>
-        </Label>
-        <HBox fx:id="lowerRowCardsContainer" alignment="CENTER" minHeight="160.0" spacing="15.0" style="-fx-background-color: #ef4a23; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
-            <padding><Insets bottom="10.0" left="10.0" right="10.0" top="10.0" /></padding>
+    <!-- ── Lower card row ─────────────────────────────────────────────────── -->
+    <VBox alignment="CENTER" spacing="5.0">
+        <Label styleClass="board-section-label" text="LOWER DECK" />
+
+        <HBox fx:id="lowerRowCardsContainer"
+              alignment="CENTER"
+              spacing="10.0"
+              prefHeight="124.0" minHeight="124.0" maxHeight="124.0"
+              styleClass="board-card-row">
+            <padding>
+                <Insets top="6.0" right="10.0" bottom="6.0" left="10.0" />
+            </padding>
         </HBox>
     </VBox>
 
-    <Button fx:id="confirmActionButton" mnemonicParsing="false" onAction="#handleConfirmAction" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20;" text="Conferma Selezione" visible="false">
-        <font><Font size="16.0" /></font>
-        <padding><Insets bottom="10.0" left="30.0" right="30.0" top="10.0" /></padding>
+    <!-- ── Confirm selection button ───────────────────────────────────────── -->
+    <!-- Hidden by default; shown by BoardViewController when cards are selected. -->
+    <Button fx:id="confirmActionButton"
+            mnemonicParsing="false"
+            onAction="#handleConfirmAction"
+            text="Confirm Selection"
+            visible="false"
+            managed="false"
+            disable="true"
+            styleClass="confirm-action-button">
+        <padding>
+            <Insets top="5.0" right="20.0" bottom="5.0" left="20.0" />
+        </padding>
     </Button>
+
 </VBox>

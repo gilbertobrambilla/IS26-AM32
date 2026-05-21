@@ -171,6 +171,54 @@ public class LightGameState {
         }
     }
 
+    /**
+     * Determines if the player's current selection satisfies the offer tile requirements,
+     * or if the player is legitimately stuck because there are no other affordable cards left.
+     *
+     * @param nickname The nickname of the player performing the action.
+     * @param reqUpper The number of cards required from the upper row.
+     * @param reqLower The number of cards required from the lower row.
+     * @param selUpper The list of card IDs currently selected from the upper row.
+     * @param selLower The list of card IDs currently selected from the lower row.
+     * @param selBuildings The list of building card IDs currently selected across all rows.
+     * @return true if the selection is complete or the player cannot afford any more required cards.
+     */
+    public boolean isSelectionCompleteOrStuck(
+            String nickname, int reqUpper, int reqLower,
+            List<String> selUpper, List<String> selLower, List<String> selBuildings) {
+
+        LightPlayer player = this.players.get(nickname);
+        if (player == null) return false;
+
+        int selectedUpper = selUpper.size();
+        int selectedLower = selLower.size();
+
+        // cannot select more than the tile allows
+        if (selectedUpper > reqUpper || selectedLower > reqLower) {
+            return false;
+        }
+
+        // mapToInt combined with sum natively returns an int, avoiding long-to-int downcasting
+        int availableUpperCharacters = this.upperTribeRow.stream()
+                .mapToInt(id -> id.startsWith("character_") ? 1 : 0)
+                .sum();
+
+        int availableLowerCharacters = this.lowerTribeRow.stream()
+                .mapToInt(id -> id.startsWith("character_") ? 1 : 0)
+                .sum();
+
+        // the player must take all available character cards up to the tile limit
+        int mandatoryUpper = Math.min(reqUpper, availableUpperCharacters);
+        int mandatoryLower = Math.min(reqLower, availableLowerCharacters);
+
+        if (selectedUpper < mandatoryUpper || selectedLower < mandatoryLower) {
+            return false;
+        }
+
+        // selection meets mandatory minimum and does not exceed maximum: complete or legitimately stuck
+        return true;
+    }
+
     // getters
 
     public String getMyNickname() {

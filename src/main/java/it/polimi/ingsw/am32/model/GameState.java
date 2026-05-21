@@ -347,16 +347,36 @@ public class GameState {
             }
         }
 
-        // action validity is checked against tile constraints
-        int totalUpperSize = this.upperTribeRow.size() + this.upperBuildingRow.size();
-        int totalLowerSize = this.lowerTribeRow.size() + this.lowerBuildingRow.size();
+        // count character cards present in each tribe row (includes already-chosen ones; player consumes them)
+        int characterCardsUpper = Math.toIntExact(this.upperTribeRow.stream()
+                .filter(c -> c.getId().startsWith("character_"))
+                .count());
 
-        if (!targetTile.isValidSelection(requestedUpper, requestedLower, totalUpperSize, totalLowerSize)) {
+        int characterCardsLower = Math.toIntExact(this.lowerTribeRow.stream()
+                .filter(c -> c.getId().startsWith("character_"))
+                .count());
+
+        // count buildings the player could still afford in each row (excludes already chosen ones)
+        int affordableBuildingsUpper = Math.toIntExact(this.upperBuildingRow.stream()
+                .filter(b -> !chosenBuildingCardsIds.contains(b.getId()))
+                .filter(b -> player.canAffordAdditionalBuilding(foundBuildings, b))
+                .count());
+
+        int affordableBuildingsLower = Math.toIntExact(this.lowerBuildingRow.stream()
+                .filter(b -> !chosenBuildingCardsIds.contains(b.getId()))
+                .filter(b -> player.canAffordAdditionalBuilding(foundBuildings, b))
+                .count());
+
+        // delegate all selection validation to Action, which encodes all mandatory/optional rules
+        if (!targetTile.isValidSelection(requestedUpper, requestedLower,
+                characterCardsUpper, characterCardsLower,
+                affordableBuildingsUpper, affordableBuildingsLower)) {
             throw new InvalidGameActionException(
                     GameErrorReason.INVALID_SELECTION_AMOUNT,
-                    "selected cards do not match offer tile constraints"
+                    "Selected cards do not match offer tile constraints or the player omitted available character cards."
             );
         }
+
 
         List<PlayerStatsChangeReceipt> statsChanges = new ArrayList<>();
 
@@ -793,13 +813,13 @@ public class GameState {
 
     // player management
 
-    public void addPlayer(Player player) {
+    public synchronized void addPlayer(Player player) {
         Objects.requireNonNull(player, "player cannot be null");
 
         this.players.add(player);
     }
 
-    public void removePlayer(String playerNickname) {
+    public synchronized void removePlayer(String playerNickname) {
         Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
 
         Player player = getPlayerByNickname(playerNickname);
@@ -822,7 +842,7 @@ public class GameState {
         return this.targetPlayers;
     }
 
-    public List<Player> getPlayers() {
+    public synchronized List<Player> getPlayers() {
         return List.copyOf(this.players);
     }
 
@@ -855,6 +875,9 @@ public class GameState {
     }
 
     public int getTribeDeckFirstCardEra() {
+        if (this.tribeDeck.isEmpty()) {
+            return -1;
+        }
         return this.tribeDeck.getFirstCardEra();
     }
 

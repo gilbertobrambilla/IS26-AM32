@@ -7,15 +7,16 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox alignment="CENTER_LEFT" spacing="30.0" styleClass="mesos-panel"
+<HBox alignment="CENTER_LEFT" prefHeight="190.0" minHeight="190.0" maxHeight="190.0"
+      spacing="24.0" styleClass="mesos-panel"
       xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.PlayerDashboardViewController">
 
     <padding>
-        <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
+        <Insets bottom="12.0" left="20.0" right="20.0" top="12.0" />
     </padding>
 
-    <VBox alignment="CENTER_LEFT" minWidth="150.0" spacing="10.0">
+    <VBox alignment="TOP_LEFT" minWidth="150.0" prefWidth="150.0" spacing="10.0">
         <Label styleClass="text-main" text="MY RESOURCES">
             <font><Font name="System Bold" size="16.0" /></font>
         </Label>
@@ -35,15 +36,23 @@
         </HBox>
     </VBox>
 
-    <VBox HBox.hgrow="ALWAYS" spacing="10.0">
+    <VBox HBox.hgrow="ALWAYS" spacing="8.0">
         <Label styleClass="text-main" text="YOUR CARDS">
             <font><Font name="System Bold" size="16.0" /></font>
         </Label>
-        <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" style="-fx-background: transparent; -fx-background-color: transparent;">
+
+        <ScrollPane fitToHeight="true"
+                    fitToWidth="false"
+                    hbarPolicy="AS_NEEDED"
+                    vbarPolicy="NEVER"
+                    pannable="true"
+                    prefHeight="165.0"
+                    minHeight="165.0"
+                    maxHeight="165.0">
             <content>
-                <HBox fx:id="myCardsContainer" alignment="CENTER_LEFT" spacing="20.0">
+                <HBox fx:id="myCardsContainer" alignment="BOTTOM_LEFT" spacing="16.0">
                     <padding>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                        <Insets bottom="10.0" left="5.0" right="5.0" top="40.0" />
                     </padding>
                 </HBox>
             </content>
