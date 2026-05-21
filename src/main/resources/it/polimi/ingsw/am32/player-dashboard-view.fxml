@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -7,10 +6,10 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox alignment="CENTER_LEFT" prefHeight="200.0" minHeight="150.0" maxHeight="250.0" spacing="24.0" styleClass="mesos-panel"
+<HBox alignment="CENTER_LEFT" prefHeight="190.0" minHeight="190.0" maxHeight="190.0"
+      spacing="24.0" styleClass="mesos-panel"
       xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.PlayerDashboardViewController"
-      maxWidth="Infinity">
+      fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.PlayerDashboardViewController">
 
     <padding>
         <Insets bottom="12.0" left="20.0" right="20.0" top="12.0" />
@@ -20,14 +19,12 @@
         <Label styleClass="text-main" text="MY RESOURCES">
             <font><Font name="System Bold" size="16.0" /></font>
         </Label>
-
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <Label styleClass="text-dim" text="Food:" />
             <Label fx:id="myFoodLabel" styleClass="text-main" text="0">
                 <font><Font name="System Bold" size="18.0" /></font>
             </Label>
         </HBox>
-
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <Label styleClass="text-dim" text="Prestige:" />
             <Label fx:id="myPrestigeLabel" styleClass="text-gold" text="0">
@@ -36,14 +33,13 @@
         </HBox>
     </VBox>
 
-    <VBox HBox.hgrow="ALWAYS" spacing="8.0" maxWidth="Infinity">
+    <VBox HBox.hgrow="ALWAYS" spacing="8.0">
         <Label styleClass="text-main" text="YOUR CARDS">
             <font><Font name="System Bold" size="16.0" /></font>
         </Label>
-
-        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" pannable="true" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+        <ScrollPane fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" pannable="true">
             <content>
-                <HBox fx:id="myCardsContainer" alignment="BOTTOM_LEFT" spacing="16.0" maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                <HBox fx:id="myCardsContainer" alignment="BOTTOM_LEFT" spacing="16.0">
                     <padding>
                         <Insets bottom="10.0" left="5.0" right="5.0" top="40.0" />
                     </padding>

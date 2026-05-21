@@ -10,7 +10,10 @@ import javafx.scene.Cursor;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 public class OfferView extends StackPane {
@@ -34,12 +37,11 @@ public class OfferView extends StackPane {
     }
 
     private void initializeComponent() {
-        // Sblocco dimensione minima
+        // Le Offer Tiles sono solo sul tabellone, quindi sono SEMPRE fluide!
         setMinSize(0, 0);
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-
-        // Impostiamo una proporzione ideale
-        setPrefSize(88.0, 88.0);
+        HBox.setHgrow(this, Priority.ALWAYS);
+        VBox.setVgrow(this, Priority.ALWAYS);
 
         backgroundImageView.setPreserveRatio(true);
         backgroundImageView.setSmooth(true);
@@ -79,23 +81,15 @@ public class OfferView extends StackPane {
 
     private void setupInteractionEffects() {
         ScaleTransition scaleIn = new ScaleTransition(Duration.millis(ANIMATION_DURATION_MS), this);
-        scaleIn.setToX(HOVER_SCALE);
-        scaleIn.setToY(HOVER_SCALE);
+        scaleIn.setToX(HOVER_SCALE); scaleIn.setToY(HOVER_SCALE);
         ScaleTransition scaleOut = new ScaleTransition(Duration.millis(ANIMATION_DURATION_MS), this);
-        scaleOut.setToX(1.0);
-        scaleOut.setToY(1.0);
+        scaleOut.setToX(1.0); scaleOut.setToY(1.0);
 
         this.setOnMouseEntered(e -> {
-            if (!this.isDisable()) {
-                this.setCursor(Cursor.HAND);
-                scaleOut.stop();
-                scaleIn.playFromStart();
-            }
+            if (!this.isDisable()) { this.setCursor(Cursor.HAND); scaleOut.stop(); scaleIn.playFromStart(); }
         });
         this.setOnMouseExited(e -> {
-            this.setCursor(Cursor.DEFAULT);
-            scaleIn.stop();
-            scaleOut.playFromStart();
+            this.setCursor(Cursor.DEFAULT); scaleIn.stop(); scaleOut.playFromStart();
         });
     }
 
@@ -104,7 +98,5 @@ public class OfferView extends StackPane {
         renderTotemState(totemColor);
     }
 
-    public LightOfferTile getTileData() {
-        return tileData;
-    }
+    public LightOfferTile getTileData() { return tileData; }
 }

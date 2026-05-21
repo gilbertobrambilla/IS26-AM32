@@ -9,149 +9,122 @@ import javafx.scene.Cursor;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 public class CardView extends StackPane {
 
+    private static final double DEFAULT_WIDTH    = 80.0;
+    private static final double DEFAULT_HEIGHT   = 120.0;
     private static final double HOVER_SCALE      = 1.1;
-    private static final double SLIDE_UP_PX      = -20.0;
+    private static final double SLIDE_UP_PX      = -40.0;
     private static final int    ANIMATION_MS     = 150;
     private static final double SHADOW_RADIUS_PX = 20.0;
 
     private final ImageView imageView = new ImageView();
     private final String cardId;
+    private final double cardWidth;
+    private final double cardHeight;
     private boolean slideUpEnabled = false;
 
     public CardView(String cardId) {
+        this(cardId, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    }
+
+    public CardView(String cardId, double cardWidth, double cardHeight) {
         this.cardId = cardId;
-        initLayout();
+        this.cardWidth = cardWidth;
+        this.cardHeight = cardHeight;
+
+        getStyleClass().add("card-view");
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+        getChildren().add(imageView);
+
+        // Di default la carta è rigida (ottima per la dashboard)
+        setFluid(false);
+
         loadImage();
         setupHoverEffects();
     }
 
-    public CardView(String cardId, double initialWidth, double initialHeight) {
-        this.cardId = cardId;
-        initLayout();
-        setPrefSize(initialWidth, initialHeight);
-        loadImage();
-        setupHoverEffects();
+    public void setFluid(boolean fluid) {
+        if (fluid) {
+            // Sblocca i limiti e lega le dimensioni all'HBox genitore!
+            setMinSize(0, 0);
+            setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            HBox.setHgrow(this, Priority.ALWAYS);
+            VBox.setVgrow(this, Priority.ALWAYS);
+            imageView.fitWidthProperty().bind(widthProperty());
+            imageView.fitHeightProperty().bind(heightProperty());
+        } else {
+            // Ritorna rigida
+            imageView.fitWidthProperty().unbind();
+            imageView.fitHeightProperty().unbind();
+            setPrefSize(cardWidth, cardHeight);
+            setMinSize(cardWidth, cardHeight);
+            setMaxSize(cardWidth, cardHeight);
+            imageView.setFitWidth(cardWidth);
+            imageView.setFitHeight(cardHeight);
+        }
     }
 
-    public void setSlideUpEnabled(boolean enabled) {
-        this.slideUpEnabled = enabled;
-    }
-
-    public String getCardId() {
-        return cardId;
-    }
+    public void setSlideUpEnabled(boolean enabled) { this.slideUpEnabled = enabled; }
+    public String getCardId() { return cardId; }
 
     public void setHighlight(boolean selected) {
         if (selected) {
-            if (!getStyleClass().contains("card-selected")) {
-                getStyleClass().add("card-selected");
-            }
+            if (!getStyleClass().contains("card-selected")) getStyleClass().add("card-selected");
         } else {
             getStyleClass().remove("card-selected");
         }
     }
 
-    private void initLayout() {
-        getStyleClass().add("card-view");
-
-        // LA SOLUZIONE AL GIGANTISMO: sblocco della dimensione minima
-        setMinSize(0, 0);
-        setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-
-        imageView.setPreserveRatio(true);
-        imageView.setSmooth(true);
-
-        // Binding responsivo
-        imageView.fitWidthProperty().bind(widthProperty());
-        imageView.fitHeightProperty().bind(heightProperty());
-
-        getChildren().add(imageView);
-    }
-
     private void loadImage() {
         String path = resolveAssetPath();
         if (path == null) return;
-
         Image image = ImageCache.getInstance().getImage(path);
-        if (image == null) {
-            GuiLogger.warning("[CardView] image load failed for path: " + path);
-            return;
-        }
-        imageView.setImage(image);
+        if (image != null) imageView.setImage(image);
     }
 
     private String resolveAssetPath() {
-        if (cardId == null) return resolveCardBack();
-        String id = normalizeId(cardId);
+        if (cardId == null) return AssetManager.getInstance().getCardBack("card_back");
+        String id = cardId.replace("char_",  "character_").replace("build_", "building_");
         if (id.startsWith("building")) {
             var dto = AssetManager.getInstance().getBuildingCard(id);
-            if (dto != null) return dto.getAssetPath();
+            return dto != null ? dto.getAssetPath() : null;
         } else if (id.startsWith("character")) {
             var dto = AssetManager.getInstance().getCharacterCard(id);
-            if (dto != null) return dto.getAssetPath();
+            return dto != null ? dto.getAssetPath() : null;
         } else if (id.startsWith("event")) {
             var dto = AssetManager.getInstance().getEventCard(id);
-            if (dto != null) return dto.getAssetPath();
+            return dto != null ? dto.getAssetPath() : null;
         }
         return null;
     }
 
-    private String resolveCardBack() {
-        return AssetManager.getInstance().getCardBack("card_back");
-    }
-
-    private static String normalizeId(String rawId) {
-        return rawId.replace("char_",  "character_").replace("build_", "building_");
-    }
-
     private void setupHoverEffects() {
-        ScaleTransition scaleIn   = buildScale(HOVER_SCALE);
-        ScaleTransition scaleOut  = buildScale(1.0);
-        TranslateTransition slideUp   = buildTranslateY(SLIDE_UP_PX);
-        TranslateTransition slideDown = buildTranslateY(0.0);
+        ScaleTransition scaleIn   = new ScaleTransition(Duration.millis(ANIMATION_MS), this);
+        scaleIn.setToX(HOVER_SCALE); scaleIn.setToY(HOVER_SCALE);
+        ScaleTransition scaleOut  = new ScaleTransition(Duration.millis(ANIMATION_MS), this);
+        scaleOut.setToX(1.0); scaleOut.setToY(1.0);
+        TranslateTransition slideUp   = new TranslateTransition(Duration.millis(ANIMATION_MS), this);
+        slideUp.setToY(SLIDE_UP_PX);
+        TranslateTransition slideDown = new TranslateTransition(Duration.millis(ANIMATION_MS), this);
+        slideDown.setToY(0.0);
         DropShadow shadow = new DropShadow(SHADOW_RADIUS_PX, Color.BLACK);
 
         setOnMouseEntered(e -> {
-            setCursor(Cursor.HAND);
-            setEffect(shadow);
-            scaleOut.stop();
-            scaleIn.playFromStart();
-            if (slideUpEnabled) {
-                setViewOrder(-1.0);
-                slideDown.stop();
-                slideUp.playFromStart();
-            }
+            setCursor(Cursor.HAND); setEffect(shadow); scaleOut.stop(); scaleIn.playFromStart();
+            if (slideUpEnabled) { setViewOrder(-1.0); slideDown.stop(); slideUp.playFromStart(); }
         });
-
         setOnMouseExited(e -> {
-            setCursor(Cursor.DEFAULT);
-            setEffect(null);
-            scaleIn.stop();
-            scaleOut.playFromStart();
-            if (slideUpEnabled) {
-                setViewOrder(0.0);
-                slideUp.stop();
-                slideDown.playFromStart();
-            }
+            setCursor(Cursor.DEFAULT); setEffect(null); scaleIn.stop(); scaleOut.playFromStart();
+            if (slideUpEnabled) { setViewOrder(0.0); slideUp.stop(); slideDown.playFromStart(); }
         });
-    }
-
-    private ScaleTransition buildScale(double target) {
-        ScaleTransition t = new ScaleTransition(Duration.millis(ANIMATION_MS), this);
-        t.setToX(target);
-        t.setToY(target);
-        return t;
-    }
-
-    private TranslateTransition buildTranslateY(double toY) {
-        TranslateTransition t = new TranslateTransition(Duration.millis(ANIMATION_MS), this);
-        t.setToY(toY);
-        return t;
     }
 }
