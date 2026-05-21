@@ -9,22 +9,17 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 
-<!--
-    Root is a StackPane so overlays (focus, suspension, notification, toast)
-    can be layered above the main BorderPane without z-index gymnastics.
-    The sandy-brown background (#fbb85c) is the intentional game-board colour.
--->
-<StackPane
+<StackPane prefWidth="1280.0" prefHeight="720.0"
            xmlns="http://javafx.com/javafx/26"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.InGameViewController">
+
     <styleClass>
         <String fx:value="root" />
         <String fx:value="page-root-sand" />
     </styleClass>
 
-    <!-- ── Main layout ──────────────────────────────────────────────────── -->
-    <BorderPane prefHeight="800.0" prefWidth="1280.0">
+    <BorderPane>
         <top>
             <fx:include fx:id="topBar" source="top-bar-view.fxml" />
         </top>
@@ -41,11 +36,6 @@
         </bottom>
     </BorderPane>
 
-    <!-- ── Opponent Focus Overlay ────────────────────────────────────────── -->
-    <!--
-        Full-screen dimmed backdrop; clicking outside the inner panel closes it.
-        The inner VBox consumes the click so it does not propagate to the backdrop.
-    -->
     <StackPane fx:id="opponentFocusOverlay"
                visible="false"
                styleClass="focus-overlay-backdrop"
@@ -81,7 +71,6 @@
         </VBox>
     </StackPane>
 
-    <!-- ── Suspension Overlay ────────────────────────────────────────────── -->
     <VBox fx:id="suspensionOverlay"
           alignment="CENTER"
           spacing="20.0"
@@ -93,12 +82,6 @@
                text="Game Suspended. Waiting for players to reconnect..." />
     </VBox>
 
-    <!-- ── Notification Bar ──────────────────────────────────────────────── -->
-    <!--
-        Declared here so FXMLLoader injects InGameViewController.notificationLabel.
-        mouseTransparent=true + pickOnBounds=false so clicks on layers below are
-        never blocked. Hidden by default; shown for 5 s by showNotification().
-    -->
     <VBox alignment="TOP_CENTER" mouseTransparent="true" pickOnBounds="false">
         <Label fx:id="notificationLabel"
                visible="false"
@@ -111,7 +94,6 @@
         </Label>
     </VBox>
 
-    <!-- ── Toast Error Banner ────────────────────────────────────────────── -->
     <VBox alignment="TOP_CENTER" mouseTransparent="true" pickOnBounds="false">
         <padding>
             <Insets top="20.0" />

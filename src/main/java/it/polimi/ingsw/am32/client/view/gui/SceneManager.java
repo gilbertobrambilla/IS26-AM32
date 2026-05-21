@@ -5,9 +5,13 @@ import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.gui.controllers.ViewController;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -25,13 +29,10 @@ public class SceneManager {
     private static ClientController clientController;
     private static ViewController currentController;
 
-    /**
-     * Initializes the SceneManager with the primary stage and the main controller.
-     * This must be called once during the application startup.
-     *
-     * @param stage      the primary JavaFX Stage.
-     * @param controller the main ClientController to be injected into views.
-     */
+    // Risoluzione logica di base su cui è disegnata la grafica del gioco
+    private static final double LOGICAL_WIDTH = 1280.0;
+    private static final double LOGICAL_HEIGHT = 720.0;
+
     public static void initialize(Stage stage, ClientController controller) {
         primaryStage = stage;
         clientController = controller;
@@ -56,7 +57,6 @@ public class SceneManager {
                             try {
                                 return controllerClass.getConstructor(ClientController.class).newInstance(clientController);
                             } catch (NoSuchMethodException ignored) {
-                                // Some nested controllers are stateless and intentionally expose only a no-arg constructor.
                             }
                         }
                         return controllerClass.getDeclaredConstructor().newInstance();
@@ -68,14 +68,68 @@ public class SceneManager {
                 Parent root = loader.load();
                 currentController = loader.getController();
 
+                // --- SISTEMA LETTERBOX INFALLIBILE ---
+
+                // 1. Blocchiamo il pannello del gioco alle dimensioni native (16:9)
+                if (root instanceof Region) {
+                    Region region = (Region) root;
+                    region.setPrefSize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                    region.setMinSize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                    region.setMaxSize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                }
+
+                // 2. Creiamo lo zoom con punto di ancoraggio fisso in alto a sinistra (0,0)
+                Scale scale = new Scale(1, 1, 0, 0);
+                root.getTransforms().clear(); // Rimuove eventuali zoom precedenti
+                root.getTransforms().add(scale);
+
+                // 3. Congeliamo il layout in un Group
+                Group group = new Group(root);
+
+                // 4. Lo StackPane esterno farà da sfondo (bande nere) e centrerà il Group automaticamente
+                StackPane wrapper = new StackPane(group);
+                wrapper.setStyle("-fx-background-color: #1a1a1a;");
+
                 Scene currentScene = primaryStage.getScene();
                 if (currentScene == null) {
-                    currentScene = new Scene(root, 1440, 900);
+                    // Creazione iniziale
+                    currentScene = new Scene(wrapper, LOGICAL_WIDTH, LOGICAL_HEIGHT);
                     primaryStage.setScene(currentScene);
+
+                    currentScene.setOnKeyPressed(event -> {
+                        if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                            GuiLogger.info("[GUI] Uscita forzata tramite tasto ESC");
+                            Platform.exit();
+                            System.exit(0);
+                        }
+                    });
                 } else {
-                    currentScene.setRoot(root);
-                    primaryStage.sizeToScene();
+                    // Sostituzione scena esistente
+                    currentScene.setRoot(wrapper);
                 }
+
+                // 5. La formula per aggiornare lo zoom
+                Runnable updateScale = () -> {
+                    // CHIAVE: Leggiamo la dimensione del WRAPPER (la finestra fisica)
+                    double w = wrapper.getWidth();
+                    double h = wrapper.getHeight();
+
+                    // Previene crash se la finestra è ridotta a icona
+                    if (w <= 0 || h <= 0) return;
+
+                    // Calcola il fattore di scala mantenendo l'aspect ratio (prende il minore)
+                    double scaleFactor = Math.min(w / LOGICAL_WIDTH, h / LOGICAL_HEIGHT);
+                    scale.setX(scaleFactor);
+                    scale.setY(scaleFactor);
+                };
+
+                // CHIAVE: Colleghiamo i listener al wrapper, reagendo ai cambi di dimensione
+                wrapper.widthProperty().addListener((obs, oldVal, newVal) -> updateScale.run());
+                wrapper.heightProperty().addListener((obs, oldVal, newVal) -> updateScale.run());
+
+                // Forza il primo ricalcolo non appena l'interfaccia è pronta
+                Platform.runLater(updateScale);
+                // -----------------------------------------------------
 
                 URL cssResource = SceneManager.class.getResource("/css/global.css");
                 if (cssResource != null) {
@@ -104,12 +158,6 @@ public class SceneManager {
         }
     }
 
-    /**
-     * Instantly destroys the current scene, returns to the Connection view,
-     * and shows an error message. Crucial for ungraceful disconnections (resiliency).
-     *
-     * @param reason the reason for the disconnection.
-     */
     public static void forceDisconnect(String reason) {
         Runnable disconnectTask = () -> {
             GuiLogger.error("[GUI] Forced disconnect: " + reason);

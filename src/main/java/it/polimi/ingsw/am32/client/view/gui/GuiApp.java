@@ -16,26 +16,12 @@ import java.io.InputStream;
  */
 public class GuiApp extends Application {
 
-    /**
-     * temporary static reference used to pass the controller from ClientMain
-     * to the JavaFX application thread.
-     */
     private static ClientController pendingController;
-
-
     private static String pendingServerAddress;
 
-
-    /**
-     * sets the ClientController before launching the JavaFX application.
-     * this must be called before Application.launch().
-     *
-     * @param controller the main ClientController instantiated in ClientMain.
-     */
     public static void setController(ClientController controller) {
         pendingController = controller;
     }
-
 
     public static void setServerAddress(String address) {
         pendingServerAddress = address;
@@ -45,15 +31,6 @@ public class GuiApp extends Application {
         return pendingServerAddress != null ? pendingServerAddress : "unknown";
     }
 
-
-    /**
-     * the main entry point for all JavaFX applications.
-     * the start method is called after the init method has returned,
-     * and after the system is ready for the application to begin running.
-     *
-     * @param primaryStage the primary stage for this application, onto which
-     *                     the application scene can be set.
-     */
     @Override
     public void start(Stage primaryStage) {
         GuiLogger.info("[SYSTEM] Loading game assets");
@@ -68,7 +45,10 @@ public class GuiApp extends Application {
         SceneManager.initialize(primaryStage, null);
 
         primaryStage.setTitle("Mesos - Digital Edition");
+
+        // --- Fondamentale per lo Scaling Letterbox ---
         primaryStage.setResizable(true);
+        primaryStage.setFullScreen(false);
 
         primaryStage.setOnCloseRequest(event -> {
             GuiLogger.info("[GUI] Window close requested");
@@ -76,11 +56,11 @@ public class GuiApp extends Application {
         });
 
         SceneManager.switchScene(ViewPaths.CONNECTION);
+
+        // Centra la finestra all'avvio
+        primaryStage.centerOnScreen();
     }
 
-    /**
-     *  Called when the application is about to stop, either by user action or programmatically.
-     */
     @Override
     public void stop() {
         GuiLogger.info("[GUI] Executing graceful shutdown");
