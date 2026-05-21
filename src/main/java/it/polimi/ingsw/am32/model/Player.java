@@ -369,7 +369,7 @@ public class Player implements Comparable<Player> {
             this.removeFood(netCost);
         } else {
             // unfed characters penalty is applied
-            int unfedCharacters = (netCost - this.food) / grossCostPerCharacter;
+            int unfedCharacters = grossCostPerCharacter == 0 ? 0 : (netCost - this.food) / grossCostPerCharacter;
             this.removeFood(this.food);
             this.removePrestige(unfedCharacters * prestigePenalty);
         }

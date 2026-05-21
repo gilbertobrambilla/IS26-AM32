@@ -813,13 +813,13 @@ public class GameState {
 
     // player management
 
-    public void addPlayer(Player player) {
+    public synchronized void addPlayer(Player player) {
         Objects.requireNonNull(player, "player cannot be null");
 
         this.players.add(player);
     }
 
-    public void removePlayer(String playerNickname) {
+    public synchronized void removePlayer(String playerNickname) {
         Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
 
         Player player = getPlayerByNickname(playerNickname);
@@ -842,7 +842,7 @@ public class GameState {
         return this.targetPlayers;
     }
 
-    public List<Player> getPlayers() {
+    public synchronized List<Player> getPlayers() {
         return List.copyOf(this.players);
     }
 
@@ -875,6 +875,9 @@ public class GameState {
     }
 
     public int getTribeDeckFirstCardEra() {
+        if (this.tribeDeck.isEmpty()) {
+            return -1;
+        }
         return this.tribeDeck.getFirstCardEra();
     }
 
