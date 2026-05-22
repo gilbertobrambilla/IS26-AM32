@@ -1,29 +1,22 @@
 /* ============================================================
-   MESOS — GLOBAL STYLESHEET
+   MESOS — GLOBAL STYLESHEET (FLUID EDITION)
    ============================================================ */
 
 .root {
     /* --- COLOR PALETTE (Mesolithic Theme) --- */
-    -fx-bg-dark:         #1a1a1a;   /* main window background          */
-    -fx-bg-panel:        #2d2d2d;   /* sidebar / cards area            */
-    -fx-bg-accent:       #4a5d23;   /* dark moss green – primary CTA   */
-    -fx-bg-accent-light: #6b8e23;   /* olive green – hover             */
+    -fx-bg-dark:         #1a1a1a;
+    -fx-bg-panel:        #2d2d2d;
+    -fx-bg-accent:       #4a5d23;
+    -fx-bg-accent-light: #6b8e23;
 
     /* --- TEXT COLORS --- */
-    -fx-text-main: #f0f0f0;         /* high-contrast body text         */
-    -fx-text-dim:  #a0a0a0;         /* muted labels / captions         */
-    -fx-text-gold: #ffcc00;         /* prestige / highlights           */
-    -fx-error-red: #ff4444;         /* validation errors               */
+    -fx-text-main: #f0f0f0;
+    -fx-text-dim:  #a0a0a0;
+    -fx-text-gold: #ffcc00;
+    -fx-error-red: #ff4444;
 
-    /*
-     * NOTE: JavaFX CSS only supports looked-up colors as custom properties.
-     * Spacing and font-size "variables" silently do nothing — use literals.
-     */
-
-    /* Applied to the scene root */
     -fx-background-color: -fx-bg-dark;
     -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-    -fx-font-size: 14px;
     -fx-text-fill: -fx-text-main;
 }
 
@@ -34,33 +27,20 @@
 .game-panel {
     -fx-background-color: -fx-bg-panel;
     -fx-background-radius: 8px;
-    -fx-padding: 20px;
+    -fx-padding: 1.5em;
     -fx-border-color: #444444;
     -fx-border-width: 1px;
     -fx-border-radius: 8px;
 }
 
-.page-root-sand {
-    -fx-background-color: #fbb85c;
-}
+.page-root-sand { -fx-background-color: #fbb85c; }
+.page-root-green { -fx-background-color: #65896e; }
+.sand-panel { -fx-background-color: #fbb85c; -fx-background-radius: 8px; }
+.rounded-list-view { -fx-background-radius: 5px; }
 
-.page-root-green {
-    -fx-background-color: #65896e;
-}
-
-.sand-panel {
-    -fx-background-color: #fbb85c;
-    -fx-background-radius: 8px;
-}
-
-.rounded-list-view {
-    -fx-background-radius: 5px;
-}
-
-/* Top / bottom edge panels (sidebar header, dashboard) */
 .mesos-panel {
     -fx-background-color: -fx-bg-panel;
-    -fx-padding: 10px;                /* literal — -fx-spacing-md was invalid */
+    -fx-padding: 0.8em;
     -fx-border-color: #444444;
     -fx-border-width: 0 0 1 0;
 }
@@ -69,52 +49,21 @@
    TOP BAR
    ============================================================ */
 
-.top-bar {
-    -fx-background-color: #4a6741;
-}
-
-.top-bar-era-value {
-    -fx-text-fill: #ffd700;
-    -fx-font-size: 24px;
-    -fx-font-weight: bold;
-}
-
-.top-bar-round-value {
-    -fx-text-fill: -fx-text-main;
-    -fx-font-size: 24px;
-    -fx-font-weight: bold;
-}
-
-/* Phase label — ice blue */
-.top-bar-phase-value {
-    -fx-text-fill: #88ccff;
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
-}
+.top-bar { -fx-background-color: #4a6741; }
+.top-bar-era-value { -fx-text-fill: #ffd700; -fx-font-size: 1.6em; -fx-font-weight: bold; }
+.top-bar-round-value { -fx-text-fill: -fx-text-main; -fx-font-size: 1.6em; -fx-font-weight: bold; }
+.top-bar-phase-value { -fx-text-fill: #88ccff; -fx-font-size: 1.4em; -fx-font-weight: bold; }
 
 /* ============================================================
    TYPOGRAPHY
    ============================================================ */
 
-.title-text {
-    -fx-font-size: 32px;
-    -fx-font-weight: bold;
-    -fx-text-fill: -fx-text-main;
-}
-
-.subtitle-text {
-    -fx-font-size: 18px;
-    -fx-text-fill: -fx-text-dim;
-}
-
+.title-text { -fx-font-size: 2.2em; -fx-font-weight: bold; -fx-text-fill: -fx-text-main; }
+.subtitle-text { -fx-font-size: 1.2em; -fx-text-fill: -fx-text-dim; }
 .text-main { -fx-text-fill: -fx-text-main; }
 .text-dim   { -fx-text-fill: -fx-text-dim;  }
 .text-gold  { -fx-text-fill: -fx-text-gold; }
-
-.error-text {
-    -fx-text-fill: -fx-error-red;
-    -fx-font-size: 14px;
-}
+.error-text { -fx-text-fill: -fx-error-red; -fx-font-size: 1em; }
 
 /* ============================================================
    BUTTONS
@@ -125,7 +74,7 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 5px;
-    -fx-padding: 8px 16px;
+    -fx-padding: 0.6em 1.2em;
     -fx-cursor: hand;
 }
 .button:hover   { -fx-background-color: -fx-bg-accent-light; }
@@ -136,58 +85,33 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 5px;
-    -fx-padding: 8px 16px;
+    -fx-padding: 0.6em 1.2em;
     -fx-cursor: hand;
 }
 .button-accent:hover   { -fx-background-color: -fx-bg-accent; }
-.button-accent:pressed { -fx-scale-x: 0.95; -fx-scale-y: 0.95; }
 
-/* Confirm-selection button on the board (pill-shaped, success green) */
 .confirm-action-button {
     -fx-background-color: #4caf50;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 20px;
+    -fx-padding: 0.5em 1.5em;
     -fx-cursor: hand;
 }
 .confirm-action-button:hover   { -fx-background-color: #43a047; }
-.confirm-action-button:pressed { -fx-scale-x: 0.95; -fx-scale-y: 0.95; }
-
-/* ============================================================
-   INPUT FIELDS
-   ============================================================ */
-
-.text-field {
-    -fx-background-color: #3d3d3d;
-    -fx-text-fill: white;
-    -fx-prompt-text-fill: #808080;
-    -fx-border-color: #555555;
-    -fx-border-width: 0 0 2 0;
-    -fx-padding: 5px;
-}
-.text-field:focused {
-    -fx-border-color: -fx-bg-accent-light;
-    -fx-background-color: #454545;
-}
 
 /* ============================================================
    CARD COMPONENTS
    ============================================================ */
 
 .card-placeholder {
-    -fx-min-width: 120px;
-    -fx-min-height: 180px;
     -fx-background-color: #3e3e3e;
     -fx-border-color: #666666;
     -fx-border-radius: 10px;
     -fx-background-radius: 10px;
 }
 
-.card-view {
-    -fx-background-color: transparent;
-}
-
-/* Golden glow applied when a board card is selected */
+.card-view { -fx-background-color: transparent; }
 .card-selected {
     -fx-border-color: -fx-text-gold;
     -fx-border-width: 2px;
@@ -199,20 +123,8 @@
    BOARD
    ============================================================ */
 
-/* Section heading labels ("UPPER DECK", "LOWER DECK", "OFFER TRACK") */
-.board-section-label {
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-text-fill: -fx-text-main;
-}
-
-/* Card row areas — burnt-orange game-board colour */
-.board-card-row {
-    -fx-background-color: #ef4a23;
-    -fx-background-radius: 10px;
-}
-
-/* Turn-order and offer-track containers — dark brownish-red */
+.board-section-label { -fx-font-size: 1em; -fx-font-weight: bold; -fx-text-fill: -fx-text-main; }
+.board-card-row { -fx-background-color: #ef4a23; -fx-background-radius: 10px; }
 .board-track-panel {
     -fx-background-color: #714b4d;
     -fx-background-radius: 6px;
@@ -237,48 +149,19 @@
     -fx-border-color: -fx-bg-accent-light;
     -fx-background-color: #363636;
 }
-
-/* Replaces inline setStyle() in OpponentView */
-.opponent-name {
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
-    -fx-text-fill: -fx-text-main;
-}
-
-/* Replaces inline setStyle() for value labels in OpponentView */
-.stat-value {
-    -fx-font-weight: bold;
-}
+.opponent-name { -fx-font-weight: bold; -fx-font-size: 1em; -fx-text-fill: -fx-text-main; }
+.stat-value { -fx-font-weight: bold; }
 
 /* ============================================================
-   TOTEM
+   TOTEM & TURN ORDER
    ============================================================ */
 
 .totem-label {
-    -fx-font-size: 12px;
+    -fx-font-size: 0.85em;
     -fx-font-weight: bold;
     -fx-text-fill: white;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.9), 2, 1.0, 0, 0);
 }
-
-/* ============================================================
-   TURN ORDER
-   ============================================================ */
-
-.turn-order-opponent {
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #f0f0f0;
-    -fx-effect: dropshadow(two-pass-box, rgba(0, 0, 0, 0.8), 3, 0.0, 1, 1);
-}
-
-.turn-order-local-player {
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #ffcc00;
-    -fx-effect: dropshadow(two-pass-box, rgba(0, 0, 0, 0.8), 3, 0.0, 1, 1);
-}
-
 .turn-slot-active {
     -fx-background-color: rgba(255, 204, 0, 0.25);
     -fx-background-radius: 8px;
@@ -289,63 +172,31 @@
 }
 
 /* ============================================================
-   IN-GAME OVERLAYS
+   OVERLAYS & NOTIFICATIONS
    ============================================================ */
 
-.focus-overlay-backdrop {
-    -fx-background-color: rgba(0, 0, 0, 0.85);
-}
-
-.focus-player-name {
-    -fx-font-size: 32px;
-    -fx-font-weight: bold;
-    -fx-text-fill: -fx-text-gold;
-}
-
-.suspension-overlay {
-    -fx-background-color: rgba(0, 0, 0, 0.75);
-}
-
-.suspension-message {
-    -fx-font-size: 24px;
-    -fx-font-weight: bold;
-    -fx-text-fill: white;
-}
-
-/* ============================================================
-   NOTIFICATIONS
-   ============================================================ */
-
+.focus-overlay-backdrop { -fx-background-color: rgba(0, 0, 0, 0.85); }
+.focus-player-name { -fx-font-size: 2.2em; -fx-font-weight: bold; -fx-text-fill: -fx-text-gold; }
+.suspension-overlay { -fx-background-color: rgba(0, 0, 0, 0.75); }
+.suspension-message { -fx-font-size: 1.8em; -fx-font-weight: bold; -fx-text-fill: white; }
 .game-notification {
     -fx-background-color: #2b2b2b;
-    -fx-padding: 10px;
+    -fx-padding: 0.8em;
     -fx-background-radius: 5px;
     -fx-border-color: #444444;
     -fx-border-radius: 5px;
     -fx-text-fill: white;
-    -fx-font-size: 14px;
+    -fx-font-size: 1em;
     -fx-font-weight: bold;
 }
-
 .toast-banner {
     -fx-background-color: -fx-error-red;
     -fx-background-radius: 25px;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 10, 0, 0, 4);
 }
+.toast-banner-label { -fx-text-fill: white; -fx-font-size: 1em; -fx-font-weight: bold; }
 
-.toast-banner-label {
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-}
-
-/* ============================================================
-   SCROLL PANE RESET
-   Global rule — no inline style= needed on any ScrollPane.
-   ============================================================ */
-
-.scroll-pane,
-.scroll-pane > .viewport {
+.scroll-pane, .scroll-pane > .viewport {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-padding: 0;
@@ -408,7 +259,6 @@
     -fx-alignment: CENTER_LEFT;
 }
 
-/* Disabilita il blu di selezione fastidioso per la end game */
 .table-view .table-row-cell:selected {
     -fx-background-color: #4a5d23; /* bg-accent */
 }
@@ -433,3 +283,4 @@
     -fx-background-color: #ffcc00, #4a5d23, rgba(255, 204, 0, 0.25);
     -fx-background-insets: 0, 0 0 0 3px, 0 0 0 3px;
 }
+

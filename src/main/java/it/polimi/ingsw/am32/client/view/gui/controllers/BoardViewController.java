@@ -18,7 +18,6 @@ import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -36,7 +35,6 @@ import java.util.stream.Collectors;
 
 public class BoardViewController {
 
-    // --- Layout constants for the turn-order tile ---
     private static final double TURN_TILE_HEIGHT    = 165.0;
     private static final double TURN_TILE_TOP_PAD   = 30.0;
     private static final double TURN_TILE_RESERVED  = 40.0;
@@ -56,11 +54,6 @@ public class BoardViewController {
     private final Map<String, CardView> availableCardViewCache = new HashMap<>();
     private final Map<String, OfferView> offerViewCache        = new HashMap<>();
 
-    /**
-     * The running pulse animation for the current active-player totem.
-     * Stopped before each turn-order rebuild to avoid leaking animations
-     * on nodes that have been removed from the scene graph.
-     */
     private ScaleTransition activePulse;
 
     public BoardViewController(ClientController clientController) {
@@ -71,10 +64,6 @@ public class BoardViewController {
     public void initialize() {
         clearContainers();
     }
-
-    // -------------------------------------------------------------------------
-    // Public API called by InGameViewController
-    // -------------------------------------------------------------------------
 
     public void wipeAndRebuild(LightGameState state) {
         if (state == null) return;
@@ -103,11 +92,6 @@ public class BoardViewController {
         }
     }
 
-    /**
-     * Clears the card selection state when the game phase changes away from
-     * {@link GamePhase#RESOLVE_ACTIONS}. The server drives phase transitions,
-     * so any pending local selection is silently discarded.
-     */
     public void resetPhaseSelection(GamePhase currentPhase) {
         if (currentPhase == GamePhase.RESOLVE_ACTIONS) return;
 
@@ -121,10 +105,6 @@ public class BoardViewController {
         availableCardViewCache.values().forEach(cv -> cv.setHighlight(false));
     }
 
-    // -------------------------------------------------------------------------
-    // Render helpers
-    // -------------------------------------------------------------------------
-
     private void renderBoardRows(LightGameState state) {
         List<String> upperIds = collectRowIds(state.getUpperTribeRow(), state.getUpperBuildingRow());
         List<String> lowerIds = collectRowIds(state.getLowerTribeRow(), state.getLowerBuildingRow());
@@ -137,6 +117,8 @@ public class BoardViewController {
         for (String cardId : allIds) {
             if (!availableCardViewCache.containsKey(cardId)) {
                 CardView cardView = new CardView(cardId, 80.0, 120.0);
+                // MAGIA: Rende le carte sul tabellone elastiche, ma non quelle nella plancia!
+                cardView.setFluid(true);
                 cardView.setOnMouseClicked(e -> handleCardSelection(cardView));
                 availableCardViewCache.put(cardId, cardView);
             }
@@ -154,8 +136,6 @@ public class BoardViewController {
         LightTurnOrderTile turnOrderTile = state.getTurnOrderTile();
         if (turnOrderTile == null) return;
 
-        // Stop the previous pulse before rebuilding — avoids animations running
-        // on nodes that have been detached from the scene graph.
         stopActivePulse();
 
         Label titleLabel = new Label("TURN ORDER");
@@ -167,9 +147,6 @@ public class BoardViewController {
         turnOrderContainer.getChildren().setAll(titleLabel, compositeTile);
     }
 
-    /**
-     * Builds the composite tile: background image + stacked totem slots.
-     */
     private StackPane buildTurnOrderTile(LightTurnOrderTile tile, LightGameState state) {
         StackPane composite = new StackPane();
         composite.setAlignment(Pos.TOP_CENTER);
@@ -183,10 +160,6 @@ public class BoardViewController {
         return composite;
     }
 
-    /**
-     * Loads and sizes the background image for the turn-order tile.
-     * Returns {@code null} when the asset is unavailable.
-     */
     private ImageView buildTurnOrderBackground(String tileId) {
         var dto = AssetManager.getInstance().getTurnOrderTile(tileId);
         if (dto == null || dto.getAssetPath() == null) return null;
@@ -200,11 +173,6 @@ public class BoardViewController {
         return view;
     }
 
-    /**
-     * Builds the VBox of player totem slots, evenly distributed within the tile height.
-     * Starts the pulse animation for the active player and stores the transition
-     * in {@link #activePulse} so it can be stopped on the next rebuild.
-     */
     private VBox buildSlotsBox(LightTurnOrderTile tile, LightGameState state) {
         List<String> players   = tile.getPlayers();
         String activePlayer    = state.getCurrentPlayer();
@@ -266,10 +234,6 @@ public class BoardViewController {
         offersContainer.getChildren().setAll(orderedViews);
     }
 
-    // -------------------------------------------------------------------------
-    // User interaction
-    // -------------------------------------------------------------------------
-
     private void handleCardSelection(CardView selectedCard) {
         LightGameState state = clientController.getLightGameState();
 
@@ -279,7 +243,6 @@ public class BoardViewController {
             return;
         }
 
-        // CardView.getCardId() returns a nullable String (Optional was removed in Round 1).
         String cardId = selectedCard.getCardId();
         if (cardId == null || cardId.startsWith("event")) return;
 
@@ -297,13 +260,11 @@ public class BoardViewController {
             targetList.remove(cardId);
             selectedCard.setHighlight(false);
         } else {
-            // check if the card limit for the offer tile is reached
             if (!canSelectCard(cardId, state, requirements)) {
                 AnimationUtils.shakeNode(selectedCard);
                 GuiLogger.info("[BoardViewController] Card selection rejected: limit reached.");
                 return;
             }
-            // ask the player model if they can afford this new addition
             if (!player.canAffordAdditionalBuilding(selectedBuildingIds, cardId)) {
                 AnimationUtils.shakeNode(selectedCard);
                 GuiLogger.info("[BoardViewController] Card selection rejected: not enough food.");
@@ -356,10 +317,6 @@ public class BoardViewController {
         clientController.requestPlaceTotem(selectedTile.getTileData().getId());
     }
 
-    // -------------------------------------------------------------------------
-    // Private utilities
-    // -------------------------------------------------------------------------
-
     private boolean isMyTurnAndPhase(LightGameState state, GamePhase expectedPhase) {
         if (state == null || state.getCurrentPlayer() == null) return false;
         return state.getMyNickname().equals(state.getCurrentPlayer())
@@ -391,7 +348,6 @@ public class BoardViewController {
             if (requirements.totalCards() == 0) {
                 confirmActionButton.setText("Resolve Action");
             } else if (selectedUpper < requirements.upperCards() || selectedLower < requirements.lowerCards()) {
-                // explicit UX feedback: the model allowed completion because the player is stuck
                 confirmActionButton.setText("Force Confirm (Resources Depleted)");
             } else {
                 confirmActionButton.setText("Confirm Selection");
@@ -466,10 +422,6 @@ public class BoardViewController {
         return state.getLowerTribeRow().contains(cardId) || state.getLowerBuildingRow().contains(cardId);
     }
 
-    /**
-     * Merges up to two nullable lists into a single mutable list.
-     * Used to assemble the upper/lower board row id lists from tribe + building halves.
-     */
     private static List<String> collectRowIds(List<String> half1, List<String> half2) {
         List<String> result = new ArrayList<>();
         if (half1 != null) result.addAll(half1);
@@ -477,20 +429,12 @@ public class BoardViewController {
         return result;
     }
 
-    /**
-     * Builds a styled tooltip for a player name.
-     *
-     * <p>JavaFX tooltips render in their own popup window and do not inherit
-     * the main scene stylesheet, so the style is applied inline here rather
-     * than via a CSS class.</p>
-     */
     private static Tooltip buildTooltip(String text) {
         Tooltip t = new Tooltip(text);
         t.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
         return t;
     }
 
-    /** Stops the active-player pulse animation if one is running. */
     private void stopActivePulse() {
         if (activePulse != null) {
             activePulse.stop();
