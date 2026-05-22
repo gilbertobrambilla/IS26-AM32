@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -20,14 +19,12 @@
         <Label styleClass="text-main" text="MY RESOURCES">
             <font><Font name="System Bold" size="16.0" /></font>
         </Label>
-
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <Label styleClass="text-dim" text="Food:" />
             <Label fx:id="myFoodLabel" styleClass="text-main" text="0">
                 <font><Font name="System Bold" size="18.0" /></font>
             </Label>
         </HBox>
-
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <Label styleClass="text-dim" text="Prestige:" />
             <Label fx:id="myPrestigeLabel" styleClass="text-gold" text="0">
@@ -40,15 +37,7 @@
         <Label styleClass="text-main" text="YOUR CARDS">
             <font><Font name="System Bold" size="16.0" /></font>
         </Label>
-
-        <ScrollPane fitToHeight="true"
-                    fitToWidth="false"
-                    hbarPolicy="AS_NEEDED"
-                    vbarPolicy="NEVER"
-                    pannable="true"
-                    prefHeight="165.0"
-                    minHeight="165.0"
-                    maxHeight="165.0">
+        <ScrollPane fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" pannable="true">
             <content>
                 <HBox fx:id="myCardsContainer" alignment="BOTTOM_LEFT" spacing="16.0">
                     <padding>
