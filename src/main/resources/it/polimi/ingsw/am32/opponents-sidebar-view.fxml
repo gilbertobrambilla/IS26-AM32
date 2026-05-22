@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" prefWidth="280.0" spacing="15.0" styleClass="mesos-panel"
+<VBox alignment="TOP_CENTER" prefWidth="280.0" minWidth="280.0" maxWidth="280.0" spacing="15.0" styleClass="mesos-panel"
       xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.OpponentsSidebarViewController">
 

@@ -14,24 +14,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.function.Consumer;
 
-/**
- * Utility class responsible for managing JavaFX scenes and loading FXML files.
- * It implements a custom Controller Factory to automatically inject the ClientController
- * into every loaded ViewController.
- */
 public class SceneManager {
 
     private static Stage primaryStage;
     private static ClientController clientController;
     private static ViewController currentController;
 
-    /**
-     * Initializes the SceneManager with the primary stage and the main controller.
-     * This must be called once during the application startup.
-     *
-     * @param stage      the primary JavaFX Stage.
-     * @param controller the main ClientController to be injected into views.
-     */
     public static void initialize(Stage stage, ClientController controller) {
         primaryStage = stage;
         clientController = controller;
@@ -55,9 +43,7 @@ public class SceneManager {
                         if (clientController != null) {
                             try {
                                 return controllerClass.getConstructor(ClientController.class).newInstance(clientController);
-                            } catch (NoSuchMethodException ignored) {
-                                // Some nested controllers are stateless and intentionally expose only a no-arg constructor.
-                            }
+                            } catch (NoSuchMethodException ignored) {}
                         }
                         return controllerClass.getDeclaredConstructor().newInstance();
                     } catch (Exception e) {
@@ -70,11 +56,18 @@ public class SceneManager {
 
                 Scene currentScene = primaryStage.getScene();
                 if (currentScene == null) {
-                    currentScene = new Scene(root, 1440, 900);
+                    // Finestra base 1280x720, elastica
+                    currentScene = new Scene(root, 1280, 720);
                     primaryStage.setScene(currentScene);
+
+                    currentScene.setOnKeyPressed(event -> {
+                        if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                            Platform.exit();
+                            System.exit(0);
+                        }
+                    });
                 } else {
                     currentScene.setRoot(root);
-                    primaryStage.sizeToScene();
                 }
 
                 URL cssResource = SceneManager.class.getResource("/css/global.css");
@@ -86,7 +79,6 @@ public class SceneManager {
                 }
 
                 primaryStage.show();
-                GuiLogger.info("[GUI] Switched to scene: " + viewPath.name());
 
                 if (onLoaded != null) {
                     onLoaded.accept(currentController);
@@ -104,21 +96,13 @@ public class SceneManager {
         }
     }
 
-    /**
-     * Instantly destroys the current scene, returns to the Connection view,
-     * and shows an error message. Crucial for ungraceful disconnections (resiliency).
-     *
-     * @param reason the reason for the disconnection.
-     */
     public static void forceDisconnect(String reason) {
         Runnable disconnectTask = () -> {
-            GuiLogger.error("[GUI] Forced disconnect: " + reason);
             if (clientController != null) {
                 clientController.shutdown();
                 clientController = null;
             }
             switchScene(ViewPaths.CONNECTION);
-
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Connection Lost");
             alert.setHeaderText("Disconnected from server");

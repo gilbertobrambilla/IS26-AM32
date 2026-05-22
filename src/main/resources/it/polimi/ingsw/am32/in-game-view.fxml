@@ -9,126 +9,62 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 
-<!--
-    Root is a StackPane so overlays (focus, suspension, notification, toast)
-    can be layered above the main BorderPane without z-index gymnastics.
-    The sandy-brown background (#fbb85c) is the intentional game-board colour.
--->
-<StackPane
-           xmlns="http://javafx.com/javafx/26"
+<StackPane xmlns="http://javafx.com/javafx/26"
            xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.InGameViewController">
+           fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.InGameViewController"
+           maxWidth="Infinity" maxHeight="Infinity">
+
     <styleClass>
         <String fx:value="root" />
         <String fx:value="page-root-sand" />
     </styleClass>
 
-    <!-- ── Main layout ──────────────────────────────────────────────────── -->
-    <BorderPane prefHeight="800.0" prefWidth="1280.0">
+    <BorderPane maxWidth="Infinity" maxHeight="Infinity">
         <top>
-            <fx:include fx:id="topBar" source="top-bar-view.fxml" />
+            <fx:include fx:id="topBar" source="top-bar-view.fxml" maxHeight="80.0"/>
         </top>
         <right>
-            <fx:include fx:id="opponentsSidebar" source="opponents-sidebar-view.fxml"
-                        BorderPane.alignment="CENTER" />
+            <fx:include fx:id="opponentsSidebar" source="opponents-sidebar-view.fxml" BorderPane.alignment="CENTER" />
         </right>
         <center>
-            <fx:include fx:id="board" source="board-view.fxml" />
+            <fx:include fx:id="board" source="board-view.fxml" BorderPane.alignment="CENTER" />
         </center>
         <bottom>
-            <fx:include fx:id="playerDashboard" source="player-dashboard-view.fxml"
-                        BorderPane.alignment="CENTER" />
+            <fx:include fx:id="playerDashboard" source="player-dashboard-view.fxml" BorderPane.alignment="CENTER" />
         </bottom>
     </BorderPane>
 
-    <!-- ── Opponent Focus Overlay ────────────────────────────────────────── -->
-    <!--
-        Full-screen dimmed backdrop; clicking outside the inner panel closes it.
-        The inner VBox consumes the click so it does not propagate to the backdrop.
-    -->
-    <StackPane fx:id="opponentFocusOverlay"
-               visible="false"
-               styleClass="focus-overlay-backdrop"
-               onMouseClicked="#handleCloseFocus">
-
-        <VBox alignment="CENTER"
-              spacing="20.0"
-              maxWidth="800.0"
-              maxHeight="400.0"
-              styleClass="game-panel"
-              onMouseClicked="#consumeClick">
-
-            <Label fx:id="focusNameLabel"
-                   styleClass="focus-player-name"
-                   text="PLAYER NAME" />
-
-            <ScrollPane fitToWidth="false"
-                        fitToHeight="true"
-                        vbarPolicy="NEVER">
+    <StackPane fx:id="opponentFocusOverlay" visible="false" styleClass="focus-overlay-backdrop" onMouseClicked="#handleCloseFocus">
+        <VBox alignment="CENTER" spacing="20.0" maxWidth="800.0" maxHeight="400.0" styleClass="game-panel" onMouseClicked="#consumeClick">
+            <Label fx:id="focusNameLabel" styleClass="focus-player-name" text="PLAYER NAME" />
+            <ScrollPane fitToWidth="false" fitToHeight="true" vbarPolicy="NEVER">
                 <content>
-                    <HBox fx:id="focusCardsContainer"
-                          alignment="CENTER_LEFT"
-                          spacing="15.0">
+                    <HBox fx:id="focusCardsContainer" alignment="CENTER_LEFT" spacing="15.0">
                         <padding>
                             <Insets top="10.0" right="10.0" bottom="10.0" left="10.0" />
                         </padding>
                     </HBox>
                 </content>
             </ScrollPane>
-
-            <Label styleClass="subtitle-text"
-                   text="Click outside the panel to close" />
+            <Label styleClass="subtitle-text" text="Click outside the panel to close" />
         </VBox>
     </StackPane>
 
-    <!-- ── Suspension Overlay ────────────────────────────────────────────── -->
-    <VBox fx:id="suspensionOverlay"
-          alignment="CENTER"
-          spacing="20.0"
-          styleClass="suspension-overlay"
-          visible="false">
-
-        <Label fx:id="suspensionMessageLabel"
-               styleClass="suspension-message"
-               text="Game Suspended. Waiting for players to reconnect..." />
+    <VBox fx:id="suspensionOverlay" alignment="CENTER" spacing="20.0" styleClass="suspension-overlay" visible="false">
+        <Label fx:id="suspensionMessageLabel" styleClass="suspension-message" text="Game Suspended.\nWaiting for players to reconnect..." />
     </VBox>
 
-    <!-- ── Notification Bar ──────────────────────────────────────────────── -->
-    <!--
-        Declared here so FXMLLoader injects InGameViewController.notificationLabel.
-        mouseTransparent=true + pickOnBounds=false so clicks on layers below are
-        never blocked. Hidden by default; shown for 5 s by showNotification().
-    -->
     <VBox alignment="TOP_CENTER" mouseTransparent="true" pickOnBounds="false">
-        <Label fx:id="notificationLabel"
-               visible="false"
-               maxWidth="600.0"
-               wrapText="true"
-               styleClass="game-notification">
-            <VBox.margin>
-                <Insets top="70.0" />
-            </VBox.margin>
+        <Label fx:id="notificationLabel" visible="false" maxWidth="600.0" wrapText="true" styleClass="game-notification">
+            <VBox.margin><Insets top="70.0" /></VBox.margin>
         </Label>
     </VBox>
 
-    <!-- ── Toast Error Banner ────────────────────────────────────────────── -->
     <VBox alignment="TOP_CENTER" mouseTransparent="true" pickOnBounds="false">
-        <padding>
-            <Insets top="20.0" />
-        </padding>
-        <HBox fx:id="toastContainer"
-              alignment="CENTER"
-              maxWidth="450.0"
-              spacing="15.0"
-              styleClass="toast-banner"
-              visible="false">
-            <padding>
-                <Insets bottom="12.0" left="25.0" right="25.0" top="12.0" />
-            </padding>
-            <Label fx:id="toastLabel"
-                   styleClass="toast-banner-label"
-                   text="Error message" />
+        <padding><Insets top="20.0" /></padding>
+        <HBox fx:id="toastContainer" alignment="CENTER" maxWidth="450.0" spacing="15.0" styleClass="toast-banner" visible="false">
+            <padding><Insets bottom="12.0" left="25.0" right="25.0" top="12.0" /></padding>
+            <Label fx:id="toastLabel" styleClass="toast-banner-label" text="Error message" />
         </HBox>
     </VBox>
-
 </StackPane>
