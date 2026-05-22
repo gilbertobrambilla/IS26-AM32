@@ -350,3 +350,86 @@
     -fx-background-insets: 0;
     -fx-padding: 0;
 }
+
+/* ============================================================
+   TABLE VIEW
+   ============================================================ */
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: #444444;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 2px;
+}
+
+.table-view .scroll-bar:vertical {
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
+    -fx-opacity: 0;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 5px 5px 0 0;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: #555555;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 5px 0;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #ffcc00; /* text-gold */
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+.table-view .table-row-cell {
+    -fx-background-color: #2d2d2d; /* bg-panel */
+    -fx-border-color: #3a3a3a;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 0 0 3px;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #363636;
+}
+
+.table-view .table-row-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: #f0f0f0; /* text-main */
+    -fx-font-size: 14px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* Disabilita il blu di selezione fastidioso per la end game */
+.table-view .table-row-cell:selected {
+    -fx-background-color: #4a5d23; /* bg-accent */
+}
+
+/* ============================================================
+   CURRENT PLAYER HIGHLIGHT
+   ============================================================ */
+.table-view .table-row-cell.current-player-row {
+    -fx-background-color: #ffcc00, #2d2d2d, rgba(255, 204, 0, 0.15);
+    -fx-background-insets: 0, 0 0 0 3px, 0 0 0 3px;
+    -fx-border-color: #3a3a3a;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 0 0 3px;
+}
+
+.table-view .table-row-cell.current-player-row .table-cell {
+    -fx-text-fill: #ffcc00;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-row-cell.current-player-row:selected {
+    -fx-background-color: #ffcc00, #4a5d23, rgba(255, 204, 0, 0.25);
+    -fx-background-insets: 0, 0 0 0 3px, 0 0 0 3px;
+}

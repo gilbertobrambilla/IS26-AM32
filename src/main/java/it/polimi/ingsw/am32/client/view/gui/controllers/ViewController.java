@@ -20,6 +20,9 @@ public interface ViewController {
     default void onRoundSummary(RoundEndedEvent event) {}
     default void onGameResults(GameEndedEvent event) {}
 
+    default void onLeaderboard(LeaderboardEvent event) {}
+
+
     default void onTotemPlaced(TotemPlacedEvent event) {}
     default void onActionResolved(ActionResolvedEvent event) {}
     default void onEventResolved(EventResolvedEvent event) {}

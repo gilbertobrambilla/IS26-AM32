@@ -140,14 +140,16 @@ public class GuiUI implements UI {
     @Override
     public void showGameEnded(GameEndedEvent event) {
         Platform.runLater(() -> {
-            ViewController ctrl = SceneManager.getCurrentController();
-            if (ctrl != null) ctrl.onGameResults(event);
+            SceneManager.switchScene(ViewPaths.END_GAME, ctrl -> ctrl.onGameResults(event));
         });
     }
 
     @Override
     public void showLeaderboard(LeaderboardEvent event) {
-
+        Platform.runLater(() -> {
+            ViewController ctrl = SceneManager.getCurrentController();
+            if (ctrl != null) ctrl.onLeaderboard(event);
+        });
     }
 
     // --- GAMEPLAY ACTIONS ---

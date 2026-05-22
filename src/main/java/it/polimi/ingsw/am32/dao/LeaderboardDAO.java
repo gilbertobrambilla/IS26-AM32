@@ -57,10 +57,14 @@ public class LeaderboardDAO {
      * @throws SQLException thrown if a database access error occurs
      */
     public List<LeaderboardEntryDTO> fetchLeaderboard(int numOfPlayers) throws SQLException {
-        String sql = "SELECT nickname, MAX(final_score) as best_score, MAX(game_date) as latest_date " +
-                "FROM mesos_leaderboard " +
-                "WHERE players_count = ? " +
-                "GROUP BY nickname " +
+        String sql = "SELECT MAX(l.nickname) as nickname, l.final_score as best_score, MAX(l.game_date) as record_date " +
+                "FROM mesos_leaderboard l " +
+                "WHERE l.players_count = ? " +
+                "AND l.final_score = (" +
+                "  SELECT MAX(l2.final_score) FROM mesos_leaderboard l2 " +
+                "  WHERE BINARY l2.nickname = BINARY l.nickname AND l2.players_count = l.players_count" +
+                ") " +
+                "GROUP BY BINARY l.nickname, l.final_score " +
                 "ORDER BY best_score DESC";
 
         List<LeaderboardEntryDTO> leaderboard = new ArrayList<>();
@@ -74,7 +78,7 @@ public class LeaderboardDAO {
         while (rs.next()) {
             String nickname = rs.getString("nickname");
             int score = rs.getInt("best_score");
-            Timestamp date = rs.getTimestamp("latest_date");
+            Timestamp date = rs.getTimestamp("record_date");
 
             // entry is instantiated and added to the list
             leaderboard.add(new LeaderboardEntryDTO(
