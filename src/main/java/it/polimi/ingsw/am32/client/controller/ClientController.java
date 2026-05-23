@@ -135,6 +135,18 @@ public class ClientController {
     }
 
     /**
+     * Extra acquisition is requested.
+     *
+     * @param cardId the id of the acquired card, or null to skip the action.
+     */
+    public void requestExtraAcquisition(String cardId) {
+        // command object is instantiated
+        ExtraAcquisitionCommand cmd = new ExtraAcquisitionCommand(cardId);
+        // command is sent
+        virtualServer.sendGameCommand(cmd);
+    }
+
+    /**
      * Local visual focus on a specific player is requested.
      *
      * @param nickname the player nickname, or null to clear focus.

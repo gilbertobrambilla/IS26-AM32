@@ -11,25 +11,22 @@ public class HeaderPanel extends AbstractTuiPanel {
     private String currentPhase = "WAITING";
     private int currentRound = 1;
     private int currentEra = 1;
-    private int deckSize = 0;
     private int topEra = 0;
 
     /**
-     * The game state data for the header is updated.
+     * Game state data for the header is updated.
      *
      * @param phase the current game phase
      * @param round the current round
      * @param era the current era
-     * @param deckSize the remaining cards in the deck
      * @param topEra the era of the top card
      */
-    public void updateData(String phase, int round, int era, int deckSize, int topEra) {
+    public void updateData(String phase, int round, int era, int topEra) {
         // raw phase is translated using the singleton formatter
         this.currentPhase = GameDictionary.getInstance().translate(phase);
         // internal state is updated
         this.currentRound = round;
         this.currentEra = era;
-        this.deckSize = deckSize;
         this.topEra = topEra;
     }
 
@@ -43,8 +40,8 @@ public class HeaderPanel extends AbstractTuiPanel {
 
         // content string is formatted using the translated phase
         String content = String.format(
-                "Era: %d | Round: %d | Phase: %s | Deck: %d (Top Card Era: %d)",
-                currentEra, currentRound, currentPhase, deckSize, topEra
+                "Era: %d | Round: %d | Phase: %s | Top Card Era: %d",
+                currentEra, currentRound, currentPhase, topEra
         );
 
         // cursor is moved to the center of the panel

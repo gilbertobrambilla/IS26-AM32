@@ -219,6 +219,32 @@ public class LightGameState {
         return true;
     }
 
+    /**
+     * Determines if the specified card is valid for an extra acquisition action.
+     *
+     * @param nickname the nickname of the player.
+     * @param cardId the id of the selected card.
+     * @return true if the card is in the upper row and affordable, false otherwise.
+     */
+    public boolean isExtraAcquisitionValid(String nickname, String cardId) {
+        LightPlayer player = this.players.get(nickname);
+        if (player == null) return false;
+
+        if (cardId.startsWith("character_")) {
+            // character card existence in the upper row is verified
+            return this.upperTribeRow.contains(cardId);
+        } else if (cardId.startsWith("building_")) {
+            // building card existence in the upper row is verified
+            if (!this.upperBuildingRow.contains(cardId)) {
+                return false;
+            }
+            // building card affordability is verified
+            return player.canAffordAdditionalBuilding(new ArrayList<>(), cardId);
+        }
+
+        return false;
+    }
+
     // getters
 
     public String getMyNickname() {

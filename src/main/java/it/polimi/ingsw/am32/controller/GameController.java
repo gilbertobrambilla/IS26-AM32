@@ -358,13 +358,19 @@ public class GameController implements Runnable {
         PlayerSession session = this.activeClients.get(nickname);
         if (session != null) {
             try {
+                // phase state is captured before action resolution
+                GamePhase phaseBeforeMove = this.gameState.getCurrentPhase();
+
                 // action resolution is executed on the model and receipt is captured
                 ActionReceipt receipt = this.gameState.resolveAction(session.getPlayer().getNickname(), characters, buildings);
-                // receipts are mapped to dtos via mapper
+
+                // receipts are mapped to dto via mapper
                 List<PlayerStatsChangedDTO> statsDTOs = GameDTOMapper.buildPlayerStatsChangedDTOList(receipt.getStatsChanges());
                 TotemReturnedDTO totemDTO = GameDTOMapper.buildTotemReturnedDTO(receipt.getTotemDetails());
+
                 // next player is extracted directly from the receipt
                 String nextPlayer = receipt.getTotemDetails().getNextPlayerNickname();
+
                 // dto is instantiated with the mapped data
                 ActionResolvedEvent eventDTO = new ActionResolvedEvent(
                         nickname,
@@ -375,15 +381,18 @@ public class GameController implements Runnable {
                         nextPlayer,
                         false
                 );
+
                 // event is broadcasted to all connected clients
                 for (PlayerSession s : this.activeClients.values()) {
                     s.getView().notifyActionResolved(eventDTO);
                 }
 
-                if (this.gameState.getCurrentPlayer() == null &&
-                        this.gameState.getCurrentPhase() == GamePhase.RESOLVE_EVENTS) {
+                // game phase is evaluated after action resolution
+                GamePhase phaseAfterMove = this.gameState.getCurrentPhase();
 
-                    GamePhaseChangedEvent phaseDTO = new GamePhaseChangedEvent(GamePhase.RESOLVE_EVENTS, null);
+                // phase change is notified to clients if transition occurred
+                if (phaseBeforeMove != phaseAfterMove) {
+                    GamePhaseChangedEvent phaseDTO = new GamePhaseChangedEvent(phaseAfterMove, nextPlayer);
                     for (PlayerSession s : this.activeClients.values()) {
                         s.getView().notifyGamePhaseChanged(phaseDTO);
                     }
@@ -426,7 +435,7 @@ public class GameController implements Runnable {
             try {
                 // extra acquisition is resolved on the model and receipt is captured
                 ExtraAcquisitionReceipt receipt = this.gameState.resolveExtraAcquisition(nickname, cardId);
-                // receipts are mapped to dtos via mapper
+                // receipts are mapped to dto via mapper
                 List<PlayerStatsChangedDTO> statsDTOs = GameDTOMapper.buildPlayerStatsChangedDTOList(receipt.getStatsChanges());
                 // next player is retrieved from model
                 String nextPlayer = this.gameState.getCurrentPlayer() != null ?
@@ -470,6 +479,8 @@ public class GameController implements Runnable {
         Player currentPlayer = this.gameState.getCurrentPlayer();
         if (currentPlayer == null) return;
         String currentNickname = currentPlayer.getNickname();
+
+        // initial phase is captured for synchronization
         GamePhase currentPhase = this.gameState.getCurrentPhase();
 
         if (currentPhase == GamePhase.PLACE_TOTEMS) {
@@ -478,24 +489,24 @@ public class GameController implements Runnable {
                 if (track.get(i).isFree()) {
                     String tileId = track.get(i).getId();
 
-                    // capture phase state for synchronization
-                    GamePhase phaseBefore = this.gameState.getCurrentPhase();
-
                     // totem is placed automatically on available tile
                     this.gameState.placeTotem(currentNickname, tileId);
+
                     // next player is retrieved from model
                     String nextPlayer = this.gameState.getCurrentPlayer() != null ?
                             this.gameState.getCurrentPlayer().getNickname() : null;
+
                     // totem-placed event is built with autoplayed flag set to true
                     TotemPlacedEvent eventDTO = new TotemPlacedEvent(currentNickname, tileId, nextPlayer, true);
+
                     // event is broadcasted to all connected clients
                     for (PlayerSession session : this.activeClients.values()) {
                         session.getView().notifyTotemPlaced(eventDTO);
                     }
 
-                    // notify phase change if triggered by auto-placement
+                    // phase change is notified if triggered by auto-placement
                     GamePhase phaseAfter = this.gameState.getCurrentPhase();
-                    if (phaseBefore != phaseAfter) {
+                    if (currentPhase != phaseAfter) {
                         GamePhaseChangedEvent phaseDTO = new GamePhaseChangedEvent(phaseAfter, nextPlayer);
                         for (PlayerSession s : this.activeClients.values()) {
                             s.getView().notifyGamePhaseChanged(phaseDTO);
@@ -509,11 +520,14 @@ public class GameController implements Runnable {
         } else if (currentPhase == GamePhase.RESOLVE_ACTIONS) {
             // action is forfeited automatically and receipt is captured
             ActionReceipt receipt = this.gameState.forfeitAction(currentNickname);
-            // receipts are mapped to dtos via mapper
+
+            // receipts are mapped to dto via mapper
             List<PlayerStatsChangedDTO> statsDTOs = GameDTOMapper.buildPlayerStatsChangedDTOList(receipt.getStatsChanges());
             TotemReturnedDTO totemDTO = GameDTOMapper.buildTotemReturnedDTO(receipt.getTotemDetails());
+
             // next player is extracted directly from the receipt
             String nextPlayer = receipt.getTotemDetails().getNextPlayerNickname();
+
             // action resolved event is built with autoplayed flag set to true
             ActionResolvedEvent eventDTO = new ActionResolvedEvent(
                     currentNickname,
@@ -524,15 +538,27 @@ public class GameController implements Runnable {
                     nextPlayer,
                     true
             );
+
             // event is broadcasted to all connected clients
             for (PlayerSession session : this.activeClients.values()) {
                 session.getView().notifyActionResolved(eventDTO);
             }
+
+            // phase change is notified if triggered by action forfeit
+            GamePhase phaseAfter = this.gameState.getCurrentPhase();
+            if (currentPhase != phaseAfter) {
+                GamePhaseChangedEvent phaseDTO = new GamePhaseChangedEvent(phaseAfter, nextPlayer);
+                for (PlayerSession session : this.activeClients.values()) {
+                    session.getView().notifyGamePhaseChanged(phaseDTO);
+                }
+            }
+
             autoAdvanceGameIfNecessary();
         } else if (currentPhase == GamePhase.EXTRA_ACQUISITION) {
             // phase is advanced manually on the model
             this.gameState.setCurrentPhase(GamePhase.RESOLVE_EVENTS);
             this.gameState.setCurrentPlayer(null);
+
             // extra acquisition event is built with empty lists and autoplayed flag
             ExtraAcquisitionResolvedEvent eventDTO = new ExtraAcquisitionResolvedEvent(
                     currentNickname,
@@ -541,10 +567,21 @@ public class GameController implements Runnable {
                     null,
                     true
             );
+
             // event is broadcasted to all connected clients
             for (PlayerSession session : this.activeClients.values()) {
                 session.getView().notifyExtraAcquisitionResolved(eventDTO);
             }
+
+            // phase change is explicitly notified
+            GamePhase phaseAfter = this.gameState.getCurrentPhase();
+            if (currentPhase != phaseAfter) {
+                GamePhaseChangedEvent phaseDTO = new GamePhaseChangedEvent(phaseAfter, null);
+                for (PlayerSession session : this.activeClients.values()) {
+                    session.getView().notifyGamePhaseChanged(phaseDTO);
+                }
+            }
+
             autoAdvanceGameIfNecessary();
         }
     }
