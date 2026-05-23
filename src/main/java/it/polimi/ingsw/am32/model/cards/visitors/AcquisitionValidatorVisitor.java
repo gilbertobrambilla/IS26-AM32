@@ -10,15 +10,29 @@ import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Validates the acquisition of different card types and collects valid ones.
+ */
 public class AcquisitionValidatorVisitor implements CardVisitor {
     private final List<CharacterCard> targetList;
 
+    /**
+     * Initializes the visitor with a target list for character cards.
+     *
+     * @param targetList list where valid character cards are collected
+     */
     public AcquisitionValidatorVisitor(List<CharacterCard> targetList) {
         Objects.requireNonNull(targetList, "targetList cannot be null");
 
         this.targetList = targetList;
     }
 
+    /**
+     * Rejects event cards since they cannot be acquired.
+     *
+     * @param card the event card to visit
+     * @throws InvalidGameActionException if an event card is visited
+     */
     @Override
     public void visit(EventCard card) {
         Objects.requireNonNull(card, "card cannot be null");
@@ -30,19 +44,30 @@ public class AcquisitionValidatorVisitor implements CardVisitor {
         );
     }
 
+    /**
+     * Validates and collects a character card.
+     *
+     * @param card the character card to visit
+     */
     @Override
     public void visit(CharacterCard card) {
         Objects.requireNonNull(card, "card cannot be null");
 
-        // the valid character card is directly added to the target collection, avoiding explicit type casting
+        // valid character card is added to the target collection
         this.targetList.add(card);
     }
 
+    /**
+     * Rejects building cards since they are not processed as tribe cards.
+     *
+     * @param card the building card to visit
+     * @throws IllegalStateException if a building card is visited
+     */
     @Override
     public void visit(BuildingCard card) {
         Objects.requireNonNull(card, "card cannot be null");
 
-        // exception is thrown as building cards are not handled by this specific flow
+        // exception is thrown as building cards are not handled by this flow
         throw new IllegalStateException("building cards cannot be processed as tribe cards");
     }
 }

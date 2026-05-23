@@ -9,13 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Collects event cards from a generic collection of cards.
+ */
 public class EventCollectorVisitor implements CardVisitor {
     private final List<EventCard> events;
 
+    /**
+     * Initializes the visitor with an empty list of events.
+     */
     public EventCollectorVisitor() {
         this.events = new ArrayList<>();
     }
 
+    /**
+     * Collects the visited event card.
+     *
+     * @param card the event card to visit
+     */
     @Override
     public void visit(EventCard card) {
         Objects.requireNonNull(card, "card cannot be null");
@@ -23,18 +34,32 @@ public class EventCollectorVisitor implements CardVisitor {
         this.events.add(card);
     }
 
+    /**
+     * Ignores character cards during an event collection.
+     *
+     * @param card the character card to visit
+     */
     @Override
     public void visit(CharacterCard card) {
-        // character cards are intentionally ignored during event collection
+        // character cards are intentionally ignored
     }
 
+    /**
+     * Ignores building cards during an event collection.
+     *
+     * @param card the building card to visit
+     */
     @Override
     public void visit(BuildingCard card) {
-        // building cards are intentionally ignored during event collection
+        // building cards are intentionally ignored
     }
 
+    /**
+     * Provides the collected event cards.
+     *
+     * @return a new list containing the collected event cards
+     */
     public List<EventCard> getCollectedEvents() {
-        // a new list is returned to prevent internal state exposure
         return new ArrayList<>(this.events);
     }
 }
