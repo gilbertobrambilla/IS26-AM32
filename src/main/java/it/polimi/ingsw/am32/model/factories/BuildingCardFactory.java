@@ -23,12 +23,18 @@ import java.util.Objects;
 public class BuildingCardFactory implements CardFactory<BuildingCardDTO, BuildingCard> {
 
     /**
-     * Default constructor.
+     * Initializes the building card factory.
      */
     public BuildingCardFactory() {
         // default initialization is performed
     }
 
+    /**
+     * Creates a list of cards from a list of dto.
+     *
+     * @param dtoList the list of dto
+     * @return the list of created cards
+     */
     @Override
     public List<BuildingCard> createCards(List<BuildingCardDTO> dtoList) {
         // dto list is checked for nullability

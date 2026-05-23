@@ -16,12 +16,18 @@ import java.util.Objects;
 public class CharacterCardFactory implements CardFactory<CharacterCardDTO, CharacterCard> {
 
     /**
-     * Default constructor.
+     * Initializes the character card factory.
      */
     public CharacterCardFactory() {
         // default initialization is performed
     }
 
+    /**
+     * Creates a list of cards from a list of dto.
+     *
+     * @param dtoList the list of dto
+     * @return the list of created cards
+     */
     @Override
     public List<CharacterCard> createCards(List<CharacterCardDTO> dtoList) {
         // dto list is checked for nullability
