@@ -18,6 +18,9 @@ import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 
 import java.util.*;
 
+/**
+ * Represents the main state of the game.
+ */
 public class GameState {
     private final int gameId;
     private final int targetPlayers;
@@ -35,6 +38,16 @@ public class GameState {
     private GamePhase currentPhase;
     private Player currentPlayer;
 
+    /**
+     * Initializes the game state with the provided parameters.
+     *
+     * @param gameId the identifier of the game
+     * @param targetPlayers the expected number of players
+     * @param offerTrack the list of offer tiles
+     * @param turnOrderTile the turn order tile
+     * @param tribeDeck the deck of tribe cards
+     * @param buildingDecks the map of building decks per era
+     */
     public GameState(int gameId,
                      int targetPlayers,
                      List<OfferTile> offerTrack,
@@ -67,6 +80,9 @@ public class GameState {
         this.currentRound = 0;
     }
 
+    /**
+     * Initializes the game board and distributes initial resources.
+     */
     public void initGame() {
         if (this.players.size() != this.targetPlayers) {
             throw new IllegalStateException("cannot start game: missing players");
@@ -120,7 +136,7 @@ public class GameState {
             this.upperTribeRow.add(this.tribeDeck.draw());
         }
 
-        // era 1 buildings are added to the upper building row
+        // first era buildings are added to the upper building row
         Deck<BuildingCard> era1Buildings = this.buildingDecks.get(1);
         if (era1Buildings != null) {
             while (!era1Buildings.isEmpty()) {
@@ -140,8 +156,8 @@ public class GameState {
     /**
      * Validates if the specified player is the current player.
      *
-     * @param playerNickname the nickname of the player to validate.
-     * @throws InvalidGameActionException if it is not the player's turn.
+     * @param playerNickname the nickname of the player to validate
+     * @throws InvalidGameActionException if it is not the player's turn
      */
     private void validateTurn(String playerNickname) {
         if (this.currentPlayer == null || !this.currentPlayer.getNickname().equals(playerNickname)) {
@@ -156,8 +172,8 @@ public class GameState {
     /**
      * Validates if the current phase matches one of the expected phases.
      *
-     * @param expectedPhases the allowed phases for the action.
-     * @throws InvalidGameActionException if the current phase is not allowed.
+     * @param expectedPhases the allowed phases for the action
+     * @throws InvalidGameActionException if the current phase is not allowed
      */
     private void validatePhase(GamePhase[] expectedPhases) {
         for (GamePhase phase : expectedPhases) {
@@ -176,6 +192,12 @@ public class GameState {
 
     // core gameplay phases
 
+    /**
+     * Places the player's totem on the selected offer tile.
+     *
+     * @param playerNickname the nickname of the player
+     * @param selectedOfferTileId the id of the selected offer tile
+     */
     public void placeTotem(String playerNickname, String selectedOfferTileId) {
         Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
         Objects.requireNonNull(selectedOfferTileId, "selectedOfferTileId cannot be null");
@@ -239,10 +261,10 @@ public class GameState {
      * Resolves the standard action phase for a player, processing card acquisitions,
      * costs, passive effects, and totem repositioning.
      *
-     * @param playerNickname         the nickname of the player performing the action
-     * @param chosenCharacterCardsIds the list of character card IDs chosen by the player
-     * @param chosenBuildingCardsIds  the list of building card IDs chosen by the player
-     * @return an ActionReceipt containing the detailed breakdown of the action
+     * @param playerNickname the nickname of the player performing the action
+     * @param chosenCharacterCardsIds the list of character card ids chosen by the player
+     * @param chosenBuildingCardsIds the list of building card ids chosen by the player
+     * @return an action receipt containing the detailed breakdown of the action
      * @throws InvalidGameActionException if the action is invalid or the player cannot afford it
      */
     public ActionReceipt resolveAction(String playerNickname, List<String> chosenCharacterCardsIds, List<String> chosenBuildingCardsIds) {
@@ -275,7 +297,7 @@ public class GameState {
             );
         }
 
-        // list is strictly typed to charactercard to avoid casts later
+        // list is strictly typed to character card to avoid casts later
         List<CharacterCard> foundCharacters = new ArrayList<>();
         List<BuildingCard> foundBuildings = new ArrayList<>();
         int requestedUpper = 0;
@@ -347,7 +369,7 @@ public class GameState {
             }
         }
 
-        // count character cards present in each tribe row (includes already-chosen ones; player consumes them)
+        // character cards present in each tribe row are counted
         int characterCardsUpper = Math.toIntExact(this.upperTribeRow.stream()
                 .filter(c -> c.getId().startsWith("character_"))
                 .count());
@@ -356,7 +378,7 @@ public class GameState {
                 .filter(c -> c.getId().startsWith("character_"))
                 .count());
 
-        // count buildings the player could still afford in each row (excludes already chosen ones)
+        // affordable buildings in each row are counted
         int affordableBuildingsUpper = Math.toIntExact(this.upperBuildingRow.stream()
                 .filter(b -> !chosenBuildingCardsIds.contains(b.getId()))
                 .filter(b -> player.canAffordAdditionalBuilding(foundBuildings, b))
@@ -367,16 +389,15 @@ public class GameState {
                 .filter(b -> player.canAffordAdditionalBuilding(foundBuildings, b))
                 .count());
 
-        // delegate all selection validation to Action, which encodes all mandatory/optional rules
+        // selection validation is delegated to action
         if (!targetTile.isValidSelection(requestedUpper, requestedLower,
                 characterCardsUpper, characterCardsLower,
                 affordableBuildingsUpper, affordableBuildingsLower)) {
             throw new InvalidGameActionException(
                     GameErrorReason.INVALID_SELECTION_AMOUNT,
-                    "Selected cards do not match offer tile constraints or the player omitted available character cards."
+                    "selected cards do not match offer tile constraints or the player omitted available character cards"
             );
         }
-
 
         List<PlayerStatsChangeReceipt> statsChanges = new ArrayList<>();
 
@@ -384,7 +405,7 @@ public class GameState {
         int prePaymentFood = player.getFood();
         int prePaymentPrestige = player.getPrestige();
 
-        // player validates and pays for the selected buildings internally
+        // selected buildings are validated and paid for internally by the player
         player.payForBuildings(foundBuildings);
 
         // payment cost is evaluated and recorded
@@ -428,21 +449,17 @@ public class GameState {
             ));
         }
 
-        // stats are recorded before totem placement
-        int prePlacementFood = player.getFood();
-        int prePlacementPrestige = player.getPrestige();
-
         // player is moved to the turn order tile
         targetTile.removePlayer();
         TurnOrderPlacementReceipt placementInfo = this.turnOrderTile.placePlayer(player);
 
         // placement bonus or malus is evaluated
         PlayerStatsChangeReceipt placementStatsChange = null;
-        if (player.getFood() != prePlacementFood || player.getPrestige() != prePlacementPrestige) {
+        if (placementInfo.getFoodModifier() != 0 || placementInfo.getPrestigeModifier() != 0) {
             placementStatsChange = new PlayerStatsChangeReceipt(
                     playerNickname,
-                    player.getFood() - prePlacementFood,
-                    player.getPrestige() - prePlacementPrestige,
+                    placementInfo.getFoodModifier(),
+                    placementInfo.getPrestigeModifier(),
                     player.getFood(),
                     player.getPrestige(),
                     StatChangeReason.TURN_ORDER_BONUS.toString()
@@ -497,7 +514,7 @@ public class GameState {
      * without acquiring any cards.
      *
      * @param playerNickname the nickname of the player forfeiting the action
-     * @return an ActionReceipt containing only the totem repositioning details
+     * @return an action receipt containing only the totem repositioning details
      */
     public ActionReceipt forfeitAction(String playerNickname) {
         Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
@@ -593,8 +610,8 @@ public class GameState {
      * card from the upper row.
      *
      * @param playerNickname the nickname of the player performing the extra acquisition
-     * @param cardId         the ID of the card to be acquired
-     * @return an ExtraAcquisitionReceipt detailing the costs and bonuses of the acquisition
+     * @param cardId the id of the card to be acquired
+     * @return an extra acquisition receipt detailing the costs and bonuses of the acquisition
      */
     public ExtraAcquisitionReceipt resolveExtraAcquisition(String playerNickname, String cardId) {
         Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
@@ -680,7 +697,7 @@ public class GameState {
     }
 
     /**
-     * events in the lower tribe row are resolved sequentially and a list of resolution receipts is returned
+     * Resolves events in the lower tribe row sequentially and returns a list of resolution receipts.
      *
      * @return a list of receipts detailing the resolution of each event
      * @throws IllegalStateException if the current phase is not resolve_events
@@ -717,6 +734,9 @@ public class GameState {
         return allReceipts;
     }
 
+    /**
+     * Ends the current round and prepares the game state for the next one.
+     */
     public void endRound() {
         // phase is validated
         validatePhase(new GamePhase[]{GamePhase.END_ROUND});
@@ -755,6 +775,11 @@ public class GameState {
         }
     }
 
+    /**
+     * Starts the specified next era.
+     *
+     * @param era the era to start
+     */
     private void startNextEra(int era) {
         if (era < 2 || era > 3) {
             throw new IllegalArgumentException("invalid era transition");
@@ -778,10 +803,13 @@ public class GameState {
         }
     }
 
-
-
     // endgame evaluation
 
+    /**
+     * Calculates the final results of the game.
+     *
+     * @return the game result containing winners and scores
+     */
     public GameResult calculateResults() {
         Map<Player, int[]> finalScores = new HashMap<>();
 
@@ -793,7 +821,7 @@ public class GameState {
         // highest ranking player is determined implicitly through the comparable interface
         Player topPlayer = Collections.max(this.players);
 
-        // winners list is populated with players matching the top score (handling ties naturally)
+        // list of winners is populated with players matching the top score (handling ties naturally)
         List<Player> winners = new ArrayList<>();
         for (Player player : this.players) {
             if (player.compareTo(topPlayer) == 0) {
@@ -809,16 +837,24 @@ public class GameState {
         return new GameResult(winners, finalScores);
     }
 
-
-
     // player management
 
+    /**
+     * Adds a player to the game.
+     *
+     * @param player the player to add
+     */
     public synchronized void addPlayer(Player player) {
         Objects.requireNonNull(player, "player cannot be null");
 
         this.players.add(player);
     }
 
+    /**
+     * Removes a player from the game by nickname.
+     *
+     * @param playerNickname the nickname of the player to remove
+     */
     public synchronized void removePlayer(String playerNickname) {
         Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
 
@@ -830,50 +866,103 @@ public class GameState {
         this.players.remove(player);
     }
 
-
-
     // state observation (getters and setters)
 
+    /**
+     * Gets the identifier of the game.
+     *
+     * @return the game id
+     */
     public int getGameId() {
         return this.gameId;
     }
 
+    /**
+     * Gets the target number of players.
+     *
+     * @return the target players
+     */
     public int getTargetPlayers() {
         return this.targetPlayers;
     }
 
+    /**
+     * Gets the list of players currently in the game.
+     *
+     * @return the list of players
+     */
     public synchronized List<Player> getPlayers() {
         return List.copyOf(this.players);
     }
 
+    /**
+     * Gets the list of offer tiles on the track.
+     *
+     * @return the offer track
+     */
     public List<OfferTile> getOfferTrack() {
         return List.copyOf(this.offerTrack);
     }
 
+    /**
+     * Gets the current turn order of players.
+     *
+     * @return the turn order list
+     */
     public List<Player> getTurnOrder() {
         return List.copyOf(this.turnOrderTile.getTurnOrder());
     }
 
+    /**
+     * Gets the cards present in the upper tribe row.
+     *
+     * @return the upper tribe row cards
+     */
     public List<Card> getUpperTribeRow() {
         return List.copyOf(this.upperTribeRow);
     }
 
+    /**
+     * Gets the cards present in the lower tribe row.
+     *
+     * @return the lower tribe row cards
+     */
     public List<Card> getLowerTribeRow() {
         return List.copyOf(this.lowerTribeRow);
     }
 
+    /**
+     * Gets the buildings present in the upper building row.
+     *
+     * @return the upper building row cards
+     */
     public List<BuildingCard> getUpperBuildingRow() {
         return List.copyOf(this.upperBuildingRow);
     }
 
+    /**
+     * Gets the buildings present in the lower building row.
+     *
+     * @return the lower building row cards
+     */
     public List<BuildingCard> getLowerBuildingRow() {
         return List.copyOf(this.lowerBuildingRow);
     }
 
+    /**
+     * Gets the current size of the tribe deck.
+     *
+     * @return the tribe deck size
+     */
     public int getTribeDeckSize() {
         return this.tribeDeck.getSize();
     }
 
+    /**
+     * Gets the era of the first card in the tribe deck.
+     *
+     * @return the first card era
+     */
     public int getTribeDeckFirstCardEra() {
         if (this.tribeDeck.isEmpty()) {
             return -1;
@@ -883,47 +972,76 @@ public class GameState {
 
     /**
      * Returns the unique identifier of the turn order tile currently in use.
-     * * @return The string identifier of the tile.
+     *
+     * @return the string identifier of the tile
      */
     public String getTurnOrderTileId() {
         // tile identifier is retrieved from model entity
         return this.turnOrderTile.getId();
     }
 
-    public Map<Integer, Deck<BuildingCard>> getBuildingDecks() {
-        return Map.copyOf(this.buildingDecks);
-    }
-
+    /**
+     * Gets the current round number.
+     *
+     * @return the current round
+     */
     public int getCurrentRound() {
         return this.currentRound;
     }
 
+    /**
+     * Gets the current era number.
+     *
+     * @return the current era
+     */
     public int getCurrentEra() {
         return currentEra;
     }
 
-    public void incrementCurrentRound() {
-        this.currentRound++;
-    }
-
+    /**
+     * Gets the current phase of the game.
+     *
+     * @return the current game phase
+     */
     public GamePhase getCurrentPhase() {
         return this.currentPhase;
     }
 
+    /**
+     * Sets the current phase of the game.
+     *
+     * @param currentPhase the new game phase
+     */
     public void setCurrentPhase(GamePhase currentPhase) {
         Objects.requireNonNull(currentPhase, "currentPhase cannot be null");
 
         this.currentPhase = currentPhase;
     }
 
+    /**
+     * Gets the player currently taking their turn.
+     *
+     * @return the current player
+     */
     public Player getCurrentPlayer() {
         return this.currentPlayer;
     }
 
+    /**
+     * Sets the player currently taking their turn.
+     *
+     * @param currentPlayer the new current player
+     */
     public void setCurrentPlayer(Player currentPlayer) {
         this.currentPlayer = currentPlayer;
     }
 
+    /**
+     * Retrieves a player by their nickname.
+     *
+     * @param nickname the player's nickname
+     * @return the associated player
+     */
     private Player getPlayerByNickname(String nickname) {
         Objects.requireNonNull(nickname, "nickname cannot be null");
 

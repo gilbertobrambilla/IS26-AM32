@@ -1,5 +1,8 @@
 package it.polimi.ingsw.am32.model.receipts;
 
+/**
+ * Represents a receipt for a player's statistics change.
+ */
 public class PlayerStatsChangeReceipt {
     private final String playerNickname;
     private final int foodChange;
@@ -8,6 +11,16 @@ public class PlayerStatsChangeReceipt {
     private final int currentPrestige;
     private final String reason;
 
+    /**
+     * Initializes the player statistics change receipt with the given values.
+     *
+     * @param playerNickname the nickname of the player
+     * @param foodChange the change in food amount
+     * @param prestigeChange the change in prestige amount
+     * @param currentFood the current amount of food
+     * @param currentPrestige the current amount of prestige
+     * @param reason the reason for the statistics change
+     */
     public PlayerStatsChangeReceipt(String playerNickname, int foodChange, int prestigeChange, int currentFood, int currentPrestige, String reason) {
         this.playerNickname = playerNickname;
         this.foodChange = foodChange;
@@ -17,27 +30,57 @@ public class PlayerStatsChangeReceipt {
         this.reason = reason;
     }
 
+    /**
+     * Gets the nickname of the player.
+     *
+     * @return the player nickname
+     */
     public String getPlayerNickname() {
-        return playerNickname;
+        return this.playerNickname;
     }
 
+    /**
+     * Gets the change in food amount.
+     *
+     * @return the food change
+     */
     public int getFoodChange() {
-        return foodChange;
+        return this.foodChange;
     }
 
+    /**
+     * Gets the change in prestige amount.
+     *
+     * @return the prestige change
+     */
     public int getPrestigeChange() {
-        return prestigeChange;
+        return this.prestigeChange;
     }
 
+    /**
+     * Gets the current amount of food.
+     *
+     * @return the current food
+     */
     public int getCurrentFood() {
-        return currentFood;
+        return this.currentFood;
     }
 
+    /**
+     * Gets the current amount of prestige.
+     *
+     * @return the current prestige
+     */
     public int getCurrentPrestige() {
-        return currentPrestige;
+        return this.currentPrestige;
     }
 
+    /**
+     * Gets the reason for the statistics change.
+     *
+     * @return the reason
+     */
     public String getReason() {
-        return reason;
+        return this.reason;
     }
 }

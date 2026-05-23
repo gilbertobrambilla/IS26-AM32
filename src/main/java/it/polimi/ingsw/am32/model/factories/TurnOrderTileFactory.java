@@ -13,12 +13,18 @@ import java.util.Objects;
 public class TurnOrderTileFactory implements TileFactory<TurnOrderTileDTO, TurnOrderTile> {
 
     /**
-     * Default constructor.
+     * Initializes the turn order tile factory.
      */
     public TurnOrderTileFactory() {
         // default initialization is performed
     }
 
+    /**
+     * Creates a list of tiles from a list of dto.
+     *
+     * @param dtoList the list of dto
+     * @return the list of created tiles
+     */
     @Override
     public List<TurnOrderTile> createTiles(List<TurnOrderTileDTO> dtoList) {
         // dto list is checked for nullability

@@ -10,10 +10,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents the sustenance event.
+ */
 public class SustenanceEvent extends EventCard {
     private final int foodCost;
     private final int prestigePenalty;
 
+    /**
+     * Initializes the sustenance event with its specific parameters.
+     *
+     * @param id the unique identifier of the event
+     * @param era the era the event belongs to
+     * @param isFinal flag indicating if it is a final event
+     * @param foodCost the amount of food required
+     * @param prestigePenalty the prestige lost if food is not enough
+     */
     public SustenanceEvent(String id, int era, boolean isFinal, int foodCost, int prestigePenalty) {
         super(id, era, isFinal);
 
@@ -28,11 +40,22 @@ public class SustenanceEvent extends EventCard {
         this.prestigePenalty = prestigePenalty;
     }
 
+    /**
+     * Provides the event type.
+     *
+     * @return the sustenance event type
+     */
     @Override
     public EventType getEventType() {
         return EventType.SUSTENANCE;
     }
 
+    /**
+     * Resolves the sustenance event.
+     *
+     * @param gameState the current state of the game
+     * @return a list of receipts detailing the changes in player statistics
+     */
     @Override
     public List<PlayerStatsChangeReceipt> resolveEvent(GameState gameState) {
         Objects.requireNonNull(gameState, "gameState cannot be null");
@@ -63,6 +86,11 @@ public class SustenanceEvent extends EventCard {
         return receipts;
     }
 
+    /**
+     * Provides the resolution priority of the sustenance event.
+     *
+     * @return the lower priority specific to this event
+     */
     @Override
     protected int getResolutionPriority() {
         // lower priority is returned for sustenance event

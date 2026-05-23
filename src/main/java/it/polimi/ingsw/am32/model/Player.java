@@ -10,6 +10,9 @@ import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
 
 import java.util.*;
 
+/**
+ * Represents a player in the game.
+ */
 public class Player implements Comparable<Player> {
     private final String nickname;
     private TotemColor totem;
@@ -25,7 +28,6 @@ public class Player implements Comparable<Player> {
     private final Map<InventionType, Integer> inventionsCounts;
     private int shamanStars;
 
-    // status flags
     private boolean shamanicImmunity;
     private boolean doubleShamanicBonus;
     private boolean isConnected;
@@ -33,6 +35,11 @@ public class Player implements Comparable<Player> {
     private final List<CharacterCard> characterList;
     private final List<BuildingCard> buildingList;
 
+    /**
+     * Initializes the player with the given nickname.
+     *
+     * @param nickname the nickname of the player
+     */
     public Player(String nickname) {
         Objects.requireNonNull(nickname, "nickname cannot be null");
 
@@ -61,17 +68,12 @@ public class Player implements Comparable<Player> {
         this.buildingList = new ArrayList<>();
     }
 
-    public void setTotem(TotemColor totem) {
-        Objects.requireNonNull(totem, "totem cannot be null");
-
-        if (this.totem != null) {
-            throw new IllegalArgumentException("totem already set");
-        }
-        this.totem = totem;
-    }
-
-    // comparable implementation
-
+    /**
+     * Compares this player with another player based on prestige and food.
+     *
+     * @param other the other player to compare to
+     * @return the comparison result
+     */
     @Override
     public int compareTo(Player other) {
         Objects.requireNonNull(other, "other player cannot be null");
@@ -82,48 +84,101 @@ public class Player implements Comparable<Player> {
             return prestigeComparison;
         }
 
-        // food is used as tie-breaker
+        // food is used as a tie-breaker
         return Integer.compare(this.food, other.food);
     }
 
+    /**
+     * Sets the player's totem color.
+     *
+     * @param totem the totem color
+     */
+    public void setTotem(TotemColor totem) {
+        Objects.requireNonNull(totem, "totem cannot be null");
 
+        if (this.totem != null) {
+            throw new IllegalArgumentException("totem already set");
+        }
+        this.totem = totem;
+    }
 
-    // primitive getters (state observation)
-
+    /**
+     * Gets the nickname of the player.
+     *
+     * @return the player nickname
+     */
     public String getNickname() {
         return this.nickname;
     }
 
+    /**
+     * Gets the totem color of the player.
+     *
+     * @return the player totem
+     */
     public TotemColor getTotem() {
         return this.totem;
     }
 
+    /**
+     * Gets the current amount of food.
+     *
+     * @return the food amount
+     */
     public int getFood() {
         return this.food;
     }
 
+    /**
+     * Gets the current amount of prestige.
+     *
+     * @return the prestige amount
+     */
     public int getPrestige() {
         return this.prestige;
     }
 
+    /**
+     * Gets the current number of shaman stars.
+     *
+     * @return the shaman stars amount
+     */
     public int getShamanStars() {
         return this.shamanStars;
     }
 
+    /**
+     * Checks if the player is currently connected.
+     *
+     * @return true if connected, false otherwise
+     */
     public boolean isConnected() {
         return this.isConnected;
     }
 
+    /**
+     * Gets the list of buildings acquired by the player.
+     *
+     * @return the list of buildings
+     */
     public List<BuildingCard> getBuildingList() {
-        return buildingList;
+        return this.buildingList;
     }
 
+    /**
+     * Gets the list of characters acquired by the player.
+     *
+     * @return the list of characters
+     */
     public List<CharacterCard> getCharacterList() {
-        return characterList;
+        return this.characterList;
     }
 
-    // basic resource management
-
+    /**
+     * Adds the specified amount of food to the player.
+     *
+     * @param amount the amount of food to add
+     */
     public void addFood(int amount) {
         if (amount < 0) {
             throw new IllegalArgumentException("amount cannot be negative");
@@ -131,6 +186,11 @@ public class Player implements Comparable<Player> {
         this.food += amount;
     }
 
+    /**
+     * Removes the specified amount of food from the player.
+     *
+     * @param amount the amount of food to remove
+     */
     public void removeFood(int amount) {
         if (amount < 0) {
             // exception is thrown if amount is negative
@@ -146,6 +206,12 @@ public class Player implements Comparable<Player> {
         this.food -= amount;
     }
 
+    /**
+     * Checks if the player has at least the specified amount of food.
+     *
+     * @param amount the amount of food to check
+     * @return true if the player has enough food, false otherwise
+     */
     public boolean hasEnoughFood(int amount) {
         if (amount < 0) {
             throw new IllegalArgumentException("amount cannot be negative");
@@ -153,6 +219,11 @@ public class Player implements Comparable<Player> {
         return this.food >= amount;
     }
 
+    /**
+     * Adds the specified amount of prestige to the player.
+     *
+     * @param amount the amount of prestige to add
+     */
     public void addPrestige(int amount) {
         if (amount < 0) {
             throw new IllegalArgumentException("amount cannot be negative");
@@ -160,6 +231,11 @@ public class Player implements Comparable<Player> {
         this.prestige += amount;
     }
 
+    /**
+     * Removes the specified amount of prestige from the player.
+     *
+     * @param amount the amount of prestige to remove
+     */
     public void removePrestige(int amount) {
         if (amount < 0) {
             throw new IllegalArgumentException("amount cannot be negative");
@@ -167,14 +243,21 @@ public class Player implements Comparable<Player> {
         this.prestige -= amount;
     }
 
+    /**
+     * Sets the player's connection status.
+     *
+     * @param status the connection status
+     */
     public void setConnected(boolean status) {
         this.isConnected = status;
     }
 
-
-
-    // character and building transactions
-
+    /**
+     * Acquires a building card and applies its effects.
+     *
+     * @param card the building card to acquire
+     * @param gameState the current state of the game
+     */
     public void acquireBuilding(BuildingCard card, GameState gameState) {
         Objects.requireNonNull(card, "card cannot be null");
         Objects.requireNonNull(gameState, "game state cannot be null");
@@ -185,10 +268,9 @@ public class Player implements Comparable<Player> {
     }
 
     /**
-     * Checks if the player can afford an additional building card,
-     * considering the cost of the buildings they have already selected.
+     * Checks if the player can afford an additional building card.
      *
-     * @param alreadySelected the list of buildings already selected in the current action
+     * @param alreadySelected the list of buildings already selected
      * @param additionalBuilding the extra building to evaluate
      * @return true if the player has enough food, false otherwise
      */
@@ -202,6 +284,11 @@ public class Player implements Comparable<Player> {
         return (totalCost + additionalCost) <= this.food;
     }
 
+    /**
+     * Acquires a character card and applies its effects.
+     *
+     * @param card the character card to acquire
+     */
     public void acquireCharacter(CharacterCard card) {
         Objects.requireNonNull(card, "card cannot be null");
 
@@ -230,6 +317,11 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Processes the payment for the selected buildings.
+     *
+     * @param buildings the list of buildings to pay for
+     */
     public void payForBuildings(List<BuildingCard> buildings) {
         Objects.requireNonNull(buildings, "buildings cannot be null");
 
@@ -251,10 +343,11 @@ public class Player implements Comparable<Player> {
         this.food -= totalCost;
     }
 
-
-
-    // phase triggers
-
+    /**
+     * Triggers effects when the player is placed on the turn order tile.
+     *
+     * @param gainedFood true if food was gained from the placement, false otherwise
+     */
     public void onPlacedOnTurnOrderTile(boolean gainedFood) {
         // totem placement event is dispatched to all active building effects
         for (BuildingCard building : this.buildingList) {
@@ -262,6 +355,11 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Triggers round end effects for all owned buildings.
+     *
+     * @param gameState the current state of the game
+     */
     public void triggerBuildingEffectsOnRoundEnd(GameState gameState) {
         Objects.requireNonNull(gameState, "game state cannot be null");
 
@@ -270,8 +368,11 @@ public class Player implements Comparable<Player> {
         }
     }
 
-    // event triggers
-
+    /**
+     * Triggers cave paintings effects for all owned buildings.
+     *
+     * @param gameState the current state of the game
+     */
     public void triggerCavePaintingsEffects(GameState gameState) {
         Objects.requireNonNull(gameState, "game state cannot be null");
 
@@ -281,6 +382,11 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Triggers hunt effects for all owned buildings.
+     *
+     * @param gameState the current state of the game
+     */
     public void triggerHuntEffects(GameState gameState) {
         Objects.requireNonNull(gameState, "game state cannot be null");
 
@@ -290,6 +396,11 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Triggers shamanic ritual effects for all owned buildings.
+     *
+     * @param gameState the current state of the game
+     */
     public void triggerShamanicRitualEffects(GameState gameState) {
         Objects.requireNonNull(gameState, "game state cannot be null");
 
@@ -299,6 +410,11 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Triggers sustenance effects for all owned buildings.
+     *
+     * @param gameState the current state of the game
+     */
     public void triggerSustenanceEffects(GameState gameState) {
         Objects.requireNonNull(gameState, "game state cannot be null");
 
@@ -308,10 +424,13 @@ public class Player implements Comparable<Player> {
         }
     }
 
-
-
-    // event reactions
-
+    /**
+     * Applies the outcome of a cave paintings event.
+     *
+     * @param prestigeBonus the prestige bonus per artist
+     * @param threshold the required number of artists
+     * @param penalty the penalty if the threshold is not met
+     */
     public void applyCavePaintingsEvent(int prestigeBonus, int threshold, int penalty) {
         if (prestigeBonus < 0 || threshold < 0 || penalty < 0) {
             throw new IllegalArgumentException("event parameters cannot be negative");
@@ -326,6 +445,12 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Applies the outcome of a hunt event.
+     *
+     * @param foodPerHunter the food bonus per hunter
+     * @param prestigePerHunter the prestige bonus per hunter
+     */
     public void applyHuntEvent(int foodPerHunter, int prestigePerHunter) {
         if (foodPerHunter < 0 || prestigePerHunter < 0) {
             throw new IllegalArgumentException("bonus multipliers cannot be negative");
@@ -339,6 +464,14 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Applies the outcome of a shamanic ritual event.
+     *
+     * @param isWinner true if the player won the ritual
+     * @param isLoser true if the player lost the ritual
+     * @param prestigeBonus the prestige bonus for winning
+     * @param prestigePenalty the prestige penalty for losing
+     */
     public void applyShamanicRitualResult(boolean isWinner, boolean isLoser, int prestigeBonus, int prestigePenalty) {
         if (prestigeBonus < 0 || prestigePenalty < 0) {
             throw new IllegalArgumentException("ritual parameters cannot be negative");
@@ -354,6 +487,12 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Applies the outcome of a sustenance event.
+     *
+     * @param grossCostPerCharacter the food cost per character
+     * @param prestigePenalty the prestige penalty for each unfed character
+     */
     public void applySustenanceEvent(int grossCostPerCharacter, int prestigePenalty) {
         if (grossCostPerCharacter < 0 || prestigePenalty < 0) {
             throw new IllegalArgumentException("sustenance parameters cannot be negative");
@@ -376,7 +515,7 @@ public class Player implements Comparable<Player> {
     }
 
     /**
-     * Turn order modifiers are processed for the player.
+     * Processes turn order modifiers for the player.
      *
      * @param foodMod the food modifier to apply
      * @param prestigeMod the prestige modifier to apply
@@ -402,25 +541,35 @@ public class Player implements Comparable<Player> {
         }
     }
 
-
-
-    // state modifiers
-
+    /**
+     * Increments the count of artist characters.
+     */
     public void addArtist() {
         int current = this.characterCounts.get(CharacterType.ARTIST);
         this.characterCounts.put(CharacterType.ARTIST, current + 1);
     }
 
+    /**
+     * Increments the count of builder characters.
+     */
     public void addBuilder() {
         int current = this.characterCounts.get(CharacterType.BUILDER);
         this.characterCounts.put(CharacterType.BUILDER, current + 1);
     }
 
+    /**
+     * Increments the count of gatherer characters.
+     */
     public void addGatherer() {
         int current = this.characterCounts.get(CharacterType.GATHERER);
         this.characterCounts.put(CharacterType.GATHERER, current + 1);
     }
 
+    /**
+     * Increments the count of hunter characters.
+     *
+     * @param hasMeat true if the hunter provides meat, false otherwise
+     */
     public void addHunter(boolean hasMeat) {
         // hunter count is incremented
         int current = this.characterCounts.get(CharacterType.HUNTER);
@@ -433,52 +582,103 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Increments the count of inventor characters.
+     */
     public void addInventor() {
         int current = this.characterCounts.get(CharacterType.INVENTOR);
         this.characterCounts.put(CharacterType.INVENTOR, current + 1);
     }
 
+    /**
+     * Increments the count of shaman characters.
+     */
     public void addShaman() {
         int current = this.characterCounts.get(CharacterType.SHAMAN);
         this.characterCounts.put(CharacterType.SHAMAN, current + 1);
     }
 
+    /**
+     * Increases the building discount by the given amount.
+     *
+     * @param amount the discount amount
+     */
     public void addBuildingDiscount(int amount) {
-        if (amount < 0) throw new IllegalArgumentException("discount cannot be negative");
+        if (amount < 0) {
+            throw new IllegalArgumentException("discount cannot be negative");
+        }
         this.buildingDiscount += amount;
     }
 
+    /**
+     * Increases the total base prestige provided by builders.
+     *
+     * @param prestige the prestige amount
+     */
     public void addBuilderBasePrestige(int prestige) {
         if (prestige < 0) {
             throw new IllegalArgumentException("prestige cannot be negative");
         }
-
         this.buildersTotalBasePrestige += prestige;
     }
 
+    /**
+     * Increases the sustenance discount by the given amount.
+     *
+     * @param amount the discount amount
+     */
     public void addSustenanceDiscount(int amount) {
-        if (amount < 0) throw new IllegalArgumentException("discount cannot be negative");
+        if (amount < 0) {
+            throw new IllegalArgumentException("discount cannot be negative");
+        }
         this.sustenanceDiscount += amount;
     }
 
+    /**
+     * Adds an invention to the player's collection.
+     *
+     * @param invention the invention type
+     */
     public void addInvention(InventionType invention) {
         Objects.requireNonNull(invention, "invention cannot be null");
         this.inventionsCounts.put(invention, this.inventionsCounts.getOrDefault(invention, 0) + 1);
     }
 
+    /**
+     * Increases the shaman stars by the given amount.
+     *
+     * @param amount the star amount
+     */
     public void addShamanStars(int amount) {
-        if (amount < 0) throw new IllegalArgumentException("stars cannot be negative");
+        if (amount < 0) {
+            throw new IllegalArgumentException("stars cannot be negative");
+        }
         this.shamanStars += amount;
     }
 
+    /**
+     * Sets the shamanic immunity status.
+     *
+     * @param status the immunity status
+     */
     public void setShamanicImmunity(boolean status) {
         this.shamanicImmunity = status;
     }
 
+    /**
+     * Sets the double shamanic bonus status.
+     *
+     * @param status the bonus status
+     */
     public void setDoubleShamanicBonus(boolean status) {
         this.doubleShamanicBonus = status;
     }
 
+    /**
+     * Grants food for a newly completed character set.
+     *
+     * @param foodAmount the amount of food to grant
+     */
     public void grantFoodForNewSet(int foodAmount) {
         if (foodAmount < 0) {
             throw new IllegalArgumentException("food amount cannot be negative");
@@ -487,6 +687,11 @@ public class Player implements Comparable<Player> {
         this.addFood(foodAmount);
     }
 
+    /**
+     * Grants food for a newly completed inventor pair.
+     *
+     * @param foodAmount the amount of food to grant
+     */
     public void grantFoodForNewInventorPair(int foodAmount) {
         if (foodAmount < 0) {
             throw new IllegalArgumentException("food amount cannot be negative");
@@ -495,6 +700,12 @@ public class Player implements Comparable<Player> {
         this.addFood(foodAmount);
     }
 
+    /**
+     * Adds a sustenance discount based on the number of a specific character type.
+     *
+     * @param type the character type
+     * @param discountPerCharacter the discount per character
+     */
     public void addSustenanceDiscountPerCharacterType(CharacterType type, int discountPerCharacter) {
         Objects.requireNonNull(type, "type cannot be null");
         if (discountPerCharacter < 0) {
@@ -505,6 +716,13 @@ public class Player implements Comparable<Player> {
         this.addSustenanceDiscount(count * discountPerCharacter);
     }
 
+    /**
+     * Adds resources based on the number of a specific character type.
+     *
+     * @param type the character type
+     * @param foodAmount the food amount per character
+     * @param prestigeAmount the prestige amount per character
+     */
     public void addResourcesPerCharacterType(CharacterType type, int foodAmount, int prestigeAmount) {
         Objects.requireNonNull(type, "type cannot be null");
         if (foodAmount < 0) {
@@ -519,10 +737,11 @@ public class Player implements Comparable<Player> {
         this.addPrestige(count * prestigeAmount);
     }
 
-
-
-    // endgame scoring
-
+    /**
+     * Computes the final prestige for the player at the end of the game.
+     *
+     * @param gameState the current state of the game
+     */
     public void computeFinalPrestige(GameState gameState) {
         Objects.requireNonNull(gameState, "game state cannot be null");
 
@@ -537,6 +756,11 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Scores prestige for an artist pair.
+     *
+     * @param prestigePerPair the prestige points per completed pair
+     */
     public void scoreArtist(int prestigePerPair) {
         this.scoredArtistsCounter++;
 
@@ -546,11 +770,19 @@ public class Player implements Comparable<Player> {
         }
     }
 
+    /**
+     * Scores prestige based on unique inventions collected.
+     */
     public void scoreInventor() {
         // prestige is added based on the total number of unique inventions collected
         this.addPrestige(this.inventionsCounts.size());
     }
 
+    /**
+     * Adds endgame prestige for each completed set of characters.
+     *
+     * @param pointsPerSet the prestige points per set
+     */
     public void addEndGamePrestigePerSet(int pointsPerSet) {
         if (pointsPerSet < 0) {
             throw new IllegalArgumentException("pointsPerSet cannot be negative");
@@ -560,6 +792,12 @@ public class Player implements Comparable<Player> {
         this.addPrestige(sets * pointsPerSet);
     }
 
+    /**
+     * Adds endgame prestige based on the count of a specific character type.
+     *
+     * @param type the character type
+     * @param pointsPerCharacter the prestige points per character
+     */
     public void addEndGamePrestigePerCharacterType(CharacterType type, int pointsPerCharacter) {
         Objects.requireNonNull(type, "type cannot be null");
         if (pointsPerCharacter < 0) {
@@ -570,6 +808,11 @@ public class Player implements Comparable<Player> {
         this.addPrestige(count * pointsPerCharacter);
     }
 
+    /**
+     * Adds an endgame prestige multiplier based on the total base prestige of builders.
+     *
+     * @param multiplier the multiplier value
+     */
     public void addEndGameBuilderPrestigeMultiplier(int multiplier) {
         if (multiplier < 1) {
             throw new IllegalArgumentException("multiplier cannot be less than 1");
@@ -580,34 +823,12 @@ public class Player implements Comparable<Player> {
         this.addPrestige(extraPrestige);
     }
 
-
-
-    // utility
-
-    private int getCharacterCountByType(CharacterType type) {
-        return this.characterCounts.get(type);
-    }
-
-    private int calculateCompletedSets() {
-        int min1 = Math.min(this.characterCounts.get(CharacterType.ARTIST),
-                            this.characterCounts.get(CharacterType.BUILDER));
-        int min2 = Math.min(this.characterCounts.get(CharacterType.GATHERER),
-                            this.characterCounts.get(CharacterType.HUNTER));
-        int min3 = Math.min(this.characterCounts.get(CharacterType.INVENTOR),
-                            this.characterCounts.get(CharacterType.SHAMAN));
-
-        return Math.min(min1, Math.min(min2, min3));
-    }
-
-    private int calculateInventorPairs() {
-        int totalPairs = 0;
-        // pairs for each invention type are summed
-        for (int count : this.inventionsCounts.values()) {
-            totalPairs += (count / 2);
-        }
-        return totalPairs;
-    }
-
+    /**
+     * Checks if this player is equal to another object based on the nickname.
+     *
+     * @param o the object to compare
+     * @return true if equal, false otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -616,8 +837,53 @@ public class Player implements Comparable<Player> {
         return nickname.equals(player.nickname);
     }
 
+    /**
+     * Generates a hash code for the player based on the nickname.
+     *
+     * @return the hash code
+     */
     @Override
     public int hashCode() {
         return Objects.hash(nickname);
+    }
+
+    /**
+     * Gets the count of characters of the specified type.
+     *
+     * @param type the character type
+     * @return the number of characters
+     */
+    private int getCharacterCountByType(CharacterType type) {
+        return this.characterCounts.get(type);
+    }
+
+    /**
+     * Calculates the number of completed character sets.
+     *
+     * @return the number of completed sets
+     */
+    private int calculateCompletedSets() {
+        int min1 = Math.min(this.characterCounts.get(CharacterType.ARTIST),
+                this.characterCounts.get(CharacterType.BUILDER));
+        int min2 = Math.min(this.characterCounts.get(CharacterType.GATHERER),
+                this.characterCounts.get(CharacterType.HUNTER));
+        int min3 = Math.min(this.characterCounts.get(CharacterType.INVENTOR),
+                this.characterCounts.get(CharacterType.SHAMAN));
+
+        return Math.min(min1, Math.min(min2, min3));
+    }
+
+    /**
+     * Calculates the number of completed inventor pairs.
+     *
+     * @return the number of inventor pairs
+     */
+    private int calculateInventorPairs() {
+        int totalPairs = 0;
+        // pairs for each invention type are summed
+        for (int count : this.inventionsCounts.values()) {
+            totalPairs += (count / 2);
+        }
+        return totalPairs;
     }
 }

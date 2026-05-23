@@ -20,13 +20,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Game creator is implemented to instantiate the initial state of the game.
+ * Instantiates the initial state of the game.
  */
 public class GameCreator {
     private final int gameId;
 
     /**
-     * Game creator is instantiated.
+     * Initializes the game creator with the specified game identifier.
      *
      * @param gameId the game identifier
      */
@@ -42,7 +42,7 @@ public class GameCreator {
     }
 
     /**
-     * Game state is created based on the number of players.
+     * Creates a game state based on the number of players.
      *
      * @param numOfPlayers the number of players in the game
      * @return the generated game state
@@ -70,7 +70,7 @@ public class GameCreator {
     }
 
     /**
-     * Tribe deck is generated and shuffled.
+     * Generates and shuffles the tribe deck.
      *
      * @param numOfPlayers the number of players
      * @return the generated tribe deck
@@ -134,7 +134,7 @@ public class GameCreator {
     }
 
     /**
-     * Building decks are generated for each era.
+     * Generates the building decks for each era.
      *
      * @param numOfPlayers the number of players
      * @return a map containing the building decks
@@ -185,7 +185,7 @@ public class GameCreator {
     }
 
     /**
-     * Sub-deck is created from a list of building cards.
+     * Creates a sub-deck from a list of building cards.
      *
      * @param cards the list of building cards
      * @param count the number of cards to include
@@ -207,7 +207,7 @@ public class GameCreator {
     }
 
     /**
-     * Offer track is generated.
+     * Generates the offer track.
      *
      * @param numOfPlayers the number of players
      * @return the generated list of offer tiles
@@ -232,7 +232,7 @@ public class GameCreator {
     }
 
     /**
-     * Turn order tile is generated.
+     * Generates the turn order tile.
      *
      * @param numOfPlayers the number of players
      * @return the generated turn order tile
