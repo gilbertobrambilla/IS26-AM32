@@ -45,7 +45,6 @@ public class CardView extends StackPane {
         imageView.setSmooth(true);
         getChildren().add(imageView);
 
-        // Di default la carta è rigida (ottima per la dashboard)
         setFluid(false);
 
         loadImage();
@@ -54,7 +53,6 @@ public class CardView extends StackPane {
 
     public void setFluid(boolean fluid) {
         if (fluid) {
-            // Sblocca i limiti e lega le dimensioni all'HBox genitore!
             setMinSize(0, 0);
             setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             HBox.setHgrow(this, Priority.ALWAYS);
@@ -62,7 +60,6 @@ public class CardView extends StackPane {
             imageView.fitWidthProperty().bind(widthProperty());
             imageView.fitHeightProperty().bind(heightProperty());
         } else {
-            // Ritorna rigida
             imageView.fitWidthProperty().unbind();
             imageView.fitHeightProperty().unbind();
             setPrefSize(cardWidth, cardHeight);
