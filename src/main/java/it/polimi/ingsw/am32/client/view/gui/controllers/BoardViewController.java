@@ -36,9 +36,7 @@ import java.util.stream.Collectors;
 public class BoardViewController {
 
     private static final double TURN_TILE_HEIGHT    = 120.0;
-    private static final double TURN_TILE_TOP_PAD   = 30.0;
-    private static final double TURN_TILE_RESERVED  = 40.0;
-    private static final double TURN_SLOT_SIZE      = 15.0;
+    private static final double TURN_SLOT_SIZE      = 20.0;
     private static final double TURN_SLOT_MIN_GAP   = 2.0;
 
     private final ClientController clientController;
@@ -172,19 +170,43 @@ public class BoardViewController {
     private VBox buildSlotsBox(LightTurnOrderTile tile, LightGameState state) {
         List<String> players   = tile.getPlayers();
         String activePlayer    = state.getCurrentPlayer();
+        double topPad;
+        double reservedSpace;
 
-        double available = TURN_TILE_HEIGHT - TURN_TILE_RESERVED;
+        switch (players.size()) {
+            case 2:
+                topPad = 25.0;
+                reservedSpace = 80.0;
+                break;
+            case 3:
+                topPad = 20.0;
+                reservedSpace = 75.0;
+                break;
+            case 4:
+                topPad = 15.0;
+                reservedSpace = 70.0;
+                break;
+            case 5:
+                topPad = 8.0;
+                reservedSpace = 80.0;
+                break;
+            default:
+                topPad = 20.0;
+                reservedSpace = 80.0;
+                break;
+        }
+        double available = TURN_TILE_HEIGHT - reservedSpace;
         double spacing   = (available - (players.size() * TURN_SLOT_SIZE)) / (players.size() + 1);
 
         VBox slotsBox = new VBox(Math.max(spacing, TURN_SLOT_MIN_GAP));
         slotsBox.setAlignment(Pos.TOP_CENTER);
-        slotsBox.setPadding(new Insets(TURN_TILE_TOP_PAD, 0, 0, 0));
+        slotsBox.setPadding(new Insets(topPad, 0, 0, 0));
 
         for (String nickname : players) {
             LightPlayer player = state.getPlayers().get(nickname);
             if (player == null) continue;
 
-            TotemView totem = new TotemView(player.getTotemColor(), nickname);
+            TotemView totem = new TotemView(player.getTotemColor(), nickname, true);
             Tooltip.install(totem, buildTooltip(nickname));
 
             if (nickname.equals(activePlayer)) {
