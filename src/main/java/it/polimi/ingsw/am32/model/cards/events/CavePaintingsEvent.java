@@ -10,11 +10,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents the cave paintings event.
+ */
 public class CavePaintingsEvent extends EventCard {
     private final int prestigeBonus;
     private final int bonusThreshold;
     private final int prestigePenalty;
 
+    /**
+     * Initializes the cave paintings event with its specific parameters.
+     *
+     * @param id the unique identifier of the event
+     * @param era the era the event belongs to
+     * @param isFinal flag indicating if it is a final event
+     * @param prestigeBonus the prestige gained if the threshold is met
+     * @param bonusThreshold the threshold required to gain the bonus
+     * @param prestigePenalty the prestige lost if the threshold is not met
+     */
     public CavePaintingsEvent(String id, int era, boolean isFinal, int prestigeBonus, int bonusThreshold, int prestigePenalty) {
         super(id, era, isFinal);
 
@@ -33,11 +46,22 @@ public class CavePaintingsEvent extends EventCard {
         this.prestigePenalty = prestigePenalty;
     }
 
+    /**
+     * Provides the event type.
+     *
+     * @return the cave paintings event type
+     */
     @Override
     public EventType getEventType() {
         return EventType.CAVE_PAINTINGS;
     }
 
+    /**
+     * Resolves the cave paintings event.
+     *
+     * @param gameState the current state of the game
+     * @return a list of receipts detailing the changes in player statistics
+     */
     @Override
     public List<PlayerStatsChangeReceipt> resolveEvent(GameState gameState) {
         Objects.requireNonNull(gameState, "gameState cannot be null");
