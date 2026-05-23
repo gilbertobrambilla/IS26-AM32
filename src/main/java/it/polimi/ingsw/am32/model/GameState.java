@@ -598,7 +598,14 @@ public class GameState {
      */
     public ExtraAcquisitionReceipt resolveExtraAcquisition(String playerNickname, String cardId) {
         Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
-        Objects.requireNonNull(cardId, "cardId cannot be null");
+
+        // game phase is advanced and current player is reset if action is skipped
+        if (cardId == null) {
+            this.currentPhase = GamePhase.RESOLVE_EVENTS;
+            this.currentPlayer = null;
+            // empty receipt is returned
+            return new ExtraAcquisitionReceipt(new ArrayList<>());
+        }
 
         // player is validated
         validateTurn(playerNickname);

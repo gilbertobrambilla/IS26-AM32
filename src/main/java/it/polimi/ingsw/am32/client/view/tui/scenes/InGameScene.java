@@ -36,7 +36,7 @@ public class InGameScene implements Scene {
     }
 
     /**
-     * The game state is injected into the child panels.
+     * Game state is injected into the child panels.
      *
      * @param state the current light game state
      */
@@ -44,7 +44,7 @@ public class InGameScene implements Scene {
         // game state components are extracted and forwarded
         if (state != null) {
             String phase = state.getCurrentPhase() != null ? state.getCurrentPhase().name() : "WAITING";
-            headerPanel.updateData(phase, state.getCurrentRound(), state.getCurrentEra(), state.getTribeDeckSize(), state.getTribeDeckTopCardEra());
+            headerPanel.updateData(phase, state.getCurrentRound(), state.getCurrentEra(), state.getTribeDeckTopCardEra());
             boardPanel.updateData(state);
             sidePanel.updateData(state);
         }
