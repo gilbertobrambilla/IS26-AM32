@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 public class BoardViewController {
 
-    private static final double TURN_TILE_HEIGHT    = 165.0;
+    private static final double TURN_TILE_HEIGHT    = 120.0;
     private static final double TURN_TILE_TOP_PAD   = 30.0;
     private static final double TURN_TILE_RESERVED  = 40.0;
     private static final double TURN_SLOT_SIZE      = 15.0;
@@ -138,13 +138,9 @@ public class BoardViewController {
 
         stopActivePulse();
 
-        Label titleLabel = new Label("TURN ORDER");
-        titleLabel.getStyleClass().add("subtitle-text");
-        VBox.setMargin(titleLabel, new Insets(0, 0, 8.0, 0));
-
         StackPane compositeTile = buildTurnOrderTile(turnOrderTile, state);
 
-        turnOrderContainer.getChildren().setAll(titleLabel, compositeTile);
+        turnOrderContainer.getChildren().setAll(compositeTile);
     }
 
     private StackPane buildTurnOrderTile(LightTurnOrderTile tile, LightGameState state) {

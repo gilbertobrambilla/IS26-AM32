@@ -19,7 +19,7 @@ public class TotemView extends StackPane {
     public TotemView(TotemColor color, String nickname) {
         // Sblocco dimensione minima
         setMinSize(0, 0);
-        setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        setMaxSize(40.0, 40.0);
         setPrefSize(30.0, 30.0);
 
         if (!loadTotemSprite(color)) {
@@ -40,8 +40,6 @@ public class TotemView extends StackPane {
 
         if (image == null) return false;
 
-        double width = image.getWidth();
-        imageView.setViewport(new Rectangle2D(0, 0, width, width));
         imageView.setImage(image);
 
         imageView.setPreserveRatio(true);

@@ -15,7 +15,6 @@
     </padding>
 
     <VBox alignment="CENTER" spacing="5.0" VBox.vgrow="ALWAYS">
-        <Label styleClass="board-section-label" text="UPPER DECK" />
         <HBox fx:id="upperRowCardsContainer" alignment="CENTER" spacing="10.0" styleClass="board-card-row" VBox.vgrow="ALWAYS">
             <padding><Insets top="6.0" right="10.0" bottom="6.0" left="10.0" /></padding>
         </HBox>
@@ -28,7 +27,6 @@
         </VBox>
 
         <VBox alignment="TOP_CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
-            <Label styleClass="board-section-label" text="OFFER TRACK" />
             <HBox fx:id="offersContainer" alignment="CENTER" spacing="14.0" styleClass="board-track-panel" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
                 <padding><Insets top="6.0" right="10.0" bottom="6.0" left="10.0" /></padding>
             </HBox>
@@ -37,7 +35,6 @@
     </HBox>
 
     <VBox alignment="CENTER" spacing="5.0" VBox.vgrow="ALWAYS">
-        <Label styleClass="board-section-label" text="LOWER DECK" />
         <HBox fx:id="lowerRowCardsContainer" alignment="CENTER" spacing="10.0" styleClass="board-card-row" VBox.vgrow="ALWAYS">
             <padding><Insets top="6.0" right="10.0" bottom="6.0" left="10.0" /></padding>
         </HBox>
