@@ -7,16 +7,53 @@ import it.polimi.ingsw.am32.model.enums.CharacterType;
 
 import java.util.Objects;
 
+/**
+ * Defines an event effect that applies a sustenance discount for inventors.
+ */
 public class InventorSustenanceDiscountEffect implements BuildingCardEffect {
     private final int discountPerCharacter;
 
+    /**
+     * Initializes the effect with the specified discount per character.
+     *
+     * @param discountPerCharacter the discount amount per character
+     */
     public InventorSustenanceDiscountEffect(int discountPerCharacter) {
         if (discountPerCharacter < 0) {
             throw new IllegalArgumentException("discountPerCharacter cannot be negative");
         }
+
         this.discountPerCharacter = discountPerCharacter;
     }
 
+    /**
+     * Triggers the endgame effect for the player.
+     *
+     * @param player the player owning the building
+     * @param gameState the current state of the game
+     */
+    @Override
+    public void onGameEnd(Player player, GameState gameState) {
+    }
+
+    /**
+     * Triggers the effect when an inventor is added.
+     *
+     * @param player the player adding the character
+     */
+    @Override
+    public void onInventorAdded(Player player) {
+        Objects.requireNonNull(player, "player cannot be null");
+
+        player.addSustenanceDiscount(this.discountPerCharacter);
+    }
+
+    /**
+     * Applies the effect upon acquiring the building.
+     *
+     * @param player the player acquiring the building
+     * @param gameState the current state of the game
+     */
     @Override
     public void onAcquire(Player player, GameState gameState) {
         Objects.requireNonNull(player, "player cannot be null");
@@ -25,12 +62,13 @@ public class InventorSustenanceDiscountEffect implements BuildingCardEffect {
         player.addSustenanceDiscountPerCharacterType(CharacterType.INVENTOR, this.discountPerCharacter);
     }
 
+    /**
+     * Applies the effect at the end of a round.
+     *
+     * @param player the player owning the building
+     * @param gameState the current state of the game
+     */
     @Override
-    public void onInventorAdded(Player player) {
-        Objects.requireNonNull(player, "player cannot be null");
-        player.addSustenanceDiscount(this.discountPerCharacter);
+    public void onRoundEnd(Player player, GameState gameState) {
     }
-
-    @Override public void onRoundEnd(Player player, GameState gameState) {}
-    @Override public void onGameEnd(Player player, GameState gameState) {}
 }
