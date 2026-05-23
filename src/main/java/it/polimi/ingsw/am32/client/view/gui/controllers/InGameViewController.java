@@ -6,9 +6,12 @@ import it.polimi.ingsw.am32.client.model.LightPlayer;
 import it.polimi.ingsw.am32.client.view.gui.components.CardView;
 import it.polimi.ingsw.am32.client.view.gui.utils.AnimationUtils;
 import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
+import it.polimi.ingsw.am32.client.view.gui.utils.ImageCache;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -36,6 +39,11 @@ public class InGameViewController implements ViewController {
 
     @FXML private BoardViewController boardController;
 
+    // --- HELPER CARD NODES ---
+    @FXML private ImageView helperCardImageView;
+    @FXML private StackPane helperCardOverlay;
+    @FXML private ImageView largeHelperImageView;
+
     public InGameViewController(ClientController clientController) {
         this.clientController = clientController;
     }
@@ -45,6 +53,17 @@ public class InGameViewController implements ViewController {
         clearAllContainers();
         if (opponentFocusOverlay != null) {
             opponentFocusOverlay.setVisible(false);
+        }
+
+        // Inizializzazione Helper Card
+        if (helperCardOverlay != null) {
+            helperCardOverlay.setVisible(false);
+        }
+
+        Image helperImg = ImageCache.getInstance().getImage("/assets/images/ui_assets/helper_card.png");
+        if (helperImg != null && helperCardImageView != null && largeHelperImageView != null) {
+            helperCardImageView.setImage(helperImg);
+            largeHelperImageView.setImage(helperImg);
         }
     }
 
@@ -95,18 +114,13 @@ public class InGameViewController implements ViewController {
         }
     }
 
-    // --- opponent focus overlay interactions ---
+    // --- OPPONENT FOCUS OVERLAY ---
 
     @FXML
     public void handleCloseFocus(MouseEvent event) {
         if (opponentFocusOverlay != null) {
             opponentFocusOverlay.setVisible(false);
         }
-    }
-
-    @FXML
-    public void consumeClick(MouseEvent event) {
-        event.consume();
     }
 
     @Override
@@ -151,7 +165,28 @@ public class InGameViewController implements ViewController {
         }
     }
 
-    // --- event routing ---
+    // --- HELPER CARD EVENT HANDLERS ---
+
+    @FXML
+    public void handleOpenHelperZoom(MouseEvent event) {
+        if (helperCardOverlay != null) {
+            helperCardOverlay.setVisible(true);
+        }
+    }
+
+    @FXML
+    public void handleCloseHelperZoom(MouseEvent event) {
+        if (helperCardOverlay != null) {
+            helperCardOverlay.setVisible(false);
+        }
+    }
+
+    @FXML
+    public void consumeClick(MouseEvent event) {
+        event.consume();
+    }
+
+    // --- EVENT ROUTING ---
 
     @Override
     public void onGameStarted(GameStartedEvent event) {
