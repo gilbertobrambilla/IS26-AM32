@@ -21,7 +21,7 @@ public class CardView extends StackPane {
     private static final double DEFAULT_WIDTH    = 80.0;
     private static final double DEFAULT_HEIGHT   = 120.0;
     private static final double HOVER_SCALE      = 1.1;
-    private static final double SLIDE_UP_PX      = -40.0;
+    private static final double SLIDE_UP_PX      = -5.0;
     private static final int    ANIMATION_MS     = 150;
     private static final double SHADOW_RADIUS_PX = 20.0;
 
