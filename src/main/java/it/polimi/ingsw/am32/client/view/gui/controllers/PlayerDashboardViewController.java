@@ -3,6 +3,7 @@ package it.polimi.ingsw.am32.client.view.gui.controllers;
 import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.model.LightPlayer;
 import it.polimi.ingsw.am32.client.view.gui.components.CardView;
+import it.polimi.ingsw.am32.client.view.gui.components.TotemView; // IMPORT AGGIUNTO
 import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.dto.setup.CharacterCardDTO;
 import javafx.fxml.FXML;
@@ -40,6 +41,8 @@ public class PlayerDashboardViewController {
     @FXML private Label myPrestigeLabel;
     @FXML private HBox  myCardsContainer;
 
+    @FXML private HBox myTotemContainer;
+
     /** Cached CardView instances keyed by card id to avoid redundant asset loads. */
     private final Map<String, CardView> myCardsCache = new HashMap<>();
 
@@ -54,6 +57,10 @@ public class PlayerDashboardViewController {
         myPrestigeLabel.setText("0");
         myCardsContainer.getChildren().clear();
         myCardsCache.clear();
+
+        if (myTotemContainer != null) {
+            myTotemContainer.getChildren().clear();
+        }
     }
 
     /**
@@ -96,6 +103,19 @@ public class PlayerDashboardViewController {
         for (List<CardView> columnCards : groupedCards.values()) {
             myCardsContainer.getChildren().add(buildCardColumn(columnCards));
         }
+
+        if (myTotemContainer != null) {
+            myTotemContainer.getChildren().clear();
+
+            TotemView myTotem = new TotemView(localPlayer.getTotemColor(), null, false);
+            myTotem.setMaxSize(30.0, 30.0);
+            myTotem.setPrefSize(30.0, 30.0);
+
+            Label nameLabel = new Label(localPlayer.getNickname());
+            nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+
+            myTotemContainer.getChildren().addAll(myTotem, nameLabel);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -112,9 +132,9 @@ public class PlayerDashboardViewController {
         VBox column = new VBox(CASCADE_SPACING);
         column.setAlignment(Pos.TOP_CENTER);
         column.setFillWidth(false);
-        column.setMinWidth(COLUMN_WIDTH);
-        column.setPrefWidth(COLUMN_WIDTH);
-        column.setMaxWidth(COLUMN_WIDTH);
+        column.setMinWidth(CARD_WIDTH);
+        column.setPrefWidth(CARD_WIDTH);
+        column.setMaxWidth(CARD_WIDTH);
         column.getChildren().addAll(cards);
         return column;
     }

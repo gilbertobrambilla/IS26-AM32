@@ -66,7 +66,7 @@ public class InGameViewController implements ViewController {
             helperCardOverlay.setVisible(false);
         }
 
-       
+
         helperImgFront = ImageCache.getInstance().getImage("/assets/images/ui_assets/helper_card.png");
         helperImgBack = ImageCache.getInstance().getImage("/assets/images/ui_assets/helper_card_back.png");
 
@@ -146,7 +146,7 @@ public class InGameViewController implements ViewController {
         if (player == null) return;
 
         if (focusNameLabel != null) {
-            focusNameLabel.setText(nickname.toUpperCase());
+            focusNameLabel.setText(nickname);
         }
 
         if (focusCardsContainer != null) {

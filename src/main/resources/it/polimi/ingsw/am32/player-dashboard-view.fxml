@@ -16,9 +16,14 @@
     </padding>
 
     <VBox alignment="TOP_LEFT" minWidth="150.0" prefWidth="150.0" spacing="10.0">
-        <Label styleClass="text-main" text="MY RESOURCES">
+        <Label styleClass="text-main" text="MY RESOURCES:">
             <font><Font name="System Bold" size="16.0" /></font>
         </Label>
+        <HBox fx:id="myTotemContainer" alignment="CENTER_LEFT" spacing="10.0">
+            <padding>
+                <Insets top="10.0" />
+            </padding>
+        </HBox>
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <Label styleClass="text-dim" text="Food:" />
             <Label fx:id="myFoodLabel" styleClass="text-main" text="0">
@@ -34,7 +39,7 @@
     </VBox>
 
     <VBox HBox.hgrow="ALWAYS" spacing="8.0">
-        <Label styleClass="text-main" text="MY CARDS">
+        <Label styleClass="text-main" text="MY CARDS:">
             <font><Font name="System Bold" size="16.0" /></font>
         </Label>
         <ScrollPane fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" pannable="true">

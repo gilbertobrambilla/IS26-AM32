@@ -170,10 +170,14 @@ public class BoardViewController {
     private VBox buildSlotsBox(LightTurnOrderTile tile, LightGameState state) {
         List<String> players   = tile.getPlayers();
         String activePlayer    = state.getCurrentPlayer();
+
+
+        int totalPlayers = state.getPlayers().size();
+
         double topPad;
         double reservedSpace;
 
-        switch (players.size()) {
+        switch (totalPlayers) {
             case 2:
                 topPad = 25.0;
                 reservedSpace = 80.0;
@@ -187,7 +191,7 @@ public class BoardViewController {
                 reservedSpace = 70.0;
                 break;
             case 5:
-                topPad = 8.0;
+                topPad = 5.0;
                 reservedSpace = 80.0;
                 break;
             default:
@@ -195,26 +199,48 @@ public class BoardViewController {
                 reservedSpace = 80.0;
                 break;
         }
+
+
         double available = TURN_TILE_HEIGHT - reservedSpace;
-        double spacing   = (available - (players.size() * TURN_SLOT_SIZE)) / (players.size() + 1);
+        double spacing   = (available - (totalPlayers * TURN_SLOT_SIZE)) / (totalPlayers + 1);
 
         VBox slotsBox = new VBox(Math.max(spacing, TURN_SLOT_MIN_GAP));
         slotsBox.setAlignment(Pos.TOP_CENTER);
         slotsBox.setPadding(new Insets(topPad, 0, 0, 0));
 
+        // --- SOLUZIONE ORDINE: Aggiungiamo i fantasmi mancanti IN CIMA alla colonna ---
+        int missingPlayers = totalPlayers - players.size();
+        for (int i = 0; i < missingPlayers; i++) {
+            javafx.scene.layout.Region topGhost = new javafx.scene.layout.Region();
+            topGhost.setPrefSize(30.0, TURN_SLOT_SIZE);
+            topGhost.setMaxSize(30.0, TURN_SLOT_SIZE);
+            slotsBox.getChildren().add(topGhost);
+        }
+
+        // Ora processiamo i giocatori rimasti (che andranno automaticamente in basso!)
         for (String nickname : players) {
-            LightPlayer player = state.getPlayers().get(nickname);
-            if (player == null) continue;
-
-            TotemView totem = new TotemView(player.getTotemColor(), nickname, true);
-            Tooltip.install(totem, buildTooltip(nickname));
-
-            if (nickname.equals(activePlayer)) {
-                totem.getStyleClass().add("turn-slot-active");
-                activePulse = AnimationUtils.playPulse(totem);
+            LightPlayer player = null;
+            if (nickname != null && !nickname.isEmpty()) {
+                player = state.getPlayers().get(nickname);
             }
 
-            slotsBox.getChildren().add(totem);
+            if (player == null) {
+                // Manteniamo questo fantasma nel caso il server invii esplicitamente un "null" in mezzo
+                javafx.scene.layout.Region emptySpace = new javafx.scene.layout.Region();
+                emptySpace.setPrefSize(30.0, TURN_SLOT_SIZE);
+                emptySpace.setMaxSize(30.0, TURN_SLOT_SIZE);
+                slotsBox.getChildren().add(emptySpace);
+            } else {
+                TotemView totem = new TotemView(player.getTotemColor(), nickname, true);
+                javafx.scene.control.Tooltip.install(totem, buildTooltip(nickname));
+
+                if (nickname.equals(activePlayer)) {
+                    totem.getStyleClass().add("turn-slot-active");
+                    activePulse = AnimationUtils.playPulse(totem);
+                }
+
+                slotsBox.getChildren().add(totem);
+            }
         }
 
         return slotsBox;

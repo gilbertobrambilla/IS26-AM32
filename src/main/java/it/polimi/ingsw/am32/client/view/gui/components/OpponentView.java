@@ -56,7 +56,7 @@ public class OpponentView extends HBox {
     public void updateValues(LightPlayer player) {
         if (player == null) return;
 
-        nameLabel.setText(player.getNickname().toUpperCase());
+        nameLabel.setText(player.getNickname());
         foodLabel.setText(String.valueOf(player.getFood()));
         prestigeLabel.setText(String.valueOf(player.getPrestige()));
 
