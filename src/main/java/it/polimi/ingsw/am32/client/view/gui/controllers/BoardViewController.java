@@ -115,7 +115,6 @@ public class BoardViewController {
         for (String cardId : allIds) {
             if (!availableCardViewCache.containsKey(cardId)) {
                 CardView cardView = new CardView(cardId, 80.0, 120.0);
-                // MAGIA: Rende le carte sul tabellone elastiche, ma non quelle nella plancia!
                 cardView.setFluid(true);
                 cardView.setOnMouseClicked(e -> handleCardSelection(cardView));
                 availableCardViewCache.put(cardId, cardView);
@@ -171,7 +170,6 @@ public class BoardViewController {
         List<String> players   = tile.getPlayers();
         String activePlayer    = state.getCurrentPlayer();
 
-
         int totalPlayers = state.getPlayers().size();
 
         double topPad;
@@ -200,7 +198,6 @@ public class BoardViewController {
                 break;
         }
 
-
         double available = TURN_TILE_HEIGHT - reservedSpace;
         double spacing   = (available - (totalPlayers * TURN_SLOT_SIZE)) / (totalPlayers + 1);
 
@@ -208,16 +205,20 @@ public class BoardViewController {
         slotsBox.setAlignment(Pos.TOP_CENTER);
         slotsBox.setPadding(new Insets(topPad, 0, 0, 0));
 
-        // --- SOLUZIONE ORDINE: Aggiungiamo i fantasmi mancanti IN CIMA alla colonna ---
+
         int missingPlayers = totalPlayers - players.size();
-        for (int i = 0; i < missingPlayers; i++) {
-            javafx.scene.layout.Region topGhost = new javafx.scene.layout.Region();
-            topGhost.setPrefSize(30.0, TURN_SLOT_SIZE);
-            topGhost.setMaxSize(30.0, TURN_SLOT_SIZE);
-            slotsBox.getChildren().add(topGhost);
+        boolean isPlacementPhase = (state.getCurrentPhase() == GamePhase.PLACE_TOTEMS);
+
+
+        if (isPlacementPhase) {
+            for (int i = 0; i < missingPlayers; i++) {
+                javafx.scene.layout.Region topGhost = new javafx.scene.layout.Region();
+                topGhost.setPrefSize(30.0, TURN_SLOT_SIZE);
+                topGhost.setMaxSize(30.0, TURN_SLOT_SIZE);
+                slotsBox.getChildren().add(topGhost);
+            }
         }
 
-        // Ora processiamo i giocatori rimasti (che andranno automaticamente in basso!)
         for (String nickname : players) {
             LightPlayer player = null;
             if (nickname != null && !nickname.isEmpty()) {
@@ -225,7 +226,7 @@ public class BoardViewController {
             }
 
             if (player == null) {
-                // Manteniamo questo fantasma nel caso il server invii esplicitamente un "null" in mezzo
+
                 javafx.scene.layout.Region emptySpace = new javafx.scene.layout.Region();
                 emptySpace.setPrefSize(30.0, TURN_SLOT_SIZE);
                 emptySpace.setMaxSize(30.0, TURN_SLOT_SIZE);
@@ -240,6 +241,16 @@ public class BoardViewController {
                 }
 
                 slotsBox.getChildren().add(totem);
+            }
+        }
+
+
+        if (!isPlacementPhase) {
+            for (int i = 0; i < missingPlayers; i++) {
+                javafx.scene.layout.Region bottomGhost = new javafx.scene.layout.Region();
+                bottomGhost.setPrefSize(30.0, TURN_SLOT_SIZE);
+                bottomGhost.setMaxSize(30.0, TURN_SLOT_SIZE);
+                slotsBox.getChildren().add(bottomGhost);
             }
         }
 
