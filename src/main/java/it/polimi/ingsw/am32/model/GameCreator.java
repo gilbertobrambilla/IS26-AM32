@@ -171,7 +171,7 @@ public class GameCreator {
             case 2 -> { era1Count = 1; era2Count = 2; era3Count = 3; }
             case 3 -> { era1Count = 2; era2Count = 2; era3Count = 4; }
             case 4 -> { era1Count = 2; era2Count = 3; era3Count = 4; }
-            case 5 -> { era1Count = 3; era2Count = 2; era3Count = 5; }
+            case 5 -> { era1Count = 2; era2Count = 3; era3Count = 5; }
         }
 
         // deck map is populated

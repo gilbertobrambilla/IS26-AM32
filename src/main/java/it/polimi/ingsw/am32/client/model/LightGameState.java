@@ -133,6 +133,33 @@ public class LightGameState {
     }
 
     /**
+     * Updates the state with the results of an extra acquisition.
+     * @param nickname The nickname of the player.
+     * @param acquiredCardId The id of the acquired card, or null if skipped.
+     * @param stats The list of stat changes.
+     * @param nextPlayer The nickname of the next player.
+     */
+    public void updateExtraAcquisitionResolution(String nickname, String acquiredCardId, List<PlayerStatsChangedDTO> stats, String nextPlayer) {
+        if (acquiredCardId != null) {
+            LightPlayer p = players.get(nickname);
+            if (p != null) {
+                if (acquiredCardId.startsWith("building_")) {
+                    p.addBuildingCard(acquiredCardId);
+                    if (this.upperBuildingRow != null) this.upperBuildingRow.remove(acquiredCardId);
+                } else {
+                    p.addCharacterCard(acquiredCardId);
+                    if (this.upperTribeRow != null) this.upperTribeRow.remove(acquiredCardId);
+                }
+            }
+        }
+
+        // stats are updated
+        updateStats(stats);
+        // current player is updated
+        this.currentPlayer = nextPlayer;
+    }
+
+    /**
      * Updates the state when player statistics change.
      * @param statsList The list of stat changes.
      */
