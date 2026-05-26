@@ -32,9 +32,9 @@ public class GameCreator {
      */
     public GameCreator(int gameId) {
         // game id is validated
-        if (gameId < 0) {
-            // exception is thrown if game id is negative
-            throw new IllegalArgumentException("gameId cannot be negative");
+        if (gameId < 1) {
+            // exception is thrown if game id is not positive
+            throw new IllegalArgumentException("gameId must be positive");
         }
 
         // field is assigned

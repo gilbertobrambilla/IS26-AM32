@@ -275,7 +275,7 @@ public class GameState {
         // player is validated
         validateTurn(playerNickname);
         // phase is validated
-        validatePhase(new GamePhase[]{GamePhase.RESOLVE_ACTIONS, GamePhase.EXTRA_ACQUISITION});
+        validatePhase(new GamePhase[]{GamePhase.RESOLVE_ACTIONS});
 
         Player player = getPlayerByNickname(playerNickname);
 
@@ -401,6 +401,20 @@ public class GameState {
 
         List<PlayerStatsChangeReceipt> statsChanges = new ArrayList<>();
 
+        // offer tile food bonus is applied before any card payment
+        int foodBonus = targetTile.getAction().getFoodBonus();
+        if (foodBonus > 0) {
+            player.addFood(foodBonus);
+            statsChanges.add(new PlayerStatsChangeReceipt(
+                    playerNickname,
+                    foodBonus,
+                    0,
+                    player.getFood(),
+                    player.getPrestige(),
+                    StatChangeReason.OFFER_FOOD_BONUS.toString()
+            ));
+        }
+
         // initial stats are recorded before payment
         int prePaymentFood = player.getFood();
         int prePaymentPrestige = player.getPrestige();
@@ -522,7 +536,7 @@ public class GameState {
         // player is validated
         validateTurn(playerNickname);
         // phase is validated
-        validatePhase(new GamePhase[]{GamePhase.RESOLVE_ACTIONS, GamePhase.EXTRA_ACQUISITION});
+        validatePhase(new GamePhase[]{GamePhase.RESOLVE_ACTIONS});
 
         Player player = getPlayerByNickname(playerNickname);
 
