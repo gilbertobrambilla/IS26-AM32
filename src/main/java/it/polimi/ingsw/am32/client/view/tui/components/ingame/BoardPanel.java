@@ -492,9 +492,12 @@ public class BoardPanel extends AbstractTuiPanel {
         int centerX = x + Math.max(1, (width - 3) / 2);
         int textStartX = x + Math.max(1, (width - (maxTextWidth + 4)) / 2);
 
+        // slots are populated dynamically based on padded array
+        List<String> displayPlayers = calculateAlignedPlayers(players, numPlayers, state);
+
         // slots are populated dynamically
         for (int i = 0; i < numPlayers; i++) {
-            String playerNickname = i < players.size() ? players.get(i) : null;
+            String playerNickname = displayPlayers.get(i);
 
             // offer track occupation is verified
             boolean isOccupyingOffer = false;
@@ -549,5 +552,32 @@ public class BoardPanel extends AbstractTuiPanel {
             return TuiColorPalette.getTotemColor(player.getTotemColor());
         }
         return null;
+    }
+
+    /**
+     * Calculates the correctly aligned player slots by applying logical padding.
+     * This separates the business logic of visual alignment from the rendering logic.
+     *
+     * @param activePlayers the current list of players on the tile
+     * @param totalPlayers the total capacity of the tile
+     * @param state the current game state
+     * @return the padded list of players matching the tile capacity
+     */
+    private List<String> calculateAlignedPlayers(List<String> activePlayers, int totalPlayers, LightGameState state) {
+        boolean isPlacementPhase = state != null && state.getCurrentPhase() == it.polimi.ingsw.am32.model.enums.GamePhase.PLACE_TOTEMS;
+        int missingPlayers = totalPlayers - activePlayers.size();
+        List<String> alignedPlayers = new ArrayList<>();
+
+        if (isPlacementPhase) {
+            // during placement, departing players leave from the top slots
+            for (int i = 0; i < missingPlayers; i++) alignedPlayers.add(null);
+            alignedPlayers.addAll(activePlayers);
+        } else {
+            // during resolution, returning players refill the top slots
+            alignedPlayers.addAll(activePlayers);
+            for (int i = 0; i < missingPlayers; i++) alignedPlayers.add(null);
+        }
+
+        return alignedPlayers;
     }
 }
