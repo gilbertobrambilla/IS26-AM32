@@ -29,7 +29,7 @@
 
     <VBox maxWidth="400" spacing="15.0" styleClass="game-panel">
         <VBox spacing="5.0">
-            <Label text="Nickname:" />
+            <Label text="Insert your nickname:" textFill="WHITE" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
             <TextField fx:id="usernameField" promptText="Enter your name..." />
         </VBox>
 
