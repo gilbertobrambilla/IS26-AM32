@@ -46,7 +46,6 @@ public class GuiApp extends Application {
 
         primaryStage.setTitle("Mesos - Digital Edition");
 
-        // --- Fondamentale per lo Scaling Letterbox ---
         primaryStage.setResizable(true);
         primaryStage.setFullScreen(false);
 
@@ -57,7 +56,6 @@ public class GuiApp extends Application {
 
         SceneManager.switchScene(ViewPaths.CONNECTION);
 
-        // Centra la finestra all'avvio
         primaryStage.centerOnScreen();
     }
 

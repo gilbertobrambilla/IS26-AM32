@@ -35,10 +35,8 @@ import java.util.stream.Collectors;
 
 public class BoardViewController {
 
-    private static final double TURN_TILE_HEIGHT    = 165.0;
-    private static final double TURN_TILE_TOP_PAD   = 30.0;
-    private static final double TURN_TILE_RESERVED  = 40.0;
-    private static final double TURN_SLOT_SIZE      = 15.0;
+    private static final double TURN_TILE_HEIGHT    = 120.0;
+    private static final double TURN_SLOT_SIZE      = 20.0;
     private static final double TURN_SLOT_MIN_GAP   = 2.0;
 
     private final ClientController clientController;
@@ -117,7 +115,6 @@ public class BoardViewController {
         for (String cardId : allIds) {
             if (!availableCardViewCache.containsKey(cardId)) {
                 CardView cardView = new CardView(cardId, 80.0, 120.0);
-                // MAGIA: Rende le carte sul tabellone elastiche, ma non quelle nella plancia!
                 cardView.setFluid(true);
                 cardView.setOnMouseClicked(e -> handleCardSelection(cardView));
                 availableCardViewCache.put(cardId, cardView);
@@ -138,13 +135,9 @@ public class BoardViewController {
 
         stopActivePulse();
 
-        Label titleLabel = new Label("TURN ORDER");
-        titleLabel.getStyleClass().add("subtitle-text");
-        VBox.setMargin(titleLabel, new Insets(0, 0, 8.0, 0));
-
         StackPane compositeTile = buildTurnOrderTile(turnOrderTile, state);
 
-        turnOrderContainer.getChildren().setAll(titleLabel, compositeTile);
+        turnOrderContainer.getChildren().setAll(compositeTile);
     }
 
     private StackPane buildTurnOrderTile(LightTurnOrderTile tile, LightGameState state) {
@@ -177,26 +170,88 @@ public class BoardViewController {
         List<String> players   = tile.getPlayers();
         String activePlayer    = state.getCurrentPlayer();
 
-        double available = TURN_TILE_HEIGHT - TURN_TILE_RESERVED;
-        double spacing   = (available - (players.size() * TURN_SLOT_SIZE)) / (players.size() + 1);
+        int totalPlayers = state.getPlayers().size();
+
+        double topPad;
+        double reservedSpace;
+
+        switch (totalPlayers) {
+            case 2:
+                topPad = 25.0;
+                reservedSpace = 80.0;
+                break;
+            case 3:
+                topPad = 20.0;
+                reservedSpace = 75.0;
+                break;
+            case 4:
+                topPad = 15.0;
+                reservedSpace = 70.0;
+                break;
+            case 5:
+                topPad = 5.0;
+                reservedSpace = 80.0;
+                break;
+            default:
+                topPad = 20.0;
+                reservedSpace = 80.0;
+                break;
+        }
+
+        double available = TURN_TILE_HEIGHT - reservedSpace;
+        double spacing   = (available - (totalPlayers * TURN_SLOT_SIZE)) / (totalPlayers + 1);
 
         VBox slotsBox = new VBox(Math.max(spacing, TURN_SLOT_MIN_GAP));
         slotsBox.setAlignment(Pos.TOP_CENTER);
-        slotsBox.setPadding(new Insets(TURN_TILE_TOP_PAD, 0, 0, 0));
+        slotsBox.setPadding(new Insets(topPad, 0, 0, 0));
+
+
+        int missingPlayers = totalPlayers - players.size();
+        boolean isPlacementPhase = (state.getCurrentPhase() == GamePhase.PLACE_TOTEMS);
+
+
+        if (isPlacementPhase) {
+            for (int i = 0; i < missingPlayers; i++) {
+                javafx.scene.layout.Region topGhost = new javafx.scene.layout.Region();
+                topGhost.setPrefSize(30.0, TURN_SLOT_SIZE);
+                topGhost.setMaxSize(30.0, TURN_SLOT_SIZE);
+                slotsBox.getChildren().add(topGhost);
+            }
+        }
 
         for (String nickname : players) {
-            LightPlayer player = state.getPlayers().get(nickname);
-            if (player == null) continue;
-
-            TotemView totem = new TotemView(player.getTotemColor(), nickname);
-            Tooltip.install(totem, buildTooltip(nickname));
-
-            if (nickname.equals(activePlayer)) {
-                totem.getStyleClass().add("turn-slot-active");
-                activePulse = AnimationUtils.playPulse(totem);
+            LightPlayer player = null;
+            if (nickname != null && !nickname.isEmpty()) {
+                player = state.getPlayers().get(nickname);
             }
 
-            slotsBox.getChildren().add(totem);
+            if (player == null) {
+
+                javafx.scene.layout.Region emptySpace = new javafx.scene.layout.Region();
+                emptySpace.setPrefSize(30.0, TURN_SLOT_SIZE);
+                emptySpace.setMaxSize(30.0, TURN_SLOT_SIZE);
+                slotsBox.getChildren().add(emptySpace);
+            } else {
+                TotemView totem = new TotemView(player.getTotemColor(), nickname, true);
+                javafx.scene.control.Tooltip.install(totem, buildTooltip(nickname));
+
+                if (nickname.equals(activePlayer)) {
+                    totem.getStyleClass().add("turn-slot-active");
+                    activePulse = AnimationUtils.playPulse(totem);
+                }
+
+                slotsBox.getChildren().add(totem);
+            }
+        }
+
+
+        if (!isPlacementPhase) {
+            for (int i = 0; i < missingPlayers; i++) {
+                javafx.scene.layout.Region bottomGhost = new javafx.scene.layout.Region();
+                bottomGhost.setPrefSize(30.0, TURN_SLOT_SIZE);
+                bottomGhost.setMaxSize(30.0, TURN_SLOT_SIZE);
+                slotsBox.getChildren().add(bottomGhost);
+            }
         }
 
         return slotsBox;

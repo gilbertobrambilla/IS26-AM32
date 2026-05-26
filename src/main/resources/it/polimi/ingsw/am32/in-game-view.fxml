@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.ImageView?>
 <?import java.lang.String?>
 
 <StackPane xmlns="http://javafx.com/javafx/26"
@@ -30,7 +31,10 @@
             <fx:include fx:id="board" source="board-view.fxml" BorderPane.alignment="CENTER" />
         </center>
         <bottom>
-            <fx:include fx:id="playerDashboard" source="player-dashboard-view.fxml" BorderPane.alignment="CENTER" />
+            <HBox alignment="CENTER_RIGHT" prefHeight="190.0" minHeight="190.0" maxHeight="190.0" styleClass="mesos-panel">
+                <fx:include fx:id="playerDashboard" source="player-dashboard-view.fxml" HBox.hgrow="ALWAYS" />
+                <ImageView fx:id="helperCardImageView" fitHeight="190.0" preserveRatio="true" style="-fx-cursor: hand;" onMouseClicked="#handleOpenHelperZoom" />
+            </HBox>
         </bottom>
     </BorderPane>
 
@@ -50,8 +54,11 @@
         </VBox>
     </StackPane>
 
+    <StackPane fx:id="helperCardOverlay" visible="false" styleClass="focus-overlay-backdrop" onMouseClicked="#handleCloseHelperZoom">
+        <ImageView fx:id="largeHelperImageView" fitHeight="650.0" preserveRatio="true" onMouseClicked="#handleFlipHelperCard" style="-fx-cursor: hand;" />    </StackPane>
+
     <VBox fx:id="suspensionOverlay" alignment="CENTER" spacing="20.0" styleClass="suspension-overlay" visible="false">
-        <Label fx:id="suspensionMessageLabel" styleClass="suspension-message" text="Game Suspended.\nWaiting for players to reconnect..." />
+        <Label fx:id="suspensionMessageLabel" styleClass="suspension-message" text="Game Suspended.Waiting for players to reconnect..." />
     </VBox>
 
     <VBox alignment="TOP_CENTER" mouseTransparent="true" pickOnBounds="false">

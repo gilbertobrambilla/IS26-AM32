@@ -6,13 +6,18 @@ import it.polimi.ingsw.am32.client.model.LightPlayer;
 import it.polimi.ingsw.am32.client.view.gui.components.CardView;
 import it.polimi.ingsw.am32.client.view.gui.utils.AnimationUtils;
 import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
+import it.polimi.ingsw.am32.client.view.gui.utils.ImageCache;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
+import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
+import javafx.util.Duration;
 
 public class InGameViewController implements ViewController {
 
@@ -36,6 +41,16 @@ public class InGameViewController implements ViewController {
 
     @FXML private BoardViewController boardController;
 
+    // --- HELPER CARD NODES ---
+    @FXML private ImageView helperCardImageView;
+    @FXML private StackPane helperCardOverlay;
+    @FXML private ImageView largeHelperImageView;
+
+    // Nuove variabili per gestire il flip della carta helper:
+    private Image helperImgFront;
+    private Image helperImgBack;
+    private boolean isHelperFront = true;
+
     public InGameViewController(ClientController clientController) {
         this.clientController = clientController;
     }
@@ -45,6 +60,19 @@ public class InGameViewController implements ViewController {
         clearAllContainers();
         if (opponentFocusOverlay != null) {
             opponentFocusOverlay.setVisible(false);
+        }
+
+        if (helperCardOverlay != null) {
+            helperCardOverlay.setVisible(false);
+        }
+
+
+        helperImgFront = ImageCache.getInstance().getImage("/assets/images/ui_assets/helper_card.png");
+        helperImgBack = ImageCache.getInstance().getImage("/assets/images/ui_assets/helper_card_back.png");
+
+        if (helperImgFront != null && helperCardImageView != null && largeHelperImageView != null) {
+            helperCardImageView.setImage(helperImgFront);
+            largeHelperImageView.setImage(helperImgFront);
         }
     }
 
@@ -95,18 +123,13 @@ public class InGameViewController implements ViewController {
         }
     }
 
-    // --- opponent focus overlay interactions ---
+    // --- OPPONENT FOCUS OVERLAY ---
 
     @FXML
     public void handleCloseFocus(MouseEvent event) {
         if (opponentFocusOverlay != null) {
             opponentFocusOverlay.setVisible(false);
         }
-    }
-
-    @FXML
-    public void consumeClick(MouseEvent event) {
-        event.consume();
     }
 
     @Override
@@ -123,7 +146,7 @@ public class InGameViewController implements ViewController {
         if (player == null) return;
 
         if (focusNameLabel != null) {
-            focusNameLabel.setText(nickname.toUpperCase());
+            focusNameLabel.setText(nickname);
         }
 
         if (focusCardsContainer != null) {
@@ -151,7 +174,57 @@ public class InGameViewController implements ViewController {
         }
     }
 
-    // --- event routing ---
+    // --- HELPER CARD EVENT HANDLERS ---
+
+    @FXML
+    public void handleOpenHelperZoom(MouseEvent event) {
+        if (helperCardOverlay != null) {
+
+            isHelperFront = true;
+            if (largeHelperImageView != null && helperImgFront != null) {
+                largeHelperImageView.setImage(helperImgFront);
+            }
+            helperCardOverlay.setVisible(true);
+        }
+    }
+
+    @FXML
+    public void handleCloseHelperZoom(MouseEvent event) {
+        if (helperCardOverlay != null) {
+            helperCardOverlay.setVisible(false);
+        }
+    }
+
+    @FXML
+    public void handleFlipHelperCard(MouseEvent event) {
+
+        event.consume();
+
+        if (largeHelperImageView == null || helperImgFront == null || helperImgBack == null) return;
+
+
+        ScaleTransition shrink = new ScaleTransition(Duration.millis(150), largeHelperImageView);
+        shrink.setToX(0);
+
+        ScaleTransition expand = new ScaleTransition(Duration.millis(150), largeHelperImageView);
+        expand.setToX(1);
+
+
+        shrink.setOnFinished(e -> {
+            isHelperFront = !isHelperFront;
+            largeHelperImageView.setImage(isHelperFront ? helperImgFront : helperImgBack);
+            expand.play();
+        });
+
+        shrink.play();
+    }
+
+    @FXML
+    public void consumeClick(MouseEvent event) {
+        event.consume();
+    }
+
+    // --- EVENT ROUTING ---
 
     @Override
     public void onGameStarted(GameStartedEvent event) {

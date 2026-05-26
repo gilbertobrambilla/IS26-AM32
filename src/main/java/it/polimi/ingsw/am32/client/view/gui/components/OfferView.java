@@ -37,9 +37,8 @@ public class OfferView extends StackPane {
     }
 
     private void initializeComponent() {
-        // Le Offer Tiles sono solo sul tabellone, quindi sono SEMPRE fluide!
         setMinSize(0, 0);
-        setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        setMaxSize(Double.MAX_VALUE, 120.0);
         HBox.setHgrow(this, Priority.ALWAYS);
         VBox.setVgrow(this, Priority.ALWAYS);
 
@@ -67,6 +66,9 @@ public class OfferView extends StackPane {
 
         if (occupyingPlayer != null && !occupyingPlayer.isEmpty() && totemColor != null) {
             TotemView totem = new TotemView(totemColor, occupyingPlayer);
+            totem.setMaxSize(40.0, 40.0);
+            StackPane.setAlignment(totem, javafx.geometry.Pos.TOP_CENTER);
+            StackPane.setMargin(totem, new javafx.geometry.Insets(5.0, 0, 0, 0));
             Tooltip tooltip = new Tooltip(occupyingPlayer);
             tooltip.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
             Tooltip.install(totem, tooltip);

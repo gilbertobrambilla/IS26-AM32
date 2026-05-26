@@ -16,34 +16,52 @@ public class TotemView extends StackPane {
     private static final String TOTEM_IMAGE_PATH_PATTERN = "/assets/images/totems/totem_%s.png";
     private final ImageView imageView = new ImageView();
 
+
     public TotemView(TotemColor color, String nickname) {
-        // Sblocco dimensione minima
+        this(color, nickname, false);
+    }
+
+
+    public TotemView(TotemColor color, String nickname, boolean cropTop) {
+
         setMinSize(0, 0);
-        setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
+
+        if (cropTop) {
+            setMaxSize(20.0, 20.0);
+        } else {
+            setMaxSize(45.0, 45.0);
+        }
+
         setPrefSize(30.0, 30.0);
 
-        if (!loadTotemSprite(color)) {
+        if (!loadTotemSprite(color, cropTop)) {
             getChildren().add(buildColorFallback(color));
         } else {
             getChildren().add(imageView);
         }
-
-        if (nickname != null && !nickname.isEmpty()) {
-            getChildren().add(buildInitialsLabel(nickname));
-        }
     }
 
-    private boolean loadTotemSprite(TotemColor color) {
+    private boolean loadTotemSprite(TotemColor color, boolean cropTop) {
         if (color == null) return false;
         String path = String.format(TOTEM_IMAGE_PATH_PATTERN, color.name().toLowerCase());
         Image image = ImageCache.getInstance().getImage(path);
 
         if (image == null) return false;
 
-        double width = image.getWidth();
-        imageView.setViewport(new Rectangle2D(0, 0, width, width));
-        imageView.setImage(image);
+        if (cropTop) {
+            double width = image.getWidth();
 
+            double cropHeight = width * 0.75;
+
+            if (cropHeight > image.getHeight()) {
+                cropHeight = image.getHeight();
+            }
+
+            imageView.setViewport(new Rectangle2D(0, 0, width, cropHeight));
+        }
+
+        imageView.setImage(image);
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
         imageView.fitWidthProperty().bind(widthProperty());
@@ -52,7 +70,6 @@ public class TotemView extends StackPane {
     }
 
     private static Circle buildColorFallback(TotemColor color) {
-        // Il fallback circolare ora è proporzionato
         Circle marker = new Circle();
         marker.radiusProperty().bind(marker.parentProperty().map(p -> ((StackPane)p).heightProperty().doubleValue() / 2.0).orElse(13.0));
         marker.setFill(resolveColor(color));
