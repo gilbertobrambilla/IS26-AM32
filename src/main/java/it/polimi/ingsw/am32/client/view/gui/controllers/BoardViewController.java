@@ -91,7 +91,7 @@ public class BoardViewController {
     }
 
     public void resetPhaseSelection(GamePhase currentPhase) {
-        if (currentPhase == GamePhase.RESOLVE_ACTIONS) return;
+        if (currentPhase == GamePhase.RESOLVE_ACTIONS || currentPhase == GamePhase.EXTRA_ACQUISITION) return;
 
         selectedCharacterIds.clear();
         selectedBuildingIds.clear();
@@ -292,7 +292,7 @@ public class BoardViewController {
     private void handleCardSelection(CardView selectedCard) {
         LightGameState state = clientController.getLightGameState();
 
-        if (!isMyTurnAndPhase(state, GamePhase.RESOLVE_ACTIONS)) {
+        if (!isMyTurnAndPhase(state, GamePhase.RESOLVE_ACTIONS, GamePhase.EXTRA_ACQUISITION)) {
             AnimationUtils.shakeNode(selectedCard);
             GuiLogger.info("[BoardViewController] card selection rejected: not active player or wrong phase");
             return;
@@ -301,6 +301,37 @@ public class BoardViewController {
         String cardId = selectedCard.getCardId();
         if (cardId == null || cardId.startsWith("event")) return;
 
+        if (state.getCurrentPhase() == GamePhase.EXTRA_ACQUISITION) {
+            handleCardSelectionForExtraAcquisition(cardId, selectedCard, state);
+        } else {
+            handleCardSelectionForResolveActions(cardId, selectedCard, state);
+        }
+
+        updateConfirmButtonState(state);
+    }
+
+    private void handleCardSelectionForExtraAcquisition(String cardId, CardView selectedCard, LightGameState state) {
+        if (selectedCharacterIds.contains(cardId) || selectedBuildingIds.contains(cardId)) {
+            selectedCharacterIds.remove(cardId);
+            selectedBuildingIds.remove(cardId);
+            selectedCard.setHighlight(false);
+        } else {
+            if (!state.isExtraAcquisitionValid(state.getMyNickname(), cardId)) {
+                AnimationUtils.shakeNode(selectedCard);
+                GuiLogger.info("[BoardViewController] Card selection rejected: invalid for extra acquisition.");
+                return;
+            }
+            selectedCharacterIds.clear();
+            selectedBuildingIds.clear();
+            availableCardViewCache.values().forEach(cv -> cv.setHighlight(false));
+
+            List<String> targetList = cardId.startsWith("building") ? selectedBuildingIds : selectedCharacterIds;
+            targetList.add(cardId);
+            selectedCard.setHighlight(true);
+        }
+    }
+
+    private void handleCardSelectionForResolveActions(String cardId, CardView selectedCard, LightGameState state) {
         OfferRequirements requirements = getCurrentOfferRequirements(state);
         if (requirements == null) {
             AnimationUtils.shakeNode(selectedCard);
@@ -329,18 +360,35 @@ public class BoardViewController {
             targetList.add(cardId);
             selectedCard.setHighlight(true);
         }
-
-        updateConfirmButtonState(state);
     }
 
     @FXML
     private void handleConfirmAction() {
         LightGameState state = clientController.getLightGameState();
-        if (!isMyTurnAndPhase(state, GamePhase.RESOLVE_ACTIONS)) {
+        if (!isMyTurnAndPhase(state, GamePhase.RESOLVE_ACTIONS, GamePhase.EXTRA_ACQUISITION)) {
             if (confirmActionButton != null) AnimationUtils.shakeNode(confirmActionButton);
             return;
         }
 
+        if (state.getCurrentPhase() == GamePhase.EXTRA_ACQUISITION) {
+            handleConfirmForExtraAcquisition();
+        } else {
+            handleConfirmForResolveActions(state);
+        }
+    }
+
+    private void handleConfirmForExtraAcquisition() {
+        String selectedCard = null;
+        if (!selectedCharacterIds.isEmpty()) {
+            selectedCard = selectedCharacterIds.get(0);
+        } else if (!selectedBuildingIds.isEmpty()) {
+            selectedCard = selectedBuildingIds.get(0);
+        }
+        clientController.requestExtraAcquisition(selectedCard);
+        clearSelectionsAndHideConfirmButton();
+    }
+
+    private void handleConfirmForResolveActions(LightGameState state) {
         OfferRequirements requirements = getCurrentOfferRequirements(state);
         if (requirements == null || !isSelectionComplete(state, requirements)) {
             if (confirmActionButton != null) AnimationUtils.shakeNode(confirmActionButton);
@@ -351,7 +399,10 @@ public class BoardViewController {
                 new ArrayList<>(selectedCharacterIds),
                 new ArrayList<>(selectedBuildingIds)
         );
+        clearSelectionsAndHideConfirmButton();
+    }
 
+    private void clearSelectionsAndHideConfirmButton() {
         selectedCharacterIds.clear();
         selectedBuildingIds.clear();
         if (confirmActionButton != null) {
@@ -372,16 +423,19 @@ public class BoardViewController {
         clientController.requestPlaceTotem(selectedTile.getTileData().getId());
     }
 
-    private boolean isMyTurnAndPhase(LightGameState state, GamePhase expectedPhase) {
+    private boolean isMyTurnAndPhase(LightGameState state, GamePhase... expectedPhases) {
         if (state == null || state.getCurrentPlayer() == null) return false;
-        return state.getMyNickname().equals(state.getCurrentPlayer())
-                && state.getCurrentPhase() == expectedPhase;
+        if (!state.getMyNickname().equals(state.getCurrentPlayer())) return false;
+        for (GamePhase phase : expectedPhases) {
+            if (state.getCurrentPhase() == phase) return true;
+        }
+        return false;
     }
 
     private void updateConfirmButtonState(LightGameState state) {
         if (confirmActionButton == null) return;
 
-        boolean visible = isMyTurnAndPhase(state, it.polimi.ingsw.am32.model.enums.GamePhase.RESOLVE_ACTIONS);
+        boolean visible = isMyTurnAndPhase(state, GamePhase.RESOLVE_ACTIONS, GamePhase.EXTRA_ACQUISITION);
         confirmActionButton.setVisible(visible);
         confirmActionButton.setManaged(visible);
 
@@ -390,6 +444,23 @@ public class BoardViewController {
             return;
         }
 
+        if (state.getCurrentPhase() == GamePhase.EXTRA_ACQUISITION) {
+            updateButtonForExtraAcquisition();
+        } else {
+            updateButtonForResolveActions(state);
+        }
+    }
+
+    private void updateButtonForExtraAcquisition() {
+        confirmActionButton.setDisable(false);
+        if (selectedCharacterIds.isEmpty() && selectedBuildingIds.isEmpty()) {
+            confirmActionButton.setText("Skip Extra Acquisition");
+        } else {
+            confirmActionButton.setText("Confirm Extra Acquisition");
+        }
+    }
+
+    private void updateButtonForResolveActions(LightGameState state) {
         OfferRequirements requirements = getCurrentOfferRequirements(state);
         boolean complete = requirements != null && isSelectionComplete(state, requirements);
 

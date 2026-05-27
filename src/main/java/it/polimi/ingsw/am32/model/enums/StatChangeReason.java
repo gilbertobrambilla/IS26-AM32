@@ -35,5 +35,9 @@ public enum StatChangeReason {
     /**
      * Indicates stat changes caused by the sustenance event.
      */
-    SUSTENANCE
+    SUSTENANCE,
+    /**
+     * Indicates food bonus granted by the offer tile's action.
+     */
+    OFFER_FOOD_BONUS
 }

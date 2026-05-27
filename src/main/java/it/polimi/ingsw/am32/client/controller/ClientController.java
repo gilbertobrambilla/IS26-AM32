@@ -338,7 +338,12 @@ public class ClientController {
     public void onExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent event) {
         runOnUIThread(() -> {
             // state is updated
-            lightGameState.updateStats(event.getStatsChanges());
+            lightGameState.updateExtraAcquisitionResolution(
+                    event.getPlayer(),
+                    event.getAcquiredCardId(),
+                    event.getStatsChanges(),
+                    event.getNextPlayer()
+            );
             // ui is updated
             if (ui != null) ui.showExtraAcquisition(event);
         });

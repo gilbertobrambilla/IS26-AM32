@@ -66,11 +66,6 @@ public class ResolveHandler implements InputHandler {
 
         } else if (currentPhase == GamePhase.RESOLVE_ACTIONS) {
 
-            // exception is thrown if user attempts to skip standard action illegally
-            if (args.length == 1) {
-                throw new IllegalArgumentException("cannot skip standard action. Provide cards using [-c|-b] <id>");
-            }
-
             LightOfferTile playerTile = null;
             for (LightOfferTile tile : state.getOfferTrack()) {
                 if (state.getMyNickname().equals(tile.getOccupyingPlayer())) {
@@ -87,6 +82,17 @@ public class ResolveHandler implements InputHandler {
             int allowedUpper = tileDto.getDrawsFromUpperRow();
             int allowedLower = tileDto.getDrawsFromLowerRow();
             int totalAllowed = allowedUpper + allowedLower;
+
+            // food-only tiles (0 card draws) are resolved immediately with no arguments
+            if (totalAllowed == 0 && args.length == 1) {
+                controller.requestResolveAction(new ArrayList<>(), new ArrayList<>());
+                return;
+            }
+
+            // exception is thrown if user attempts to skip standard action illegally
+            if (args.length == 1) {
+                throw new IllegalArgumentException("cannot skip standard action. Provide cards using [-c|-b] <id>");
+            }
 
             List<String> characters = new ArrayList<>();
             List<String> buildings = new ArrayList<>();
@@ -167,7 +173,7 @@ public class ResolveHandler implements InputHandler {
             }
 
             if (selUpper.size() < allowedUpper || selLower.size() < allowedLower) {
-                System.out.println("\n[*] Forced confirmation: your resources are depleted or no affordable cards remain.");
+                it.polimi.ingsw.am32.log.LogManager.getInstance().log(it.polimi.ingsw.am32.log.LogLevel.INFO, "[*] Forced confirmation: your resources are depleted or no affordable cards remain.");
             }
 
             // standard action resolution is requested

@@ -32,9 +32,9 @@ public class GameCreator {
      */
     public GameCreator(int gameId) {
         // game id is validated
-        if (gameId < 0) {
-            // exception is thrown if game id is negative
-            throw new IllegalArgumentException("gameId cannot be negative");
+        if (gameId < 1) {
+            // exception is thrown if game id is not positive
+            throw new IllegalArgumentException("gameId must be positive");
         }
 
         // field is assigned
@@ -171,7 +171,7 @@ public class GameCreator {
             case 2 -> { era1Count = 1; era2Count = 2; era3Count = 3; }
             case 3 -> { era1Count = 2; era2Count = 2; era3Count = 4; }
             case 4 -> { era1Count = 2; era2Count = 3; era3Count = 4; }
-            case 5 -> { era1Count = 3; era2Count = 2; era3Count = 5; }
+            case 5 -> { era1Count = 2; era2Count = 3; era3Count = 5; }
         }
 
         // deck map is populated
