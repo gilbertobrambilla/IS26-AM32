@@ -272,6 +272,14 @@ public class GameState {
         Objects.requireNonNull(chosenCharacterCardsIds, "chosenCharacterCardsIds cannot be null");
         Objects.requireNonNull(chosenBuildingCardsIds, "chosenBuildingCardsIds cannot be null");
 
+        if (new HashSet<>(chosenCharacterCardsIds).size() != chosenCharacterCardsIds.size() ||
+            new HashSet<>(chosenBuildingCardsIds).size() != chosenBuildingCardsIds.size()) {
+            throw new InvalidGameActionException(
+                    GameErrorReason.INVALID_SELECTION_AMOUNT,
+                    "duplicate cards in request are not allowed"
+            );
+        }
+
         // player is validated
         validateTurn(playerNickname);
         // phase is validated
