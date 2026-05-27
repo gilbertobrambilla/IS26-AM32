@@ -734,6 +734,12 @@ public class GameState {
             card.accept(visitor);
         }
 
+        if (this.currentRound == 10 || this.tribeDeck.isEmpty()) {
+            for (Card card : this.upperTribeRow) {
+                card.accept(visitor);
+            }
+        }
+
         List<EventCard> eventsToResolve = visitor.getCollectedEvents();
 
         // events are sorted naturally
