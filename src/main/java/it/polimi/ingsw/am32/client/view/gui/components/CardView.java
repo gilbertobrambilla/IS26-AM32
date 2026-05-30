@@ -25,6 +25,7 @@ public class CardView extends StackPane {
     private static final int    ANIMATION_MS     = 150;
     private static final double SHADOW_RADIUS_PX = 20.0;
 
+    private final StackPane innerCard = new StackPane();
     private final ImageView imageView = new ImageView();
     private final String cardId;
     private final double cardWidth;
@@ -40,10 +41,15 @@ public class CardView extends StackPane {
         this.cardWidth = cardWidth;
         this.cardHeight = cardHeight;
 
-        getStyleClass().add("card-view");
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
-        getChildren().add(imageView);
+
+        innerCard.getChildren().add(imageView);
+        innerCard.getStyleClass().add("card-view");
+
+        StackPane.setAlignment(innerCard, javafx.geometry.Pos.CENTER);
+
+        getChildren().add(innerCard);
 
         setFluid(false);
 
@@ -57,16 +63,28 @@ public class CardView extends StackPane {
             setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             HBox.setHgrow(this, Priority.ALWAYS);
             VBox.setVgrow(this, Priority.ALWAYS);
-            imageView.fitWidthProperty().bind(widthProperty());
+
+            imageView.fitWidthProperty().unbind();
             imageView.fitHeightProperty().bind(heightProperty());
+
+            innerCard.maxWidthProperty().bind(heightProperty().multiply(cardWidth / cardHeight));
+            innerCard.maxHeightProperty().bind(heightProperty());
+
         } else {
             imageView.fitWidthProperty().unbind();
             imageView.fitHeightProperty().unbind();
+
+            innerCard.maxWidthProperty().unbind();
+            innerCard.maxHeightProperty().unbind();
+
             setPrefSize(cardWidth, cardHeight);
             setMinSize(cardWidth, cardHeight);
             setMaxSize(cardWidth, cardHeight);
+
             imageView.setFitWidth(cardWidth);
             imageView.setFitHeight(cardHeight);
+
+            innerCard.setMaxSize(cardWidth, cardHeight);
         }
     }
 
@@ -75,9 +93,11 @@ public class CardView extends StackPane {
 
     public void setHighlight(boolean selected) {
         if (selected) {
-            if (!getStyleClass().contains("card-selected")) getStyleClass().add("card-selected");
+            if (!innerCard.getStyleClass().contains("card-selected")) {
+                innerCard.getStyleClass().add("card-selected");
+            }
         } else {
-            getStyleClass().remove("card-selected");
+            innerCard.getStyleClass().remove("card-selected");
         }
     }
 
@@ -105,23 +125,23 @@ public class CardView extends StackPane {
     }
 
     private void setupHoverEffects() {
-        ScaleTransition scaleIn   = new ScaleTransition(Duration.millis(ANIMATION_MS), this);
+        ScaleTransition scaleIn   = new ScaleTransition(Duration.millis(ANIMATION_MS), innerCard);
         scaleIn.setToX(HOVER_SCALE); scaleIn.setToY(HOVER_SCALE);
-        ScaleTransition scaleOut  = new ScaleTransition(Duration.millis(ANIMATION_MS), this);
+        ScaleTransition scaleOut  = new ScaleTransition(Duration.millis(ANIMATION_MS), innerCard);
         scaleOut.setToX(1.0); scaleOut.setToY(1.0);
-        TranslateTransition slideUp   = new TranslateTransition(Duration.millis(ANIMATION_MS), this);
+        TranslateTransition slideUp   = new TranslateTransition(Duration.millis(ANIMATION_MS), innerCard);
         slideUp.setToY(SLIDE_UP_PX);
-        TranslateTransition slideDown = new TranslateTransition(Duration.millis(ANIMATION_MS), this);
+        TranslateTransition slideDown = new TranslateTransition(Duration.millis(ANIMATION_MS), innerCard);
         slideDown.setToY(0.0);
         DropShadow shadow = new DropShadow(SHADOW_RADIUS_PX, Color.BLACK);
 
         setOnMouseEntered(e -> {
-            setCursor(Cursor.HAND); setEffect(shadow); scaleOut.stop(); scaleIn.playFromStart();
-            if (slideUpEnabled) { setViewOrder(-1.0); slideDown.stop(); slideUp.playFromStart(); }
+            setCursor(Cursor.HAND); innerCard.setEffect(shadow); scaleOut.stop(); scaleIn.playFromStart();
+            if (slideUpEnabled) { this.setViewOrder(-1.0); slideDown.stop(); slideUp.playFromStart(); }
         });
         setOnMouseExited(e -> {
-            setCursor(Cursor.DEFAULT); setEffect(null); scaleIn.stop(); scaleOut.playFromStart();
-            if (slideUpEnabled) { setViewOrder(0.0); slideUp.stop(); slideDown.playFromStart(); }
+            setCursor(Cursor.DEFAULT); innerCard.setEffect(null); scaleIn.stop(); scaleOut.playFromStart();
+            if (slideUpEnabled) { this.setViewOrder(0.0); slideUp.stop(); slideDown.playFromStart(); }
         });
     }
 }

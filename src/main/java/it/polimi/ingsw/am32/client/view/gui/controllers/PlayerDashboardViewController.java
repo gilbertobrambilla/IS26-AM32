@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.client.view.gui.controllers;
 import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.model.LightPlayer;
 import it.polimi.ingsw.am32.client.view.gui.components.CardView;
-import it.polimi.ingsw.am32.client.view.gui.components.TotemView; // IMPORT AGGIUNTO
+import it.polimi.ingsw.am32.client.view.gui.components.TotemView;
 import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.dto.setup.CharacterCardDTO;
 import javafx.fxml.FXML;

@@ -18,6 +18,7 @@ import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -282,11 +283,44 @@ public class BoardViewController {
             }
         }
 
-        List<OfferView> orderedViews = tiles.stream()
+        // Modificato in List<Node> per poter ospitare sia OfferView che il DeckView
+        List<Node> orderedViews = tiles.stream()
                 .map(t -> offerViewCache.get(t.getId()))
                 .collect(Collectors.toList());
 
+        // --- NUOVA FEATURE: AGGIUNTA DEL MAZZO ---
+        StackPane deckView = buildDeckView(state);
+        if (deckView != null) {
+            orderedViews.add(deckView);
+        }
+
         offersContainer.getChildren().setAll(orderedViews);
+    }
+
+    private StackPane buildDeckView(LightGameState state) {
+        int deckSize = state.getTribeDeckSize();
+        int topEra = state.getTribeDeckTopCardEra();
+
+        if (deckSize <= 0 || topEra <= 0) return null;
+
+        String imagePath = "/assets/images/card_backs/back_tribe_" + topEra + ".png";
+
+        javafx.scene.image.Image deckImage = ImageCache.getInstance().getImage(imagePath);
+        if (deckImage == null) return null;
+
+        ImageView deckImageView = new ImageView(deckImage);
+        deckImageView.setFitHeight(120.0);
+        deckImageView.setPreserveRatio(true);
+
+        Tooltip tooltip = new Tooltip("Tribe Deck\nCards remaining: " + deckSize + "\nNext Era: " + topEra);
+        tooltip.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        Tooltip.install(deckImageView, tooltip);
+
+        StackPane container = new StackPane(deckImageView);
+        container.setAlignment(Pos.CENTER);
+        container.setPadding(new Insets(0, 0, 0, 40.0));
+
+        return container;
     }
 
     private void handleCardSelection(CardView selectedCard) {
