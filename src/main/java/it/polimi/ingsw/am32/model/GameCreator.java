@@ -20,21 +20,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Game creator is implemented to instantiate the initial state of the game.
+ * Instantiates the initial state of the game.
  */
 public class GameCreator {
     private final int gameId;
 
     /**
-     * Game creator is instantiated.
+     * Initializes the game creator with the specified game identifier.
      *
      * @param gameId the game identifier
      */
     public GameCreator(int gameId) {
         // game id is validated
-        if (gameId < 0) {
-            // exception is thrown if game id is negative
-            throw new IllegalArgumentException("gameId cannot be negative");
+        if (gameId < 1) {
+            // exception is thrown if game id is not positive
+            throw new IllegalArgumentException("gameId must be positive");
         }
 
         // field is assigned
@@ -42,7 +42,7 @@ public class GameCreator {
     }
 
     /**
-     * Game state is created based on the number of players.
+     * Creates a game state based on the number of players.
      *
      * @param numOfPlayers the number of players in the game
      * @return the generated game state
@@ -70,7 +70,7 @@ public class GameCreator {
     }
 
     /**
-     * Tribe deck is generated and shuffled.
+     * Generates and shuffles the tribe deck.
      *
      * @param numOfPlayers the number of players
      * @return the generated tribe deck
@@ -134,7 +134,7 @@ public class GameCreator {
     }
 
     /**
-     * Building decks are generated for each era.
+     * Generates the building decks for each era.
      *
      * @param numOfPlayers the number of players
      * @return a map containing the building decks
@@ -171,7 +171,7 @@ public class GameCreator {
             case 2 -> { era1Count = 1; era2Count = 2; era3Count = 3; }
             case 3 -> { era1Count = 2; era2Count = 2; era3Count = 4; }
             case 4 -> { era1Count = 2; era2Count = 3; era3Count = 4; }
-            case 5 -> { era1Count = 3; era2Count = 2; era3Count = 5; }
+            case 5 -> { era1Count = 2; era2Count = 3; era3Count = 5; }
         }
 
         // deck map is populated
@@ -185,7 +185,7 @@ public class GameCreator {
     }
 
     /**
-     * Sub-deck is created from a list of building cards.
+     * Creates a sub-deck from a list of building cards.
      *
      * @param cards the list of building cards
      * @param count the number of cards to include
@@ -207,7 +207,7 @@ public class GameCreator {
     }
 
     /**
-     * Offer track is generated.
+     * Generates the offer track.
      *
      * @param numOfPlayers the number of players
      * @return the generated list of offer tiles
@@ -232,7 +232,7 @@ public class GameCreator {
     }
 
     /**
-     * Turn order tile is generated.
+     * Generates the turn order tile.
      *
      * @param numOfPlayers the number of players
      * @return the generated turn order tile

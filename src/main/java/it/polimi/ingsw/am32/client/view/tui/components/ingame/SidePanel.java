@@ -9,7 +9,6 @@ import it.polimi.ingsw.am32.client.view.tui.utils.TuiColorPalette;
 import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
 import it.polimi.ingsw.am32.dto.setup.BuildingCardDTO;
 import it.polimi.ingsw.am32.dto.setup.CharacterCardDTO;
-import it.polimi.ingsw.am32.model.enums.TotemColor;
 import org.jline.terminal.Terminal;
 
 import java.util.HashMap;
@@ -49,26 +48,6 @@ public class SidePanel extends AbstractTuiPanel {
         this.focusedPlayer = nickname;
     }
 
-    /**
-     * Ansi color code is retrieved based on totem color.
-     *
-     * @param color the enum representing the totem color
-     * @return the ansi color escape sequence
-     */
-    private String getAnsiColor(TotemColor color) {
-        if (color == null) {
-            return "\033[0m";
-        }
-
-        // ansi code is mapped
-        switch (color.name().toUpperCase()) {
-            case "RED": return "\033[31m";
-            case "BLUE": return "\033[34m";
-            case "GREEN": return "\033[32m";
-            case "YELLOW": return "\033[33m";
-            default: return "\033[0m";
-        }
-    }
 
     @Override
     public void draw(Terminal terminal, int startX, int startY, int width, int height) {

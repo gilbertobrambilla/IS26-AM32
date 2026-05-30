@@ -10,10 +10,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents the shamanic ritual event.
+ */
 public class ShamanicRitualEvent extends EventCard {
     private final int prestigeBonus;
     private final int prestigePenalty;
 
+    /**
+     * Initializes the shamanic ritual event with its specific parameters.
+     *
+     * @param id the unique identifier of the event
+     * @param era the era the event belongs to
+     * @param isFinal flag indicating if it is a final event
+     * @param prestigeBonus the prestige gained by the winner
+     * @param prestigePenalty the prestige lost by the loser
+     */
     public ShamanicRitualEvent(String id, int era, boolean isFinal, int prestigeBonus, int prestigePenalty) {
         super(id, era, isFinal);
 
@@ -28,11 +40,22 @@ public class ShamanicRitualEvent extends EventCard {
         this.prestigePenalty = prestigePenalty;
     }
 
+    /**
+     * Provides the event type.
+     *
+     * @return the shamanic ritual event type
+     */
     @Override
     public EventType getEventType() {
         return EventType.SHAMANIC_RITUAL;
     }
 
+    /**
+     * Resolves the shamanic ritual event.
+     *
+     * @param gameState the current state of the game
+     * @return a list of receipts detailing the changes in player statistics
+     */
     @Override
     public List<PlayerStatsChangeReceipt> resolveEvent(GameState gameState) {
         Objects.requireNonNull(gameState, "gameState cannot be null");

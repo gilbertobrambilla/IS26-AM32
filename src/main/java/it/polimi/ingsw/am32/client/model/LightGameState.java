@@ -133,6 +133,33 @@ public class LightGameState {
     }
 
     /**
+     * Updates the state with the results of an extra acquisition.
+     * @param nickname The nickname of the player.
+     * @param acquiredCardId The id of the acquired card, or null if skipped.
+     * @param stats The list of stat changes.
+     * @param nextPlayer The nickname of the next player.
+     */
+    public void updateExtraAcquisitionResolution(String nickname, String acquiredCardId, List<PlayerStatsChangedDTO> stats, String nextPlayer) {
+        if (acquiredCardId != null) {
+            LightPlayer p = players.get(nickname);
+            if (p != null) {
+                if (acquiredCardId.startsWith("building_")) {
+                    p.addBuildingCard(acquiredCardId);
+                    if (this.upperBuildingRow != null) this.upperBuildingRow.remove(acquiredCardId);
+                } else {
+                    p.addCharacterCard(acquiredCardId);
+                    if (this.upperTribeRow != null) this.upperTribeRow.remove(acquiredCardId);
+                }
+            }
+        }
+
+        // stats are updated
+        updateStats(stats);
+        // current player is updated
+        this.currentPlayer = nextPlayer;
+    }
+
+    /**
      * Updates the state when player statistics change.
      * @param statsList The list of stat changes.
      */
@@ -217,6 +244,32 @@ public class LightGameState {
 
         // selection meets mandatory minimum and does not exceed maximum: complete or legitimately stuck
         return true;
+    }
+
+    /**
+     * Determines if the specified card is valid for an extra acquisition action.
+     *
+     * @param nickname the nickname of the player.
+     * @param cardId the id of the selected card.
+     * @return true if the card is in the upper row and affordable, false otherwise.
+     */
+    public boolean isExtraAcquisitionValid(String nickname, String cardId) {
+        LightPlayer player = this.players.get(nickname);
+        if (player == null) return false;
+
+        if (cardId.startsWith("character_")) {
+            // character card existence in the upper row is verified
+            return this.upperTribeRow.contains(cardId);
+        } else if (cardId.startsWith("building_")) {
+            // building card existence in the upper row is verified
+            if (!this.upperBuildingRow.contains(cardId)) {
+                return false;
+            }
+            // building card affordability is verified
+            return player.canAffordAdditionalBuilding(new ArrayList<>(), cardId);
+        }
+
+        return false;
     }
 
     // getters

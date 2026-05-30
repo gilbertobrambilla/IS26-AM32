@@ -34,7 +34,7 @@ public class LightPlayer {
      * @return true if the player has enough food, false otherwise
      */
     public boolean canAffordAdditionalBuilding(List<String> alreadySelectedBuildingIds, String additionalBuildingId) {
-        if (additionalBuildingId == null || !additionalBuildingId.startsWith("building")) {
+        if (additionalBuildingId == null || !additionalBuildingId.startsWith("building_")) {
             return true;
         }
 

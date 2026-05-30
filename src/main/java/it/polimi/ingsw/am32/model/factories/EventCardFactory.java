@@ -15,12 +15,18 @@ import java.util.Objects;
 public class EventCardFactory implements CardFactory<EventCardDTO, EventCard> {
 
     /**
-     * Default constructor.
+     * Initializes the event card factory.
      */
     public EventCardFactory() {
         // default initialization is performed
     }
 
+    /**
+     * Creates a list of cards from a list of dto.
+     *
+     * @param dtoList the list of dto
+     * @return the list of created cards
+     */
     @Override
     public List<EventCard> createCards(List<EventCardDTO> dtoList) {
         // dto list is checked for nullability

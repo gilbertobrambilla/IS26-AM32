@@ -10,10 +10,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents the hunt event.
+ */
 public class HuntEvent extends EventCard {
     private final int foodBonus;
     private final int prestigeBonus;
 
+    /**
+     * Initializes the hunt event with its specific parameters.
+     *
+     * @param id the unique identifier of the event
+     * @param era the era the event belongs to
+     * @param isFinal flag indicating if it is a final event
+     * @param foodBonus the amount of food gained
+     * @param prestigeBonus the amount of prestige gained
+     */
     public HuntEvent(String id, int era, boolean isFinal, int foodBonus, int prestigeBonus) {
         super(id, era, isFinal);
 
@@ -28,11 +40,22 @@ public class HuntEvent extends EventCard {
         this.prestigeBonus = prestigeBonus;
     }
 
+    /**
+     * Provides the event type.
+     *
+     * @return the hunt event type
+     */
     @Override
     public EventType getEventType() {
         return EventType.HUNT;
     }
 
+    /**
+     * Resolves the hunt event.
+     *
+     * @param gameState the current state of the game
+     * @return a list of receipts detailing the changes in player statistics
+     */
     @Override
     public List<PlayerStatsChangeReceipt> resolveEvent(GameState gameState) {
         Objects.requireNonNull(gameState, "gameState cannot be null");

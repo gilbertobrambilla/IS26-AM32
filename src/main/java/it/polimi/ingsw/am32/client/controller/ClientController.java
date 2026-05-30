@@ -135,6 +135,18 @@ public class ClientController {
     }
 
     /**
+     * Extra acquisition is requested.
+     *
+     * @param cardId the id of the acquired card, or null to skip the action.
+     */
+    public void requestExtraAcquisition(String cardId) {
+        // command object is instantiated
+        ExtraAcquisitionCommand cmd = new ExtraAcquisitionCommand(cardId);
+        // command is sent
+        virtualServer.sendGameCommand(cmd);
+    }
+
+    /**
      * Local visual focus on a specific player is requested.
      *
      * @param nickname the player nickname, or null to clear focus.
@@ -326,7 +338,12 @@ public class ClientController {
     public void onExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent event) {
         runOnUIThread(() -> {
             // state is updated
-            lightGameState.updateStats(event.getStatsChanges());
+            lightGameState.updateExtraAcquisitionResolution(
+                    event.getPlayer(),
+                    event.getAcquiredCardId(),
+                    event.getStatsChanges(),
+                    event.getNextPlayer()
+            );
             // ui is updated
             if (ui != null) ui.showExtraAcquisition(event);
         });
