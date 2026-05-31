@@ -3,7 +3,6 @@ package it.polimi.ingsw.am32.model.cards.events;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.enums.EventType;
-import it.polimi.ingsw.am32.model.enums.StatChangeReason;
 import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
 
 import java.util.ArrayList;
@@ -11,14 +10,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents the sustenance event.
+ * The sustenance event is represented.
  */
 public class SustenanceEvent extends EventCard {
     private final int foodCost;
     private final int prestigePenalty;
 
     /**
-     * Initializes the sustenance event with its specific parameters.
+     * The sustenance event is initialized with its specific parameters.
      *
      * @param id the unique identifier of the event
      * @param era the era the event belongs to
@@ -41,7 +40,7 @@ public class SustenanceEvent extends EventCard {
     }
 
     /**
-     * Provides the event type.
+     * The event type is returned.
      *
      * @return the sustenance event type
      */
@@ -51,7 +50,7 @@ public class SustenanceEvent extends EventCard {
     }
 
     /**
-     * Resolves the sustenance event.
+     * The sustenance event is resolved.
      *
      * @param gameState the current state of the game
      * @return a list of receipts detailing the changes in player statistics
@@ -79,15 +78,14 @@ public class SustenanceEvent extends EventCard {
                     postFood - preFood,
                     postPrestige - prePrestige,
                     postFood,
-                    postPrestige,
-                    StatChangeReason.SUSTENANCE.toString()
+                    postPrestige
             ));
         }
         return receipts;
     }
 
     /**
-     * Provides the resolution priority of the sustenance event.
+     * The resolution priority of the sustenance event is returned.
      *
      * @return the lower priority specific to this event
      */

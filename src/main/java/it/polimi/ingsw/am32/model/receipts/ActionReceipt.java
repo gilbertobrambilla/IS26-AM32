@@ -1,40 +1,38 @@
 package it.polimi.ingsw.am32.model.receipts;
 
-import java.util.List;
-
 /**
- * Represents a receipt for an action containing statistics changes and totem details.
+ * A receipt for an action resolution is represented.
  */
 public class ActionReceipt {
-    private final List<PlayerStatsChangeReceipt> statsChanges;
-    private final TotemReturnReceipt totemDetails;
+    private final PlayerStatsChangeReceipt statsChange;
+    private final int turnOrderPosition;
 
     /**
-     * Initializes the action receipt with the given statistics changes and totem details.
+     * An action receipt is initialized with its resulting statistics change and turn order position.
      *
-     * @param statsChanges the list of player statistics changes
-     * @param totemDetails the details of the returned totem
+     * @param statsChange the resulting statistics change
+     * @param turnOrderPosition the position assigned on the turn order tile
      */
-    public ActionReceipt(List<PlayerStatsChangeReceipt> statsChanges, TotemReturnReceipt totemDetails) {
-        this.statsChanges = statsChanges;
-        this.totemDetails = totemDetails;
+    public ActionReceipt(PlayerStatsChangeReceipt statsChange, int turnOrderPosition) {
+        this.statsChange = statsChange;
+        this.turnOrderPosition = turnOrderPosition;
     }
 
     /**
-     * Gets the list of player statistics changes.
+     * The resulting statistics change is returned.
      *
-     * @return the list of statistics changes
+     * @return the resulting statistics change
      */
-    public List<PlayerStatsChangeReceipt> getStatsChanges() {
-        return this.statsChanges;
+    public PlayerStatsChangeReceipt getStatsChange() {
+        return statsChange;
     }
 
     /**
-     * Gets the details of the returned totem.
+     * The assigned turn order position is returned.
      *
-     * @return the totem details
+     * @return the turn order position
      */
-    public TotemReturnReceipt getTotemDetails() {
-        return this.totemDetails;
+    public int getTurnOrderPosition() {
+        return turnOrderPosition;
     }
 }

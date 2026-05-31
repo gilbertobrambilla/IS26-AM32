@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.model.receipts;
 
 /**
- * Represents a receipt for a player's statistics change.
+ * A receipt for a player's statistics change is represented.
  */
 public class PlayerStatsChangeReceipt {
     private final String playerNickname;
@@ -9,29 +9,26 @@ public class PlayerStatsChangeReceipt {
     private final int prestigeChange;
     private final int currentFood;
     private final int currentPrestige;
-    private final String reason;
 
     /**
-     * Initializes the player statistics change receipt with the given values.
+     * A player statistics change receipt is initialized with the given values.
      *
      * @param playerNickname the nickname of the player
      * @param foodChange the change in food amount
      * @param prestigeChange the change in prestige amount
      * @param currentFood the current amount of food
      * @param currentPrestige the current amount of prestige
-     * @param reason the reason for the statistics change
      */
-    public PlayerStatsChangeReceipt(String playerNickname, int foodChange, int prestigeChange, int currentFood, int currentPrestige, String reason) {
+    public PlayerStatsChangeReceipt(String playerNickname, int foodChange, int prestigeChange, int currentFood, int currentPrestige) {
         this.playerNickname = playerNickname;
         this.foodChange = foodChange;
         this.prestigeChange = prestigeChange;
         this.currentFood = currentFood;
         this.currentPrestige = currentPrestige;
-        this.reason = reason;
     }
 
     /**
-     * Gets the nickname of the player.
+     * The nickname of the player is returned.
      *
      * @return the player nickname
      */
@@ -40,7 +37,7 @@ public class PlayerStatsChangeReceipt {
     }
 
     /**
-     * Gets the change in food amount.
+     * The food amount change is returned.
      *
      * @return the food change
      */
@@ -49,7 +46,7 @@ public class PlayerStatsChangeReceipt {
     }
 
     /**
-     * Gets the change in prestige amount.
+     * The prestige amount change is returned.
      *
      * @return the prestige change
      */
@@ -58,7 +55,7 @@ public class PlayerStatsChangeReceipt {
     }
 
     /**
-     * Gets the current amount of food.
+     * The current food amount is returned.
      *
      * @return the current food
      */
@@ -67,20 +64,11 @@ public class PlayerStatsChangeReceipt {
     }
 
     /**
-     * Gets the current amount of prestige.
+     * The current prestige amount is returned.
      *
      * @return the current prestige
      */
     public int getCurrentPrestige() {
         return this.currentPrestige;
-    }
-
-    /**
-     * Gets the reason for the statistics change.
-     *
-     * @return the reason
-     */
-    public String getReason() {
-        return this.reason;
     }
 }

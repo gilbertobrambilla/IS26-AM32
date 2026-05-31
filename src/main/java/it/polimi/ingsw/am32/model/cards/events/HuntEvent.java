@@ -3,7 +3,6 @@ package it.polimi.ingsw.am32.model.cards.events;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.enums.EventType;
-import it.polimi.ingsw.am32.model.enums.StatChangeReason;
 import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
 
 import java.util.ArrayList;
@@ -11,14 +10,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents the hunt event.
+ * The hunt event is represented.
  */
 public class HuntEvent extends EventCard {
     private final int foodBonus;
     private final int prestigeBonus;
 
     /**
-     * Initializes the hunt event with its specific parameters.
+     * The hunt event is initialized with its specific parameters.
      *
      * @param id the unique identifier of the event
      * @param era the era the event belongs to
@@ -41,7 +40,7 @@ public class HuntEvent extends EventCard {
     }
 
     /**
-     * Provides the event type.
+     * The event type is returned.
      *
      * @return the hunt event type
      */
@@ -51,7 +50,7 @@ public class HuntEvent extends EventCard {
     }
 
     /**
-     * Resolves the hunt event.
+     * The hunt event is resolved.
      *
      * @param gameState the current state of the game
      * @return a list of receipts detailing the changes in player statistics
@@ -79,8 +78,7 @@ public class HuntEvent extends EventCard {
                     postFood - preFood,
                     postPrestige - prePrestige,
                     postFood,
-                    postPrestige,
-                    StatChangeReason.HUNT.toString()
+                    postPrestige
             ));
         }
         return receipts;
