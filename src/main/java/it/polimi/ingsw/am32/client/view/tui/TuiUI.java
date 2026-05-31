@@ -681,7 +681,8 @@ public class TuiUI implements UI, LogObserver {
     @Override
     public void showTotemPlaced(TotemPlacedEvent event) {
         // totem placement is logged
-        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Totem placed by " + event.getPlayer() + " on tile " + event.getOfferTileId() + ".");
+        String autoPlayedSuffix = event.isAutoPlayed() ? " [action autoplayed]" : "";
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Totem placed by " + event.getPlayer() + " on tile " + event.getOfferTileId() + autoPlayedSuffix + ".");
         // scene is redrawn
         updateStateAndScene(TuiState.IN_GAME);
     }
@@ -694,7 +695,8 @@ public class TuiUI implements UI, LogObserver {
     @Override
     public void showActionResolved(ActionResolvedEvent event) {
         // action resolution is logged
-        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Action resolved by " + event.getPlayer() + ".");
+        String autoPlayedSuffix = event.isAutoPlayed() ? " [action autoplayed]" : "";
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Action resolved by " + event.getPlayer() + autoPlayedSuffix + ".");
         // scene redrawing is skipped to avoid double frames
     }
 
@@ -728,7 +730,8 @@ public class TuiUI implements UI, LogObserver {
     @Override
     public void showExtraAcquisition(ExtraAcquisitionResolvedEvent event) {
         // extra acquisition is logged
-        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Extra card acquired by " + event.getPlayer() + ".");
+        String autoPlayedSuffix = event.isAutoPlayed() ? " [action autoplayed]" : "";
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Extra card acquired by " + event.getPlayer() + autoPlayedSuffix + ".");
         // scene is redrawn
         updateStateAndScene(TuiState.IN_GAME);
     }

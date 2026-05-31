@@ -258,11 +258,17 @@ public class InGameViewController implements ViewController {
     @Override
     public void onTotemPlaced(TotemPlacedEvent event) {
         fullRender(clientController.getLightGameState());
+        if (event.isAutoPlayed()) {
+            showNotification("Totem placed by " + event.getPlayer() + " [action autoplayed].");
+        }
     }
 
     @Override
     public void onActionResolved(ActionResolvedEvent event) {
         fullRender(clientController.getLightGameState());
+        if (event.isAutoPlayed()) {
+            showNotification("Action resolved by " + event.getPlayer() + " [action autoplayed].");
+        }
     }
 
     @Override
@@ -273,6 +279,9 @@ public class InGameViewController implements ViewController {
     @Override
     public void onExtraAcquisition(ExtraAcquisitionResolvedEvent event) {
         fullRender(clientController.getLightGameState());
+        if (event.isAutoPlayed()) {
+            showNotification("Extra card acquired by " + event.getPlayer() + " [action autoplayed].");
+        }
     }
 
     @Override
