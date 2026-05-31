@@ -6,7 +6,6 @@ import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.cards.Card;
 import it.polimi.ingsw.am32.model.cards.acquirable.buildings.BuildingCard;
 import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
-import it.polimi.ingsw.am32.model.receipts.TotemReturnReceipt;
 import it.polimi.ingsw.am32.model.tiles.OfferTile;
 
 import java.util.ArrayList;
@@ -88,23 +87,6 @@ public class GameDTOMapper {
     }
 
     /**
-     * A totem return receipt is mapped to its corresponding dto.
-     *
-     * @param receipt the receipt from the model
-     * @return the mapped dto, or null if the receipt is null
-     */
-    public static TotemReturnedDTO buildTotemReturnedDTO(TotemReturnReceipt receipt) {
-        if (receipt == null) return null;
-        // totem return dto is instantiated
-        return new TotemReturnedDTO(
-                receipt.getPlayerNickname(),
-                receipt.getTurnOrderPosition(),
-                buildPlayerStatsChangedDTO(receipt.getStatsChange()),
-                receipt.getNextPlayerNickname()
-        );
-    }
-
-    /**
      * A list of building card models is mapped to a list of card dto.
      *
      * @param buildings the list of building card models
@@ -138,16 +120,13 @@ public class GameDTOMapper {
      * @param receipt the receipt from the model
      * @return the mapped dto, or null if the receipt is null
      */
-    private static PlayerStatsChangedDTO buildPlayerStatsChangedDTO(PlayerStatsChangeReceipt receipt) {
+    public static PlayerStatsChangedDTO buildPlayerStatsChangedDTO(PlayerStatsChangeReceipt receipt) {
         if (receipt == null) return null;
         // stats-changes dto is built
         return new PlayerStatsChangedDTO(
                 receipt.getPlayerNickname(),
                 receipt.getFoodChange(),
-                receipt.getPrestigeChange(),
-                receipt.getCurrentFood(),
-                receipt.getCurrentPrestige(),
-                receipt.getReason()
+                receipt.getPrestigeChange()
         );
     }
 
