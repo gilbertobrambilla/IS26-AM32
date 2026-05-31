@@ -9,7 +9,7 @@ import it.polimi.ingsw.am32.network.client.VirtualServer;
 import java.rmi.RemoteException;
 
 /**
- * The rmi client remote interface is implemented.
+ * Implementation of the rmi client remote interface.
  */
 public class RMIClientCallback implements RMIClient {
 
@@ -17,7 +17,7 @@ public class RMIClientCallback implements RMIClient {
     private RMIServerProxy serverProxy;
 
     /**
-     * A new rmi client implementation is constructed.
+     * Constructs a new rmi client implementation.
      */
     public RMIClientCallback() {
     }
@@ -53,7 +53,7 @@ public class RMIClientCallback implements RMIClient {
     }
 
     /**
-     * The virtual server instance is set.
+     * Sets the virtual server instance.
      *
      * @param virtualServer the virtual server to be set
      */
@@ -63,7 +63,7 @@ public class RMIClientCallback implements RMIClient {
     }
 
     /**
-     * The server proxy instance is set.
+     * Sets the server proxy instance.
      *
      * @param serverProxy the server proxy to be set
      */

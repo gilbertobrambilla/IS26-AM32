@@ -4,15 +4,14 @@ import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 import it.polimi.ingsw.am32.network.socket.client.SocketServerProxy;
 
 /**
- * A message used to wrap and send a generic dto via socket is represented.
+ * Message used to wrap and send a generic dto via socket.
  */
 public class SocketDTOMessage implements ServerToClientMessage {
 
     private final MessageDTO dto;
 
     /**
-     * A new socket dto message is constructed.
-     *
+     * New socket dto message constructed.
      * @param dto the generic message dto
      */
     public SocketDTOMessage(MessageDTO dto) {

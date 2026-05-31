@@ -4,7 +4,7 @@ import it.polimi.ingsw.am32.controller.LobbyController;
 import it.polimi.ingsw.am32.controller.VirtualView;
 
 /**
- * A command used to process the creation of a new game is represented.
+ * Command used to process the creation of a new game.
  */
 public class CreateGameCommand implements LobbyCommand {
     private final int numOfPlayers;

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * A client-side virtual server is represented.
+ * Client side virtual server representation.
  */
 public class VirtualServer implements ServerConnection {
 
@@ -44,7 +44,7 @@ public class VirtualServer implements ServerConnection {
     private ScheduledFuture<?> timeoutTask;
 
     /**
-     * A virtual server instance is constructed.
+     * Constructs a virtual server instance.
      *
      * @param serverNode the server node representation
      * @param onServerCrashCallback the callback to execute on a server crash
@@ -56,7 +56,7 @@ public class VirtualServer implements ServerConnection {
     }
 
     /**
-     * A new virtual server instance is created.
+     * Creates a new virtual server instance.
      *
      * @param serverNode the server node representation
      * @param onServerCrashCallback the callback to execute on a server crash
@@ -91,7 +91,7 @@ public class VirtualServer implements ServerConnection {
     }
 
     /**
-     * The client controller reference is set.
+     * Sets the client controller reference.
      *
      * @param clientController the client controller to be set
      */
@@ -101,7 +101,7 @@ public class VirtualServer implements ServerConnection {
     }
 
     /**
-     * The liveness routine for ping and timeout monitoring is started.
+     * Starts the liveness routine for ping and timeout monitoring.
      */
     public void startServerHeartbeat() {
         // ping task scheduled
@@ -128,7 +128,7 @@ public class VirtualServer implements ServerConnection {
     }
 
     /**
-     * The sudden disconnection of the server is handled.
+     * Handles the sudden disconnection of the server.
      */
     public void handleServerDisconnect() {
         if (isConnected.compareAndSet(true, false)) {
@@ -145,7 +145,7 @@ public class VirtualServer implements ServerConnection {
     }
 
     /**
-     * The connection to the server is closed gracefully.
+     * Disconnects from the server gracefully.
      */
     public void disconnectGracefully() {
         if (isConnected.compareAndSet(true, false)) {
@@ -157,7 +157,7 @@ public class VirtualServer implements ServerConnection {
     }
 
     /**
-     * A ping received from the server is processed.
+     * Processes a ping received from the server.
      */
     public void onPingReceivedFromServer() {
         // last ping received timestamp updated
@@ -170,7 +170,7 @@ public class VirtualServer implements ServerConnection {
     }
 
     /**
-     * A generic message from the network is forwarded to the client controller.
+     * Receives a generic message from the network and forwards it to the client controller.
      *
      * @param message the message received
      */
@@ -183,7 +183,7 @@ public class VirtualServer implements ServerConnection {
     }
 
     /**
-     * The active heartbeat tasks are canceled.
+     * Cancels the active heartbeat tasks.
      */
     private void cancelTasks() {
         if (pingTask != null) {
@@ -197,9 +197,8 @@ public class VirtualServer implements ServerConnection {
     }
 
     /**
-     * A network action is invoked while potential disconnections are handled.
-     *
-     * @param action the network action to execute
+     * Tries to invoke a network action, handling potential disconnections.
+     * * @param action the network action to execute
      */
     private void tryInvoke(NetworkAction action) {
         if (!isConnected.get()) {

@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.controller;
 import it.polimi.ingsw.am32.dto.messages.game.events.*;
 
 /**
- * The game view is represented.
+ * Interface representing the game view.
  */
 public interface GameView {
 
@@ -105,7 +105,7 @@ public interface GameView {
     /**
      * A round end is notified to the client.
      *
-     * @param dto the round-ended event
+     * @param dto the round ended event
      */
     void notifyRoundEnded(RoundEndedEvent dto);
 

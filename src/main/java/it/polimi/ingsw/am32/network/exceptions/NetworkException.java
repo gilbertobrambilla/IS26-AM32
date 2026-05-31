@@ -1,12 +1,12 @@
 package it.polimi.ingsw.am32.network.exceptions;
 
 /**
- * A custom runtime exception for network-related errors is represented.
+ * Custom runtime exception thrown for network-related errors.
  */
 public class NetworkException extends RuntimeException {
 
     /**
-     * A new network exception with the specified detail message is constructed.
+     * Constructs a new network exception with the specified detail message.
      *
      * @param message the detail message
      */
@@ -15,7 +15,7 @@ public class NetworkException extends RuntimeException {
     }
 
     /**
-     * A new network exception with the specified detail message and cause is constructed.
+     * Constructs a new network exception with the specified detail message and cause.
      *
      * @param message the detail message
      * @param cause the cause of the exception

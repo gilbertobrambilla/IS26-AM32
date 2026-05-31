@@ -17,7 +17,7 @@ import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A remote server connected via socket is represented by a proxy.
+ * Proxy representing the remote server connected via socket.
  */
 public class SocketServerProxy implements ServerNode {
 
@@ -32,7 +32,7 @@ public class SocketServerProxy implements ServerNode {
     private ObjectInputStream in;
 
     /**
-     * A new socket server proxy is constructed.
+     * New socket server proxy constructed.
      *
      * @param host the server host ip
      * @param port the server port
@@ -111,7 +111,7 @@ public class SocketServerProxy implements ServerNode {
     }
 
     /**
-     * The virtual server reference is set.
+     * Sets the virtual server reference.
      *
      * @param virtualServer the virtual server to set
      */
@@ -171,9 +171,8 @@ public class SocketServerProxy implements ServerNode {
     }
 
     /**
-     * A command is sent to the server over the socket connection.
-     *
-     * @param message the message to be sent
+     * Command sent to the server over the socket connection.
+     * * @param message the message to be sent
      */
     private void sendCommand(ClientToServerMessage message) {
         synchronized (outLock) {

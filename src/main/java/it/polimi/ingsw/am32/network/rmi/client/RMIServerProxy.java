@@ -13,7 +13,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
- * A proxy represents a remote server connected via rmi.
+ * Proxy representing the remote server connected via rmi.
  */
 public class RMIServerProxy implements ServerNode {
 
@@ -22,7 +22,7 @@ public class RMIServerProxy implements ServerNode {
     private String connectionID;
 
     /**
-     * A new rmi server proxy is constructed.
+     * Constructs a new rmi server proxy.
      *
      * @param serverStub the rmi server stub
      * @param clientStub the rmi client stub
@@ -104,7 +104,7 @@ public class RMIServerProxy implements ServerNode {
     }
 
     /**
-     * The connection identifier is set.
+     * Sets the connection identifier.
      *
      * @param connectionID the unique connection identifier
      */

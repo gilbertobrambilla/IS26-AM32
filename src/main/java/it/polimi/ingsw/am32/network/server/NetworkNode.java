@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.network.server;
 
 /**
- * Network lifecycle management of a client connection is represented.
+ * Interface used to represent the network lifecycle management of a client connection.
  */
 public interface NetworkNode {
 

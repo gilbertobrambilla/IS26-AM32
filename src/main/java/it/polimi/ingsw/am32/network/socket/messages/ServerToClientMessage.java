@@ -4,7 +4,7 @@ import it.polimi.ingsw.am32.network.socket.client.SocketServerProxy;
 import java.io.Serializable;
 
 /**
- * An interface for messages sent from server to client is represented.
+ * Interface implemented by messages sent from server to client.
  */
 public interface ServerToClientMessage extends Serializable {
 

@@ -92,7 +92,7 @@ public class LogManager {
     }
 
     /**
-     * Ansi color code is retrieved based on the log level.
+     * Ansi color code is retrieved based on log level.
      *
      * @param level the log severity level
      * @return the ansi escape string

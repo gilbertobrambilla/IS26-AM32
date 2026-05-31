@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A socket server for incoming connections and active nodes is represented.
+ * Socket server that listens for incoming connections and manages active nodes.
  */
 public class SocketServer extends Thread {
 
@@ -27,7 +27,7 @@ public class SocketServer extends Thread {
     private ServerSocket serverSocket;
 
     /**
-     * A new socket server instance is constructed.
+     * New socket server instance constructed.
      *
      * @param port the port to listen on
      * @param lobbyController the controller managing the lobby logic
