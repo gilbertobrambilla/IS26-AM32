@@ -2,6 +2,8 @@ package it.polimi.ingsw.am32.client.view.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.polimi.ingsw.am32.log.LogLevel;
+import it.polimi.ingsw.am32.log.LogManager;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -49,7 +51,7 @@ public class GameDictionary {
         try {
             if (is == null) {
                 // error is logged if stream is missing
-                System.err.println("[ERROR] Dictionary stream is null");
+                LogManager.getInstance().log(LogLevel.ERROR, "[DICTIONARY] Dictionary stream is null.");
                 return;
             }
 
@@ -69,8 +71,7 @@ public class GameDictionary {
             }
         } catch (Exception e) {
             // exception is fully logged for debugging
-            System.err.println("[ERROR] Failed to parse dictionary: " + e.getMessage());
-            e.printStackTrace();
+            LogManager.getInstance().log(LogLevel.ERROR, "[DICTIONARY] Failed to parse dictionary.", e);
         }
     }
 

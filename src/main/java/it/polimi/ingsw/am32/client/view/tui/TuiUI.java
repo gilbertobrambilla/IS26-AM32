@@ -129,8 +129,8 @@ public class TuiUI implements UI, LogObserver {
             // line reader is built
             this.lineReader = LineReaderBuilder.builder().terminal(terminal).build();
         } catch (IOException e) {
-            // fallback error is printed
-            System.err.println("terminal initialization failed: " + e.getMessage());
+            // terminal initialization failure is logged
+            LogManager.getInstance().log(LogLevel.ERROR, "[TUI] Terminal initialization failed.", e);
             return;
         }
 
@@ -425,7 +425,7 @@ public class TuiUI implements UI, LogObserver {
         }
     }
 
-    // UI interface implementation
+    // ui interface implementation
 
     /**
      * Connection result is processed and displayed in the terminal.

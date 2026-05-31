@@ -62,7 +62,7 @@ public class SocketServer extends Thread {
         } catch (IOException e) {
             if (running.get()) {
                 // critical server error logged
-                LogManager.getInstance().log(LogLevel.ERROR, "[SYSTEM] Critical error: " + e.getMessage());
+                LogManager.getInstance().log(LogLevel.ERROR, "[SYSTEM] Critical socket server error.", e);
             } else {
                 // server shutdown logged
                 LogManager.getInstance().log(LogLevel.INFO, "[SYSTEM] Server shut down gracefully.");
@@ -84,8 +84,8 @@ public class SocketServer extends Thread {
             // thread pool shut down
             threadPool.shutdownNow();
         } catch (IOException e) {
-            // error printed
-            System.err.println("Error while closing server socket: " + e.getMessage());
+            // server socket closure failure is logged
+            LogManager.getInstance().log(LogLevel.WARNING, "[NETWORK] Server socket could not be closed.", e);
         }
     }
 }

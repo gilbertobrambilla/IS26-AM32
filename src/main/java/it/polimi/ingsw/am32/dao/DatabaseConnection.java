@@ -2,6 +2,8 @@ package it.polimi.ingsw.am32.dao;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.polimi.ingsw.am32.log.LogLevel;
+import it.polimi.ingsw.am32.log.LogManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,7 +47,7 @@ public class DatabaseConnection {
                 try {
                     input.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LogManager.getInstance().log(LogLevel.WARNING, "[DATABASE] Database configuration stream could not be closed.", e);
                 }
             }
         }

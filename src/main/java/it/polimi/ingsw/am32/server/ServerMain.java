@@ -91,8 +91,7 @@ public class ServerMain {
                 }
             } catch (Exception dbException) {
                 // database connection failure is logged
-                LogManager.getInstance().log(LogLevel.ERROR, "[DATABASE] FATAL ERROR: Cannot reach the Database!");
-                dbException.printStackTrace();
+                LogManager.getInstance().log(LogLevel.ERROR, "[DATABASE] FATAL ERROR: Cannot reach the Database!", dbException);
                 System.exit(1);
             }
 
@@ -126,8 +125,7 @@ public class ServerMain {
 
         } catch (Exception e) {
             // critical startup error is logged
-            LogManager.getInstance().log(LogLevel.ERROR, "[SYSTEM] Critical error during Server startup!");
-            e.printStackTrace();
+            LogManager.getInstance().log(LogLevel.ERROR, "[SYSTEM] Critical error during Server startup!", e);
             System.exit(1);
         }
     }

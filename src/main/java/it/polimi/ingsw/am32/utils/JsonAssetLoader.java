@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.polimi.ingsw.am32.dto.setup.*;
+import it.polimi.ingsw.am32.log.LogLevel;
+import it.polimi.ingsw.am32.log.LogManager;
 
 import java.io.InputStream;
 import java.util.List;
@@ -48,7 +50,7 @@ public class JsonAssetLoader {
                     is.close();
                 } catch (Exception e) {
                     // exception during closure is caught and logged
-                    e.printStackTrace();
+                    LogManager.getInstance().log(LogLevel.WARNING, "[ASSETS] Asset stream could not be closed.", e);
                 }
             }
         }
