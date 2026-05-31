@@ -28,9 +28,7 @@ public class LightGameState {
      */
     public LightGameState(String myNickname) {
         this.myNickname = myNickname;
-        // players map is initialized
         this.players = new HashMap<>();
-        // offer track is initialized
         this.offerTrack = new ArrayList<>();
         // current player is initialized to a safe placeholder
         this.currentPlayer = "WAITING";
@@ -39,7 +37,6 @@ public class LightGameState {
         this.currentEra = 0;
         this.tribeDeckSize = 0;
         this.tribeDeckTopCardEra = 0;
-        // card rows are initialized to empty lists to prevent ui crashes
         this.upperTribeRow = new ArrayList<>();
         this.lowerTribeRow = new ArrayList<>();
         this.upperBuildingRow = new ArrayList<>();
@@ -106,13 +103,12 @@ public class LightGameState {
 
     /**
      * Updates the state when an action is resolved.
-     * @param nickname The nickname of the player.
-     * @param characters The list of character card ids.
-     * @param buildings The list of building card ids.
-     * @param stats The list of stat changes.
-     * @param nextPlayer The nickname of the next player.
+     * @param nickname the nickname of the player
+     * @param characters the list of character card ids
+     * @param buildings the list of building card ids
+     * @param statsChange the statistics change
      */
-    public void updateActionResolution(String nickname, List<String> characters, List<String> buildings, List<PlayerStatsChangedDTO> stats, String nextPlayer) {
+    public void updateActionResolution(String nickname, List<String> characters, List<String> buildings, PlayerStatsChangedDTO statsChange) {
         LightPlayer p = players.get(nickname);
         if (p != null) {
             // character cards are added
@@ -127,19 +123,18 @@ public class LightGameState {
         if (this.lowerBuildingRow != null) this.lowerBuildingRow.removeAll(buildings);
 
         // stats are updated
-        updateStats(stats);
-        // current player is updated
-        this.currentPlayer = nextPlayer;
+        if (statsChange != null) {
+            updateStats(Collections.singletonList(statsChange));
+        }
     }
 
     /**
      * Updates the state with the results of an extra acquisition.
-     * @param nickname The nickname of the player.
-     * @param acquiredCardId The id of the acquired card, or null if skipped.
-     * @param stats The list of stat changes.
-     * @param nextPlayer The nickname of the next player.
+     * @param nickname the nickname of the player
+     * @param acquiredCardId the id of the acquired card, or null if skipped
+     * @param statsChange the statistics change
      */
-    public void updateExtraAcquisitionResolution(String nickname, String acquiredCardId, List<PlayerStatsChangedDTO> stats, String nextPlayer) {
+    public void updateExtraAcquisitionResolution(String nickname, String acquiredCardId, PlayerStatsChangedDTO statsChange) {
         if (acquiredCardId != null) {
             LightPlayer p = players.get(nickname);
             if (p != null) {
@@ -154,9 +149,9 @@ public class LightGameState {
         }
 
         // stats are updated
-        updateStats(stats);
-        // current player is updated
-        this.currentPlayer = nextPlayer;
+        if (statsChange != null) {
+            updateStats(Collections.singletonList(statsChange));
+        }
     }
 
     /**
@@ -168,7 +163,10 @@ public class LightGameState {
             LightPlayer p = players.get(s.getPlayer());
             if (p != null) {
                 // stats are updated for specific player
-                p.updateStats(s.getFood(), s.getPrestige());
+                p.updateStats(
+                        p.getFood() + s.getFoodChange(),
+                        p.getPrestige() + s.getPrestigeChange()
+                );
             }
         }
     }
@@ -208,7 +206,7 @@ public class LightGameState {
      * @param selUpper The list of card IDs currently selected from the upper row.
      * @param selLower The list of card IDs currently selected from the lower row.
      * @param selBuildings The list of building card IDs currently selected across all rows.
-     * @return true if the selection is complete or the player cannot afford any more required cards.
+     * @return true if the selection is complete or the player cannot afford anymore required cards.
      */
     public boolean isSelectionCompleteOrStuck(
             String nickname, int reqUpper, int reqLower,
@@ -225,7 +223,7 @@ public class LightGameState {
             return false;
         }
 
-        // mapToInt combined with sum natively returns an int, avoiding long-to-int downcasting
+        // mapToInt combined with sum natively returns an int, avoiding long-to-int down casting
         int availableUpperCharacters = this.upperTribeRow.stream()
                 .mapToInt(id -> id.startsWith("character_") ? 1 : 0)
                 .sum();
@@ -238,12 +236,7 @@ public class LightGameState {
         int mandatoryUpper = Math.min(reqUpper, availableUpperCharacters);
         int mandatoryLower = Math.min(reqLower, availableLowerCharacters);
 
-        if (selectedUpper < mandatoryUpper || selectedLower < mandatoryLower) {
-            return false;
-        }
-
-        // selection meets mandatory minimum and does not exceed maximum: complete or legitimately stuck
-        return true;
+        return selectedUpper >= mandatoryUpper && selectedLower >= mandatoryLower;
     }
 
     /**
@@ -343,7 +336,6 @@ public class LightGameState {
      * Updates the state when an action finishes and the totem returns.
      */
     public void returnTotem(String nickname, int slotIndex) {
-        // Libera l'Offer Tile
         for (LightOfferTile tile : offerTrack) {
             if (nickname.equals(tile.getOccupyingPlayer())) {
                 tile.setOccupyingPlayer(null);
@@ -363,13 +355,14 @@ public class LightGameState {
         this.turnOrderTile = new LightTurnOrderTile(this.turnOrderTile.getTileId(), order);
     }
 
-    public void updateRound(int newRound, int newEra, List<String> upperTribe, List<String> lowerTribe, List<String> upperBuilding, List<String> lowerBuilding, String nextPlayer) {
+    public void updateRound(int newRound, int newEra, List<String> upperTribe, List<String> lowerTribe, List<String> upperBuilding, List<String> lowerBuilding, int tribeDeckSize, int tribeDeckTopCardEra) {
         this.currentRound = newRound;
         this.currentEra = newEra;
         this.upperTribeRow = new ArrayList<>(upperTribe);
         this.lowerTribeRow = new ArrayList<>(lowerTribe);
         this.upperBuildingRow = new ArrayList<>(upperBuilding);
         this.lowerBuildingRow = new ArrayList<>(lowerBuilding);
-        this.currentPlayer = nextPlayer;
+        this.tribeDeckSize = tribeDeckSize;
+        this.tribeDeckTopCardEra = tribeDeckTopCardEra;
     }
 }

@@ -11,7 +11,6 @@ import it.polimi.ingsw.am32.network.client.MessageDispatcher;
 import it.polimi.ingsw.am32.network.client.VirtualServer;
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -244,7 +243,7 @@ public class ClientController {
     public void onGamePhaseChanged(GamePhaseChangedEvent event) {
         runOnUIThread(() -> {
             // state is updated
-            lightGameState.updatePhaseChange(event.getPhase(), event.getNextPlayer());
+            lightGameState.updatePhaseChange(event.getPhase(), event.getCurrentPlayer());
             // ui is updated
             if (ui != null) ui.updateGamePhase(event);
         });
@@ -258,10 +257,14 @@ public class ClientController {
             List<String> lowerBuilding = event.getLowerBuildingRow().stream().map(CardDTO::getId).collect(Collectors.toList());
 
             lightGameState.updateRound(
-                    event.getRound(),
-                    event.getEra(),
-                    upperTribe, lowerTribe, upperBuilding, lowerBuilding,
-                    event.getNextPlayer()
+                    event.getNewRound(),
+                    event.getNewEra(),
+                    upperTribe,
+                    lowerTribe,
+                    upperBuilding,
+                    lowerBuilding,
+                    event.getTribeDeckSize(),
+                    event.getTribeDeckTopCardEra()
             );
 
             // ui is updated
@@ -309,17 +312,11 @@ public class ClientController {
                     event.getPlayer(),
                     event.getAcquiredCharacterCardIds(),
                     event.getAcquiredBuildingCardIds(),
-                    event.getStatsChanges(),
-                    event.getNextPlayer()
+                    event.getStatsChange()
             );
 
             // totem placement is updated
-            lightGameState.returnTotem(event.getPlayer(), event.getTotemReturnDetails().getTurnOrderPosition());
-
-            // totem return stats are evaluated and safely updated
-            if (event.getTotemReturnDetails().getStatsChanges() != null) {
-                lightGameState.updateStats(Collections.singletonList(event.getTotemReturnDetails().getStatsChanges()));
-            }
+            lightGameState.returnTotem(event.getPlayer(), event.getTurnOrderPosition());
 
             // ui is updated
             if (ui != null) ui.showActionResolved(event);
@@ -341,9 +338,9 @@ public class ClientController {
             lightGameState.updateExtraAcquisitionResolution(
                     event.getPlayer(),
                     event.getAcquiredCardId(),
-                    event.getStatsChanges(),
-                    event.getNextPlayer()
+                    event.getStatsChange()
             );
+
             // ui is updated
             if (ui != null) ui.showExtraAcquisition(event);
         });

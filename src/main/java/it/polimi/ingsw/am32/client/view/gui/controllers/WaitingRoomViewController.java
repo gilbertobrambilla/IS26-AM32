@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.client.view.gui.controllers;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.dto.messages.game.events.GameErrorEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyRoomUpdateEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.LobbyInfoDTO;
 import javafx.application.Platform;
@@ -63,6 +64,15 @@ public class WaitingRoomViewController implements ViewController {
                 statusLabel.setText(String.format("Players: %d / %d. Waiting for match setup...",
                         lobbyInfo.getCurrentPlayersCount(),
                         lobbyInfo.getTargetPlayers()));
+            }
+        });
+    }
+
+    @Override
+    public void onError(GameErrorEvent event) {
+        Platform.runLater(() -> {
+            if (statusLabel != null) {
+                statusLabel.setText(event.getReason() + ": " + event.getErrorMessage());
             }
         });
     }

@@ -168,7 +168,7 @@ public class TuiUI implements UI, LogObserver {
                 if (controller == null) {
                     // protocol is requested from user
                     String protocol = lineReader.readLine("Choose connection protocol (1: RMI, 2: Socket): ").trim();
-                    VirtualServer virtualServer = null;
+                    VirtualServer virtualServer;
 
                     // crash callback is defined
                     Runnable onCrash = () -> {
@@ -467,13 +467,8 @@ public class TuiUI implements UI, LogObserver {
             // connection status is set
             this.isLoggedIn = true;
 
-            if (event.isReconnecting()) {
-                // reconnection message is logged without changing scene
-                LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] Reconnecting to game...");
-            } else {
-                // welcome message is logged
-                LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] " + event.getMessage());
-            }
+            // welcome message is logged
+            LogManager.getInstance().log(LogLevel.INFO, "[NETWORK] " + event.getMessage());
         } else {
             // error message is logged
             LogManager.getInstance().log(LogLevel.ERROR, "[NETWORK] Login failed: " + event.getMessage());
@@ -564,7 +559,8 @@ public class TuiUI implements UI, LogObserver {
     @Override
     public void showGameStarted(GameStartedEvent event) {
         // start message is logged
-        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Game started. Turn of " + event.getNextPlayer() + ".");
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Game started. Turn of " + event.getGameState().getCurrentPlayer() + ".");
+
         // state and scene are updated
         updateStateAndScene(TuiState.IN_GAME);
 
@@ -612,8 +608,8 @@ public class TuiUI implements UI, LogObserver {
         String logMessage = "[GAME] Phase changed to " + translatedPhase;
 
         // turn info is appended if a player is active
-        if (event.getNextPlayer() != null && !event.getNextPlayer().isEmpty() && !"null".equalsIgnoreCase(event.getNextPlayer())) {
-            logMessage += ". Turn of " + event.getNextPlayer() + ".";
+        if (event.getCurrentPlayer() != null && !event.getCurrentPlayer().isEmpty() && !"null".equalsIgnoreCase(event.getCurrentPlayer())) {
+            logMessage += ". Turn of " + event.getCurrentPlayer() + ".";
         } else {
             logMessage += ".";
         }
@@ -633,7 +629,7 @@ public class TuiUI implements UI, LogObserver {
     @Override
     public void showRoundEnded(RoundEndedEvent event) {
         // round summary is logged
-        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Round " + event.getRound() + " ended.");
+        LogManager.getInstance().log(LogLevel.GAME_EVENT, "[GAME] Round " + event.getNewRound() + " started.");
     }
 
     /**
@@ -745,7 +741,7 @@ public class TuiUI implements UI, LogObserver {
     @Override
     public void showGameError(GameErrorEvent event) {
         // error is logged
-        LogManager.getInstance().log(LogLevel.ERROR, "[GAME] " + event.getErrorMessage());
+        LogManager.getInstance().log(LogLevel.ERROR, "[GAME] " + event.getReason() + ": " + event.getErrorMessage());
     }
 
     /**

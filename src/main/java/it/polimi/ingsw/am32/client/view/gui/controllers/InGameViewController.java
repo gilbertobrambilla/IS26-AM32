@@ -252,7 +252,7 @@ public class InGameViewController implements ViewController {
     @Override
     public void onRoundSummary(RoundEndedEvent event) {
         fullRender(clientController.getLightGameState());
-        showNotification("Round " + event.getRound() + " started.");
+        showNotification("Round " + event.getNewRound() + " started.");
     }
 
     @Override
@@ -277,11 +277,12 @@ public class InGameViewController implements ViewController {
 
     @Override
     public void onError(GameErrorEvent event) {
+        String formattedError = event.getReason() + ": " + event.getErrorMessage();
         if (toastLabel != null && toastContainer != null) {
-            toastLabel.setText("⚠️ " + event.getErrorMessage().toUpperCase());
+            toastLabel.setText("⚠️ " + formattedError.toUpperCase());
             AnimationUtils.playToastAnimation(toastContainer);
         }
-        GuiLogger.error("[GUI] server rejected action: " + event.getErrorMessage());
+        GuiLogger.error("[GUI] server rejected action: " + formattedError);
     }
 
     @Override
