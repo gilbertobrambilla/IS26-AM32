@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 /**
- * Main entry point for the server application.
+ * The server application entry point is represented.
  */
 public class ServerMain {
     private static final int rmiPort = 1111;
@@ -25,8 +25,7 @@ public class ServerMain {
     private static final String SERVER_NAME = "MesosServer";
 
     /**
-     * Server application is launched.
-     *
+     * The server application is launched.
      */
     public static void main() {
         // scanner is instantiated

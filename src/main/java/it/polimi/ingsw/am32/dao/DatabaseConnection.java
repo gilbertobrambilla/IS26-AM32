@@ -9,6 +9,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+/**
+ * A singleton database connection provider is represented.
+ */
 public class DatabaseConnection {
     private static DatabaseConnection instance;
 
@@ -16,6 +19,9 @@ public class DatabaseConnection {
     private final String user;
     private final String password;
 
+    /**
+     * The database configuration is loaded from the bundled configuration file.
+     */
     private DatabaseConnection() {
         ObjectMapper mapper = new ObjectMapper();
         InputStream input = null;
@@ -45,6 +51,11 @@ public class DatabaseConnection {
         }
     }
 
+    /**
+     * The singleton database connection provider is returned.
+     *
+     * @return the database connection provider instance
+     */
     public static synchronized DatabaseConnection getInstance() {
         // instance is created if it does not exist
         if (instance == null) {
@@ -53,6 +64,11 @@ public class DatabaseConnection {
         return instance;
     }
 
+    /**
+     * A new SQL connection is returned.
+     *
+     * @return the established SQL connection
+     */
     public Connection getConnection() {
         // new connection is established
         try {
