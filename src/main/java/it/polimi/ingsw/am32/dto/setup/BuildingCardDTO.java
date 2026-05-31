@@ -15,7 +15,7 @@ public class BuildingCardDTO {
     private String assetPath;
 
     /**
-     * Jackson initializes a building card setup data transfer object.
+     * A building card setup data transfer object is initialized by Jackson.
      */
     public BuildingCardDTO() {
         // default initialization is performed by jackson
@@ -29,7 +29,7 @@ public class BuildingCardDTO {
      * @param basePrestige the base prestige
      * @param cost the building card cost
      * @param effectCode the effect code
-     * @param effectParams the effect parameters as a JSON node
+     * @param effectParams the effect parameters as a json node
      * @param assetPath the card asset path
      */
     public BuildingCardDTO(String id, int era, int basePrestige, int cost, String effectCode, JsonNode effectParams, String assetPath) {
@@ -135,7 +135,7 @@ public class BuildingCardDTO {
     /**
      * The effect parameters are returned.
      *
-     * @return the effect parameters as a JSON node
+     * @return the effect parameters as a json node
      */
     public JsonNode getEffectParams() {
         return this.effectParams;
@@ -144,7 +144,7 @@ public class BuildingCardDTO {
     /**
      * The effect parameters are set.
      *
-     * @param effectParams the effect parameters as a JSON node
+     * @param effectParams the effect parameters as a json node
      */
     public void setEffectParams(JsonNode effectParams) {
         this.effectParams = effectParams;

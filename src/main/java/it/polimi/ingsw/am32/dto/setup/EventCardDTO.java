@@ -13,7 +13,7 @@ public class EventCardDTO {
     private String assetPath;
 
     /**
-     * Jackson initializes an event card setup data transfer object.
+     * An event card setup data transfer object is initialized by Jackson.
      */
     public EventCardDTO() {
         // default initialization is performed by jackson
@@ -25,7 +25,7 @@ public class EventCardDTO {
      * @param id the event card id
      * @param era the event card era
      * @param eventType the event type
-     * @param eventParams the event parameters as a JSON node
+     * @param eventParams the event parameters as a json node
      * @param assetPath the card asset path
      */
     public EventCardDTO(String id, int era, String eventType, JsonNode eventParams, String assetPath) {
@@ -93,7 +93,7 @@ public class EventCardDTO {
     /**
      * The event parameters are returned.
      *
-     * @return the event parameters as a JSON node
+     * @return the event parameters as a json node
      */
     public JsonNode getEventParams() {
         return this.eventParams;
@@ -102,7 +102,7 @@ public class EventCardDTO {
     /**
      * The event parameters are set.
      *
-     * @param eventParams the event parameters as a JSON node
+     * @param eventParams the event parameters as a json node
      */
     public void setEventParams(JsonNode eventParams) {
         this.eventParams = eventParams;

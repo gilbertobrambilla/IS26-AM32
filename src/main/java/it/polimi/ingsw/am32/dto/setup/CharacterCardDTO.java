@@ -15,7 +15,7 @@ public class CharacterCardDTO {
     private String assetPath;
 
     /**
-     * Jackson initializes a character card setup data transfer object.
+     * A character card setup data transfer object is initialized by Jackson.
      */
     public CharacterCardDTO() {
         // default initialization is performed by jackson
@@ -29,7 +29,7 @@ public class CharacterCardDTO {
      * @param basePrestige the base prestige
      * @param minPlayers the minimum number of players
      * @param characterType the character type
-     * @param characterParams the character parameters as a JSON node
+     * @param characterParams the character parameters as a json node
      * @param assetPath the card asset path
      */
     public CharacterCardDTO(String id, int era, int basePrestige, int minPlayers, String characterType, JsonNode characterParams, String assetPath) {
@@ -135,7 +135,7 @@ public class CharacterCardDTO {
     /**
      * The character parameters are returned.
      *
-     * @return the character parameters as a JSON node
+     * @return the character parameters as a json node
      */
     public JsonNode getCharacterParams() {
         return this.characterParams;
@@ -144,7 +144,7 @@ public class CharacterCardDTO {
     /**
      * The character parameters are set.
      *
-     * @param characterParams the character parameters as a JSON node
+     * @param characterParams the character parameters as a json node
      */
     public void setCharacterParams(JsonNode characterParams) {
         this.characterParams = characterParams;
