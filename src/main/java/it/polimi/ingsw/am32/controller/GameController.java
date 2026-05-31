@@ -941,22 +941,6 @@ public class GameController implements Runnable {
     }
 
     /**
-     * The global leaderboard position of a specific player is determined.
-     *
-     * @param nickname the player nickname
-     * @param ranking the fetched global ranking list
-     * @return the player integer position, or -1 if not found
-     */
-    private int calculatePlayerPosition(String nickname, List<LeaderboardEntryDTO> ranking) {
-        for (LeaderboardEntryDTO entry : ranking) {
-            if (entry.getPlayer().equals(nickname)) {
-                return entry.getPosition();
-            }
-        }
-        return -1;
-    }
-
-    /**
      * A comprehensive snapshot of the current game state wrapped in a network event is built.
      *
      * @return the generated game state event

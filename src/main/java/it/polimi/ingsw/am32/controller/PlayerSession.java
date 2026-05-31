@@ -42,15 +42,4 @@ public class PlayerSession {
     public VirtualView getView() {
         return this.view;
     }
-
-    /**
-     * A new view is set for the player session.
-     *
-     * @param view the new view to be set
-     */
-    public void setView(VirtualView view) {
-        Objects.requireNonNull(view, "view cannot be null");
-        // view is updated for the session
-        this.view = view;
-    }
 }
