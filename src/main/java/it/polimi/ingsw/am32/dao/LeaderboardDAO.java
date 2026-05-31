@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Database operations on the game results table are represented.
+ * Data access object used to manage operations on the game results database table.
  */
 public class LeaderboardDAO {
 

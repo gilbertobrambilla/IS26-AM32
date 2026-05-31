@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A utility for loading and parsing the assets json file is represented.
+ * Utility class responsible for loading and parsing the assets json file.
  */
 public class JsonAssetLoader {
     private static JsonAssetLoader instance;
@@ -20,7 +20,7 @@ public class JsonAssetLoader {
     private final JsonNode rootNode;
 
     /**
-     * The asset loader is initialized from the bundled assets file.
+     * Private constructor to enforce the singleton pattern.
      */
     private JsonAssetLoader() {
         // object mapper is initialized
@@ -57,7 +57,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * The singleton asset loader is returned.
+     * Returns the singleton instance of the loader.
      *
      * @return the instance of JsonAssetLoader
      */
@@ -70,7 +70,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * The list of building card dto is returned.
+     * Retrieves the list of building card dto.
      *
      * @return a list of building card dto
      */
@@ -79,7 +79,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * The list of character card dto is returned.
+     * Retrieves the list of character card dto.
      *
      * @return a list of character card dto
      */
@@ -88,7 +88,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * The list of event card dto is returned.
+     * Retrieves the list of event card dto.
      *
      * @return a list of event card dto
      */
@@ -97,7 +97,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * The list of offer tile dto is returned.
+     * Retrieves the list of offer tile dto.
      *
      * @return a list of offer tile dto
      */
@@ -106,7 +106,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * The list of turn order tile dto is returned.
+     * Retrieves the list of turn order tile dto.
      *
      * @return a list of turn order tile dto
      */
@@ -115,7 +115,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * The map of ui assets is returned.
+     * Retrieves the map of ui assets.
      *
      * @return a map of ui asset paths
      */
@@ -124,7 +124,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * The map of card backs is returned.
+     * Retrieves the map of card backs.
      *
      * @return a map of card back paths
      */
@@ -133,7 +133,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * A list of dto is extracted from a specific json array node.
+     * Extracts a list of dto from a specific json array node.
      *
      * @param fieldName the name of the JSON array field
      * @param clazz the class of the dto
@@ -158,7 +158,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * A map of string key-value pairs is extracted from a specific json object node.
+     * Extracts a map of string key-value pairs from a specific json object node.
      *
      * @param fieldName the name of the JSON object field
      * @return a map of parsed string pairs

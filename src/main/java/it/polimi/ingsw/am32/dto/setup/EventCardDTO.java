@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.dto.setup;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * An event card setup data transfer object is represented.
+ * Data transfer object representing an event card.
  */
 public class EventCardDTO {
     private String id;
@@ -13,20 +13,20 @@ public class EventCardDTO {
     private String assetPath;
 
     /**
-     * An event card setup data transfer object is initialized by Jackson.
+     * Default constructor.
      */
     public EventCardDTO() {
         // default initialization is performed by jackson
     }
 
     /**
-     * An event card setup data transfer object is initialized with full card data.
+     * Constructor with all parameters.
      *
-     * @param id the event card id
-     * @param era the event card era
-     * @param eventType the event type
-     * @param eventParams the event parameters as a json node
-     * @param assetPath the card asset path
+     * @param id The id of the event card.
+     * @param era The era of the event card.
+     * @param eventType The type of the event.
+     * @param eventParams The parameters of the event as a JSON node.
+     * @param assetPath The path to the card asset.
      */
     public EventCardDTO(String id, int era, String eventType, JsonNode eventParams, String assetPath) {
         this.id = id;
@@ -37,90 +37,90 @@ public class EventCardDTO {
     }
 
     /**
-     * The event card id is returned.
+     * Gets the id.
      *
-     * @return the event card id
+     * @return The id of the event card.
      */
     public String getId() {
         return this.id;
     }
 
     /**
-     * The event card id is set.
+     * Sets the id.
      *
-     * @param id the event card id
+     * @param id The new id to set.
      */
     public void setId(String id) {
         this.id = id;
     }
 
     /**
-     * The event card era is returned.
+     * Gets the era.
      *
-     * @return the event card era
+     * @return The era of the event card.
      */
     public int getEra() {
         return this.era;
     }
 
     /**
-     * The event card era is set.
+     * Sets the era.
      *
-     * @param era the event card era
+     * @param era The new era to set.
      */
     public void setEra(int era) {
         this.era = era;
     }
 
     /**
-     * The event type is returned.
+     * Gets the event type.
      *
-     * @return the event type
+     * @return The event type.
      */
     public String getEventType() {
         return this.eventType;
     }
 
     /**
-     * The event type is set.
+     * Sets the event type.
      *
-     * @param eventType the event type
+     * @param eventType The new event type to set.
      */
     public void setEventType(String eventType) {
         this.eventType = eventType;
     }
 
     /**
-     * The event parameters are returned.
+     * Gets the event parameters.
      *
-     * @return the event parameters as a json node
+     * @return The event parameters as a JSON node.
      */
     public JsonNode getEventParams() {
         return this.eventParams;
     }
 
     /**
-     * The event parameters are set.
+     * Sets the event parameters.
      *
-     * @param eventParams the event parameters as a json node
+     * @param eventParams The new event parameters to set.
      */
     public void setEventParams(JsonNode eventParams) {
         this.eventParams = eventParams;
     }
 
     /**
-     * The card asset path is returned.
+     * Gets the asset path.
      *
-     * @return the card asset path
+     * @return The asset path.
      */
     public String getAssetPath() {
         return this.assetPath;
     }
 
     /**
-     * The card asset path is set.
+     * Sets the asset path.
      *
-     * @param assetPath the card asset path
+     * @param assetPath The new asset path to set.
      */
     public void setAssetPath(String assetPath) {
         this.assetPath = assetPath;

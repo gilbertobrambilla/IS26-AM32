@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A singleton log manager is represented.
+ * Singleton manager responsible for collecting and broadcasting log messages.
  */
 public class LogManager {
     private static LogManager instance;
     private final List<LogObserver> observers;
 
     /**
-     * The log manager is initialized.
+     * Private constructor is called.
      */
     private LogManager() {
         // observer list is initialized
@@ -23,7 +23,7 @@ public class LogManager {
     /**
      * Singleton instance is retrieved.
      *
-     * @return the log manager instance
+     * @return The log manager instance.
      */
     public static synchronized LogManager getInstance() {
         if (instance == null) {
@@ -37,7 +37,7 @@ public class LogManager {
     /**
      * Observer is registered to receive logs.
      *
-     * @param observer the observer to be added
+     * @param observer The observer to be added.
      */
     public synchronized void addObserver(LogObserver observer) {
         // observer is added
@@ -47,8 +47,8 @@ public class LogManager {
     /**
      * Log is dispatched to all observers or printed as fallback.
      *
-     * @param level the severity level of the log
-     * @param message the complete log message including the component tag
+     * @param level The severity level of the log.
+     * @param message The complete log message including the component tag.
      */
     public synchronized void log(LogLevel level, String message) {
         if (observers.isEmpty()) {
@@ -74,9 +74,9 @@ public class LogManager {
     /**
      * Log is dispatched with an attached exception stack trace.
      *
-     * @param level the severity level of the log
-     * @param message the context message of the error
-     * @param throwable the exception to be logged
+     * @param level The severity level of the log.
+     * @param message The context message of the error.
+     * @param throwable The exception to be logged.
      */
     public synchronized void log(LogLevel level, String message, Throwable throwable) {
         // stack trace is extracted from the exception
@@ -94,8 +94,8 @@ public class LogManager {
     /**
      * Ansi color code is retrieved based on log level.
      *
-     * @param level the log severity level
-     * @return the ansi escape string
+     * @param level The log severity level.
+     * @return The ansi escape string.
      */
     public static String getAnsiColor(LogLevel level) {
         // color code is mapped

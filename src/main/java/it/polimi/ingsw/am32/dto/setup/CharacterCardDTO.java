@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.dto.setup;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * A character card setup data transfer object is represented.
+ * Data transfer object representing a character card.
  */
 public class CharacterCardDTO {
     private String id;
@@ -15,22 +15,22 @@ public class CharacterCardDTO {
     private String assetPath;
 
     /**
-     * A character card setup data transfer object is initialized by Jackson.
+     * Default constructor.
      */
     public CharacterCardDTO() {
         // default initialization is performed by jackson
     }
 
     /**
-     * A character card setup data transfer object is initialized with full card data.
+     * Constructor with all parameters.
      *
-     * @param id the character card id
-     * @param era the character card era
-     * @param basePrestige the base prestige
-     * @param minPlayers the minimum number of players
-     * @param characterType the character type
-     * @param characterParams the character parameters as a json node
-     * @param assetPath the card asset path
+     * @param id The id of the character card.
+     * @param era The era of the character card.
+     * @param basePrestige The base prestige.
+     * @param minPlayers The minimum number of players.
+     * @param characterType The character type.
+     * @param characterParams The character parameters as a JSON node.
+     * @param assetPath The path to the card asset.
      */
     public CharacterCardDTO(String id, int era, int basePrestige, int minPlayers, String characterType, JsonNode characterParams, String assetPath) {
         this.id = id;
@@ -43,126 +43,126 @@ public class CharacterCardDTO {
     }
 
     /**
-     * The character card id is returned.
+     * Gets the id.
      *
-     * @return the character card id
+     * @return The id of the character card.
      */
     public String getId() {
         return this.id;
     }
 
     /**
-     * The character card id is set.
+     * Sets the id.
      *
-     * @param id the character card id
+     * @param id The new id to set.
      */
     public void setId(String id) {
         this.id = id;
     }
 
     /**
-     * The character card era is returned.
+     * Gets the era.
      *
-     * @return the character card era
+     * @return The era of the character card.
      */
     public int getEra() {
         return this.era;
     }
 
     /**
-     * The character card era is set.
+     * Sets the era.
      *
-     * @param era the character card era
+     * @param era The new era to set.
      */
     public void setEra(int era) {
         this.era = era;
     }
 
     /**
-     * The base prestige is returned.
+     * Gets the base prestige.
      *
-     * @return the base prestige
+     * @return The base prestige.
      */
     public int getBasePrestige() {
         return this.basePrestige;
     }
 
     /**
-     * The base prestige is set.
+     * Sets the base prestige.
      *
-     * @param basePrestige the base prestige
+     * @param basePrestige The new base prestige to set.
      */
     public void setBasePrestige(int basePrestige) {
         this.basePrestige = basePrestige;
     }
 
     /**
-     * The minimum number of players is returned.
+     * Gets the minimum players.
      *
-     * @return the minimum number of players
+     * @return The minimum players.
      */
     public int getMinPlayers() {
         return this.minPlayers;
     }
 
     /**
-     * The minimum number of players is set.
+     * Sets the minimum players.
      *
-     * @param minPlayers the minimum number of players
+     * @param minPlayers The new minimum players to set.
      */
     public void setMinPlayers(int minPlayers) {
         this.minPlayers = minPlayers;
     }
 
     /**
-     * The character type is returned.
+     * Gets the character type.
      *
-     * @return the character type
+     * @return The character type.
      */
     public String getCharacterType() {
         return this.characterType;
     }
 
     /**
-     * The character type is set.
+     * Sets the character type.
      *
-     * @param characterType the character type
+     * @param characterType The new character type to set.
      */
     public void setCharacterType(String characterType) {
         this.characterType = characterType;
     }
 
     /**
-     * The character parameters are returned.
+     * Gets the character parameters.
      *
-     * @return the character parameters as a json node
+     * @return The character parameters as a JSON node.
      */
     public JsonNode getCharacterParams() {
         return this.characterParams;
     }
 
     /**
-     * The character parameters are set.
+     * Sets the character parameters.
      *
-     * @param characterParams the character parameters as a json node
+     * @param characterParams The new character parameters to set.
      */
     public void setCharacterParams(JsonNode characterParams) {
         this.characterParams = characterParams;
     }
 
     /**
-     * The card asset path is returned.
+     * Gets the asset path.
      *
-     * @return the card asset path
+     * @return The asset path.
      */
     public String getAssetPath() {
         return this.assetPath;
     }
 
     /**
-     * The card asset path is set.
+     * Sets the asset path.
      *
-     * @param assetPath the card asset path
+     * @param assetPath The new asset path to set.
      */
     public void setAssetPath(String assetPath) {
         this.assetPath = assetPath;

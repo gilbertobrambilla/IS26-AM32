@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.dto.setup;
 
 /**
- * An offer tile setup data transfer object is represented.
+ * Data transfer object representing an offer tile.
  */
 public class OfferTileDTO {
     private String id;
@@ -12,14 +12,14 @@ public class OfferTileDTO {
     private String assetPath;
 
     /**
-     * An offer tile setup data transfer object is initialized by Jackson.
+     * Default constructor.
      */
     public OfferTileDTO() {
         // default initialization is performed by jackson
     }
 
     /**
-     * An offer tile setup data transfer object is initialized with full tile data.
+     * Constructor with all parameters.
      *
      * @param id the id of the offer tile
      * @param minPlayers the minimum number of players
@@ -39,7 +39,7 @@ public class OfferTileDTO {
     }
 
     /**
-     * The offer tile id is returned.
+     * Gets the id.
      *
      * @return the id of the offer tile
      */
@@ -48,16 +48,16 @@ public class OfferTileDTO {
     }
 
     /**
-     * The offer tile id is set.
+     * Sets the id.
      *
-     * @param id the id of the offer tile
+     * @param id the new id to set
      */
     public void setId(String id) {
         this.id = id;
     }
 
     /**
-     * The minimum number of players is returned.
+     * Gets the minimum players.
      *
      * @return the minimum players
      */
@@ -66,16 +66,16 @@ public class OfferTileDTO {
     }
 
     /**
-     * The minimum number of players is set.
+     * Sets the minimum players.
      *
-     * @param minPlayers the minimum number of players
+     * @param minPlayers the new minimum players to set
      */
     public void setMinPlayers(int minPlayers) {
         this.minPlayers = minPlayers;
     }
 
     /**
-     * The upper row draw count is returned.
+     * Gets the upper row draws.
      *
      * @return the number of cards to draw from the upper row
      */
@@ -84,16 +84,16 @@ public class OfferTileDTO {
     }
 
     /**
-     * The upper row draw count is set.
+     * Sets the upper row draws.
      *
-     * @param drawsFromUpperRow the number of cards to draw from the upper row
+     * @param drawsFromUpperRow the new number of draws to set
      */
     public void setDrawsFromUpperRow(int drawsFromUpperRow) {
         this.drawsFromUpperRow = drawsFromUpperRow;
     }
 
     /**
-     * The lower row draw count is returned.
+     * Gets the lower row draws.
      *
      * @return the number of cards to draw from the lower row
      */
@@ -102,16 +102,16 @@ public class OfferTileDTO {
     }
 
     /**
-     * The lower row draw count is set.
+     * Sets the lower row draws.
      *
-     * @param drawsFromLowerRow the number of cards to draw from the lower row
+     * @param drawsFromLowerRow the new number of draws to set
      */
     public void setDrawsFromLowerRow(int drawsFromLowerRow) {
         this.drawsFromLowerRow = drawsFromLowerRow;
     }
 
     /**
-     * The food bonus is returned.
+     * Gets the food bonus.
      *
      * @return the food bonus
      */
@@ -120,16 +120,16 @@ public class OfferTileDTO {
     }
 
     /**
-     * The food bonus is set.
+     * Sets the food bonus.
      *
-     * @param foodBonus the food bonus
+     * @param foodBonus the new food bonus to set
      */
     public void setFoodBonus(int foodBonus) {
         this.foodBonus = foodBonus;
     }
 
     /**
-     * The tile asset path is returned.
+     * Gets the asset path.
      *
      * @return the asset path
      */
@@ -138,9 +138,9 @@ public class OfferTileDTO {
     }
 
     /**
-     * The tile asset path is set.
+     * Sets the asset path.
      *
-     * @param assetPath the tile asset path
+     * @param assetPath the new asset path to set
      */
     public void setAssetPath(String assetPath) {
         this.assetPath = assetPath;

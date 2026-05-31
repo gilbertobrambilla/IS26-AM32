@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.dto.setup;
 import java.util.List;
 
 /**
- * A turn order tile setup data transfer object is represented.
+ * Data transfer object representing a turn order tile.
  */
 public class TurnOrderTileDTO {
     private String id;
@@ -13,20 +13,20 @@ public class TurnOrderTileDTO {
     private String assetPath;
 
     /**
-     * A turn order tile setup data transfer object is initialized by Jackson.
+     * Default constructor.
      */
     public TurnOrderTileDTO() {
         // default initialization is performed by jackson
     }
 
     /**
-     * A turn order tile setup data transfer object is initialized with full tile data.
+     * Constructor with all parameters.
      *
-     * @param id the turn order tile id
-     * @param requiredPlayers the number of required players
-     * @param foodModifiers the food modifiers
-     * @param prestigeModifiers the prestige modifiers
-     * @param assetPath the tile asset path
+     * @param id The id of the turn order tile.
+     * @param requiredPlayers The number of required players.
+     * @param foodModifiers The food modifiers as a list of integers.
+     * @param prestigeModifiers The prestige modifiers as a list of integers.
+     * @param assetPath The path to the tile asset.
      */
     public TurnOrderTileDTO(String id, int requiredPlayers, List<Integer> foodModifiers, List<Integer> prestigeModifiers, String assetPath) {
         this.id = id;
@@ -37,90 +37,90 @@ public class TurnOrderTileDTO {
     }
 
     /**
-     * The turn order tile id is returned.
+     * Gets the id.
      *
-     * @return the turn order tile id
+     * @return The id of the turn order tile.
      */
     public String getId() {
         return this.id;
     }
 
     /**
-     * The turn order tile id is set.
+     * Sets the id.
      *
-     * @param id the turn order tile id
+     * @param id The new id to set.
      */
     public void setId(String id) {
         this.id = id;
     }
 
     /**
-     * The number of required players is returned.
+     * Gets the required players.
      *
-     * @return the number of required players
+     * @return The required players.
      */
     public int getRequiredPlayers() {
         return this.requiredPlayers;
     }
 
     /**
-     * The number of required players is set.
+     * Sets the required players.
      *
-     * @param requiredPlayers the number of required players
+     * @param requiredPlayers The new required players to set.
      */
     public void setRequiredPlayers(int requiredPlayers) {
         this.requiredPlayers = requiredPlayers;
     }
 
     /**
-     * The food modifiers are returned.
+     * Gets the food modifiers.
      *
-     * @return the food modifiers
+     * @return The food modifiers.
      */
     public List<Integer> getFoodModifiers() {
         return this.foodModifiers;
     }
 
     /**
-     * The food modifiers are set.
+     * Sets the food modifiers.
      *
-     * @param foodModifiers the food modifiers
+     * @param foodModifiers The new food modifiers to set.
      */
     public void setFoodModifiers(List<Integer> foodModifiers) {
         this.foodModifiers = foodModifiers;
     }
 
     /**
-     * The prestige modifiers are returned.
+     * Gets the prestige modifiers.
      *
-     * @return the prestige modifiers
+     * @return The prestige modifiers.
      */
     public List<Integer> getPrestigeModifiers() {
         return this.prestigeModifiers;
     }
 
     /**
-     * The prestige modifiers are set.
+     * Sets the prestige modifiers.
      *
-     * @param prestigeModifiers the prestige modifiers
+     * @param prestigeModifiers The new prestige modifiers to set.
      */
     public void setPrestigeModifiers(List<Integer> prestigeModifiers) {
         this.prestigeModifiers = prestigeModifiers;
     }
 
     /**
-     * The tile asset path is returned.
+     * Gets the asset path.
      *
-     * @return the tile asset path
+     * @return The asset path.
      */
     public String getAssetPath() {
         return this.assetPath;
     }
 
     /**
-     * The tile asset path is set.
+     * Sets the asset path.
      *
-     * @param assetPath the tile asset path
+     * @param assetPath The new asset path to set.
      */
     public void setAssetPath(String assetPath) {
         this.assetPath = assetPath;

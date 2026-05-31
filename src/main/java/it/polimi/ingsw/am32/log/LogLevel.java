@@ -1,7 +1,7 @@
 package it.polimi.ingsw.am32.log;
 
 /**
- * Log severity levels are represented.
+ * Enumeration representing the severity level of a log message.
  */
 public enum LogLevel {
     ERROR,
