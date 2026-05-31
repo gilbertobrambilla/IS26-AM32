@@ -5,7 +5,7 @@ import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
 import org.jline.terminal.Terminal;
 
 /**
- * Panel responsible for displaying generic game information.
+ * This panel displays generic game information.
  */
 public class HeaderPanel extends AbstractTuiPanel {
     private String currentPhase = "WAITING";

@@ -8,7 +8,7 @@ import org.jline.terminal.Terminal;
 import java.util.List;
 
 /**
- * Scene responsible for rendering the main menu layout and the available games grid.
+ * This scene renders the main menu layout and available games grid.
  */
 public class MenuScene implements Scene {
     private final LogPanel logPanel;
@@ -26,9 +26,9 @@ public class MenuScene implements Scene {
         /**
          * The lobby data is instantiated.
          *
-         * @param id the game identifier.
-         * @param currentPlayers the current number of players.
-         * @param targetPlayers the target number of players.
+         * @param id the game identifier
+         * @param currentPlayers the current number of players
+         * @param targetPlayers the target number of players
          */
         public MenuLobbyData(int id, int currentPlayers, int targetPlayers) {
             this.id = id;
@@ -40,8 +40,8 @@ public class MenuScene implements Scene {
     /**
      * The menu scene is instantiated.
      *
-     * @param logPanel the shared log panel instance.
-     * @param legendPanel the shared legend panel instance.
+     * @param logPanel the shared log panel instance
+     * @param legendPanel the shared legend panel instance
      */
     public MenuScene(LogPanel logPanel, LegendPanel legendPanel) {
         this.logPanel = logPanel;
@@ -52,7 +52,7 @@ public class MenuScene implements Scene {
     /**
      * The available games list is updated.
      *
-     * @param lobbies the list of available lobbies.
+     * @param lobbies the list of available lobbies
      */
     public void setAvailableGames(List<MenuLobbyData> lobbies) {
         // data is passed to the component

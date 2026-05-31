@@ -9,7 +9,7 @@ import it.polimi.ingsw.am32.client.view.tui.components.global.LegendPanel;
 import org.jline.terminal.Terminal;
 
 /**
- * Scene responsible for rendering the active game layout.
+ * This scene renders the active game layout.
  */
 public class InGameScene implements Scene {
     private final HeaderPanel headerPanel;

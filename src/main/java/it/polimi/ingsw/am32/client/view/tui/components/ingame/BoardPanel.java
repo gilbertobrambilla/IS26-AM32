@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Panel responsible for displaying the central game board with drawn cards.
+ * This panel displays the central game board with drawn cards.
  */
 public class BoardPanel extends AbstractTuiPanel {
     private LightGameState state;
@@ -346,9 +346,9 @@ public class BoardPanel extends AbstractTuiPanel {
      * Offer track is dynamically drawn with smart wrapping.
      *
      * @param terminal the terminal instance
-     * @param track    the list of light offer tiles
-     * @param startX   the starting x coordinate
-     * @param startY   the starting y coordinate
+     * @param track the list of light offer tiles
+     * @param startX the starting x coordinate
+     * @param startY the starting y coordinate
      * @param maxWidth the maximum available width
      */
     private int drawOfferTrack(Terminal terminal, List<LightOfferTile> track, int startX, int startY, int maxWidth) {

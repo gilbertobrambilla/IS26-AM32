@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.client.view.tui.handlers;
 import it.polimi.ingsw.am32.client.controller.ClientController;
 
 /**
- * Handles the visual focus on player statistics and inventory.
+ * The visual focus on player statistics and inventory is handled.
  */
 public class StatsHandler implements InputHandler {
 

@@ -7,7 +7,7 @@ import org.jline.terminal.Terminal;
 import java.util.List;
 
 /**
- * Panel responsible for displaying the grid of available lobbies.
+ * This panel displays the grid of available lobbies.
  */
 public class MenuPanel extends AbstractTuiPanel {
     private List<MenuLobbyData> availableLobbies;
@@ -15,7 +15,7 @@ public class MenuPanel extends AbstractTuiPanel {
     /**
      * The available lobbies data is updated.
      *
-     * @param lobbies the list of available lobbies.
+     * @param lobbies the list of available lobbies
      */
     public void updateData(List<MenuLobbyData> lobbies) {
         // internal list is updated
@@ -67,7 +67,7 @@ public class MenuPanel extends AbstractTuiPanel {
             // tile box is drawn
             drawBox(terminal, currentX, currentY, tileWidth, tileHeight, "ID: " + lobby.id);
 
-            // players data is drawn inside the box
+            // player data is drawn inside the box
             moveCursor(terminal, currentX + 2, currentY + 1);
             terminal.writer().print("Players: " + lobby.currentPlayers + "/" + lobby.targetPlayers);
 

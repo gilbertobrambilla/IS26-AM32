@@ -45,7 +45,7 @@ public class GameDictionary {
     /**
      * Dictionary is loaded and flattened from the provided input stream.
      *
-     * @param is the input stream containing json data
+     * @param is the input stream containing JSON data
      */
     public void loadFromJson(InputStream is) {
         try {

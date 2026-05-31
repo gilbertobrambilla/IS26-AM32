@@ -26,8 +26,8 @@ public class LightPlayer {
     }
 
     /**
-     * Checks if the player can afford an additional building card,
-     * considering the cumulative cost of the buildings they have already selected in the UI.
+     * An additional building card is checked against the player's available food.
+     * The cumulative cost of buildings already selected in the ui is considered.
      *
      * @param alreadySelectedBuildingIds the list of building IDs already selected in the UI
      * @param additionalBuildingId the extra building ID to evaluate
@@ -48,7 +48,7 @@ public class LightPlayer {
     }
 
     /**
-     * Calculates the discounted cost of a single building for this specific player.
+     * The discounted cost of a single building is calculated for this specific player.
      */
     private int getSingleBuildingCost(String buildingId) {
         var buildingDTO = AssetManager.getInstance().getBuildingCard(buildingId);
@@ -56,7 +56,7 @@ public class LightPlayer {
 
         int baseCost = buildingDTO.getCost();
 
-        // Sum the buildingDiscount values of all "Builder" characters owned by the player
+        // builder discounts from owned characters are summed
         int discount = this.getCharacterCards().stream()
                 .map(id -> AssetManager.getInstance().getCharacterCard(id))
                 .filter(dto -> dto != null && "BUILDER".equals(dto.getCharacterType()))

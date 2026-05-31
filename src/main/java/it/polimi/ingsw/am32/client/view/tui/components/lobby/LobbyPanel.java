@@ -6,7 +6,7 @@ import org.jline.terminal.Terminal;
 import java.util.List;
 
 /**
- * Panel responsible for displaying the lobby information and connected players.
+ * This panel displays lobby information and connected players.
  */
 public class LobbyPanel extends AbstractTuiPanel {
     private int gameId;
@@ -18,11 +18,11 @@ public class LobbyPanel extends AbstractTuiPanel {
     /**
      * The lobby details and player list are updated.
      *
-     * @param gameId the identifier of the game.
-     * @param currentPlayersCount the current player count.
-     * @param targetPlayers the target player count.
-     * @param currentPlayers the list of connected player nicknames.
-     * @param myNickname the local player nickname.
+     * @param gameId the identifier of the game
+     * @param currentPlayersCount the current player count
+     * @param targetPlayers the target player count
+     * @param currentPlayers the list of connected player nicknames
+     * @param myNickname the local player nickname
      */
     public void updateData(int gameId, int currentPlayersCount, int targetPlayers, List<String> currentPlayers, String myNickname) {
         // internal state variables are updated
