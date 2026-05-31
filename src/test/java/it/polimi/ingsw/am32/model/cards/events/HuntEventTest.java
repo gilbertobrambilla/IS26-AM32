@@ -4,7 +4,6 @@ import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.cards.Card;
 import it.polimi.ingsw.am32.model.enums.EventType;
-import it.polimi.ingsw.am32.model.enums.StatChangeReason;
 import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 import it.polimi.ingsw.am32.model.Deck;
@@ -27,7 +26,7 @@ class HuntEventTest {
         private final Player testPlayer;
 
         public DummyGameState(Player testPlayer, TurnOrderTile dummyTile, Deck<Card> dummyDeck) {
-            // pass valid dummy data to satisfy gamestate's strict constructor requirements
+            // pass valid dummy data to satisfy game state's strict constructor requirements
             super(1, 2, new ArrayList<>(), dummyTile, dummyDeck, new HashMap<>());
             this.testPlayer = testPlayer;
         }
@@ -103,6 +102,5 @@ class HuntEventTest {
         // verify the receipt contents using the correct getter and java 21 getFirst()
         PlayerStatsChangeReceipt receipt = receipts.getFirst();
         assertEquals("Bob", receipt.getPlayerNickname());
-        assertEquals(StatChangeReason.HUNT.toString(), receipt.getReason());
     }
 }

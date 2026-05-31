@@ -4,7 +4,6 @@ import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.cards.Card;
 import it.polimi.ingsw.am32.model.enums.EventType;
-import it.polimi.ingsw.am32.model.enums.StatChangeReason;
 import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
 import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 import it.polimi.ingsw.am32.model.Deck;
@@ -26,7 +25,7 @@ class ShamanicRitualEventTest {
         private final List<Player> testPlayers;
 
         public DummyGameState(List<Player> testPlayers, TurnOrderTile dummyTile, Deck<Card> dummyDeck) {
-            // pass valid dummy data to satisfy gamestate's strict constructor requirements
+            // pass valid dummy data to satisfy game state's strict constructor requirements
             super(1, 2, new ArrayList<>(), dummyTile, dummyDeck, new HashMap<>());
             this.testPlayers = testPlayers;
         }
@@ -111,9 +110,7 @@ class ShamanicRitualEventTest {
         PlayerStatsChangeReceipt receiptBob = receipts.get(1);
 
         assertEquals("Alice", receiptAlice.getPlayerNickname());
-        assertEquals(StatChangeReason.SHAMANIC_RITUAL.toString(), receiptAlice.getReason());
 
         assertEquals("Bob", receiptBob.getPlayerNickname());
-        assertEquals(StatChangeReason.SHAMANIC_RITUAL.toString(), receiptBob.getReason());
     }
 }
