@@ -466,9 +466,7 @@ public class GameState {
             statsChange = new PlayerStatsChangeReceipt(
                     playerNickname,
                     player.getFood() - initialFood,
-                    player.getPrestige() - initialPrestige,
-                    player.getFood(),
-                    player.getPrestige()
+                    player.getPrestige() - initialPrestige
             );
         }
 
@@ -524,9 +522,7 @@ public class GameState {
             statsChange = new PlayerStatsChangeReceipt(
                     playerNickname,
                     player.getFood() - prePlacementFood,
-                    player.getPrestige() - prePlacementPrestige,
-                    player.getFood(),
-                    player.getPrestige()
+                    player.getPrestige() - prePlacementPrestige
             );
         }
 
@@ -639,9 +635,7 @@ public class GameState {
             statsChange = new PlayerStatsChangeReceipt(
                     playerNickname,
                     player.getFood() - preAcquisitionFood,
-                    player.getPrestige() - preAcquisitionPrestige,
-                    player.getFood(),
-                    player.getPrestige()
+                    player.getPrestige() - preAcquisitionPrestige
             );
         }
 
