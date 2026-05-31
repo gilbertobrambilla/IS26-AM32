@@ -6,7 +6,7 @@ import it.polimi.ingsw.am32.controller.VirtualView;
 import java.io.Serializable;
 
 /**
- * Interface representing a command executed in the lobby.
+ * A command executed in the lobby is represented.
  */
 public interface LobbyCommand extends Serializable {
 

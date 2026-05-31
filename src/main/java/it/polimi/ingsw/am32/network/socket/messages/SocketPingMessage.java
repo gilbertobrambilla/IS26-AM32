@@ -4,7 +4,7 @@ import it.polimi.ingsw.am32.network.socket.client.SocketServerProxy;
 import it.polimi.ingsw.am32.network.socket.server.SocketClientProxy;
 
 /**
- * Message used for pinging between client and server via socket.
+ * A message used for pinging between client and server via socket is represented.
  */
 public class SocketPingMessage implements ClientToServerMessage, ServerToClientMessage {
 
