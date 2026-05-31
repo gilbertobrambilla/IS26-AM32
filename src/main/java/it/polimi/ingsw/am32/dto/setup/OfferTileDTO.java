@@ -12,7 +12,7 @@ public class OfferTileDTO {
     private String assetPath;
 
     /**
-     * An offer tile setup data transfer object is initialized by Jackson.
+     * Jackson initializes an offer tile setup data transfer object.
      */
     public OfferTileDTO() {
         // default initialization is performed by jackson

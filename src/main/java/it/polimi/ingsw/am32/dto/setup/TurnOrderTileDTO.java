@@ -13,14 +13,14 @@ public class TurnOrderTileDTO {
     private String assetPath;
 
     /**
-     * A turn order tile setup data transfer object is initialized by Jackson.
+     * Jackson initializes a turn order tile setup data transfer object.
      */
     public TurnOrderTileDTO() {
         // default initialization is performed by jackson
     }
 
     /**
-     * A turn order tile setup data transfer object is initialized with full tile data.
+     * A turn-order tile setup data transfer object is initialized with full tile data.
      *
      * @param id the turn order tile id
      * @param requiredPlayers the number of required players
