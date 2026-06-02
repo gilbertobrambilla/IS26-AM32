@@ -34,19 +34,19 @@ public class InGameViewController implements ViewController {
     @FXML private HBox toastContainer;
     @FXML private Label toastLabel;
 
-    // Opponent focus overlay nodes.
+    // opponent focus overlay nodes
     @FXML private StackPane opponentFocusOverlay;
     @FXML private Label focusNameLabel;
     @FXML private HBox focusCardsContainer;
 
     @FXML private BoardViewController boardController;
 
-    // --- HELPER CARD NODES ---
+    // --- helper card nodes ---
     @FXML private ImageView helperCardImageView;
     @FXML private StackPane helperCardOverlay;
     @FXML private ImageView largeHelperImageView;
 
-    // Nuove variabili per gestire il flip della carta helper:
+    // helper card flip state is tracked
     private Image helperImgFront;
     private Image helperImgBack;
     private boolean isHelperFront = true;

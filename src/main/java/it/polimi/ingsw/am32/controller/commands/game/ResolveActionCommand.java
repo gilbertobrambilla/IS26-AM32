@@ -5,7 +5,7 @@ import it.polimi.ingsw.am32.controller.GameController;
 import java.util.List;
 
 /**
- * Command used to process the resolution of an action in the game.
+ * A command used to process the resolution of an action in the game is represented.
  */
 public class ResolveActionCommand implements GameCommand {
     private final List<String> characters;

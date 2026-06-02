@@ -4,7 +4,7 @@ import it.polimi.ingsw.am32.controller.LobbyController;
 import it.polimi.ingsw.am32.controller.VirtualView;
 
 /**
- * Command used to process the request to join an existing game.
+ * A command used to process the request to join an existing game is represented.
  */
 public class JoinGameCommand implements LobbyCommand {
     private final int gameId;

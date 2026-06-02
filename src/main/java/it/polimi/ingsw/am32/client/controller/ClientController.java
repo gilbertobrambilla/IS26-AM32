@@ -30,7 +30,7 @@ public class ClientController {
     /**
      * Client controller is instantiated.
      *
-     * @param virtualServer the virtual server instance.
+     * @param virtualServer the virtual server instance
      */
     public ClientController(VirtualServer virtualServer) {
         this.virtualServer = virtualServer;
@@ -48,7 +48,7 @@ public class ClientController {
     /**
      * Ui reference is set.
      *
-     * @param ui the user interface.
+     * @param ui the user interface
      */
     public void setUI(UI ui) {
         this.ui = ui;
@@ -79,7 +79,7 @@ public class ClientController {
     /**
      * Game creation is requested.
      *
-     * @param numOfPlayers the target number of players.
+     * @param numOfPlayers the target number of players
      */
     public void requestCreateGame(int numOfPlayers) {
         CreateGameCommand cmd = new CreateGameCommand(numOfPlayers);
@@ -90,7 +90,7 @@ public class ClientController {
     /**
      * Game join is requested.
      *
-     * @param gameId the id of the game.
+     * @param gameId the id of the game
      */
     public void requestJoinGame(int gameId) {
         JoinGameCommand cmd = new JoinGameCommand(gameId);
@@ -101,7 +101,7 @@ public class ClientController {
     /**
      * Lobby error event is processed.
      *
-     * @param event the lobby error event.
+     * @param event the lobby error event
      */
     public void onLobbyError(LobbyErrorEvent event) {
         runOnUIThread(() -> {
@@ -113,7 +113,7 @@ public class ClientController {
     /**
      * Totem placement is requested.
      *
-     * @param tileId the id of the tile.
+     * @param tileId the id of the tile
      */
     public void requestPlaceTotem(String tileId) {
         PlaceTotemCommand cmd = new PlaceTotemCommand(tileId);
@@ -124,8 +124,8 @@ public class ClientController {
     /**
      * Action resolution is requested.
      *
-     * @param characters the character cards.
-     * @param buildings the building cards.
+     * @param characters the character cards
+     * @param buildings the building cards
      */
     public void requestResolveAction(List<String> characters, List<String> buildings) {
         ResolveActionCommand cmd = new ResolveActionCommand(characters, buildings);
@@ -136,7 +136,7 @@ public class ClientController {
     /**
      * Extra acquisition is requested.
      *
-     * @param cardId the id of the acquired card, or null to skip the action.
+     * @param cardId the id of the acquired card, or null to skip the action
      */
     public void requestExtraAcquisition(String cardId) {
         // command object is instantiated
@@ -148,7 +148,7 @@ public class ClientController {
     /**
      * Local visual focus on a specific player is requested.
      *
-     * @param nickname the player nickname, or null to clear focus.
+     * @param nickname the player nickname, or null to clear focus
      */
     public void requestPlayerFocus(String nickname) {
         // focus request is dispatched to ui thread
@@ -162,7 +162,7 @@ public class ClientController {
     /**
      * Generic message is processed.
      *
-     * @param message the network message.
+     * @param message the network message
      */
     public void onMessageReceived(MessageDTO message) {
         // double dispatch is triggered
@@ -388,7 +388,7 @@ public class ClientController {
     /**
      * Fatal error is processed.
      *
-     * @param message the error message.
+     * @param message the error message
      */
     public void onFatalError(String message) {
         runOnUIThread(() -> {
@@ -400,7 +400,7 @@ public class ClientController {
     /**
      * Task is executed on the ui thread.
      *
-     * @param task the runnable task.
+     * @param task the runnable task
      */
     private void runOnUIThread(Runnable task) {
         // task is submitted to the ui executor queue
@@ -410,7 +410,7 @@ public class ClientController {
     /**
      * Light game state is retrieved.
      *
-     * @return the current light game state.
+     * @return the current light game state
      */
     public LightGameState getLightGameState() {
         // light game state is returned
@@ -420,7 +420,7 @@ public class ClientController {
     /**
      * Local player nickname is retrieved.
      *
-     * @return the local player nickname.
+     * @return the local player nickname
      */
     public String getMyNickname() {
         // my nickname is returned

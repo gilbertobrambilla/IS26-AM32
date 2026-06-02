@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles the execution of the action resolution command based on the offer tile limits.
+ * Action resolution command execution is handled based on offer tile limits.
  */
 public class ResolveHandler implements InputHandler {
 
@@ -45,7 +45,7 @@ public class ResolveHandler implements InputHandler {
 
             String flag = args[1];
             String token = args[2];
-            String cardId = null;
+            String cardId;
 
             // flag is evaluated to construct full card id
             if ("-c".equalsIgnoreCase(flag)) {

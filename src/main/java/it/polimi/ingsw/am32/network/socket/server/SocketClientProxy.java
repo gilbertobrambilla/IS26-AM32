@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Proxy representing a remote client connected via socket.
+ * A remote client connected via socket is represented by a proxy.
  */
 public class SocketClientProxy implements Runnable, ClientNode {
 
@@ -39,7 +39,7 @@ public class SocketClientProxy implements Runnable, ClientNode {
     private String connectionID;
 
     /**
-     * New socket client proxy constructed.
+     * A new socket client proxy is constructed.
      *
      * @param socket the client socket
      * @param lobbyController the lobby controller instance
@@ -172,7 +172,7 @@ public class SocketClientProxy implements Runnable, ClientNode {
     }
 
     /**
-     * Object sent to the client over the socket connection.
+     * An object is sent to the client over the socket connection.
      *
      * @param obj the object to be sent
      */
@@ -195,7 +195,7 @@ public class SocketClientProxy implements Runnable, ClientNode {
     }
 
     /**
-     * Connection disconnected and resources cleaned up.
+     * The connection is disconnected and resources are cleaned up.
      */
     private void disconnect() {
         if (!connected.get()) return;

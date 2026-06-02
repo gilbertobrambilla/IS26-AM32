@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.controller.commands.game;
 import it.polimi.ingsw.am32.controller.GameController;
 
 /**
- * Command used to process an extra acquisition action in the game.
+ * A command used to process an extra acquisition action in the game is represented.
  */
 public class ExtraAcquisitionCommand implements GameCommand {
     private final String cardId;
@@ -11,7 +11,7 @@ public class ExtraAcquisitionCommand implements GameCommand {
     /**
      * A new extra acquisition command is constructed with the selected card.
      *
-     * @param cardId the id of the selected card, or null to skip the action.
+     * @param cardId the id of the selected card, or null to skip the action
      */
     public ExtraAcquisitionCommand(String cardId) {
         this.cardId = cardId;

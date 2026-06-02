@@ -6,7 +6,7 @@ import it.polimi.ingsw.am32.log.LogLevel;
 import it.polimi.ingsw.am32.log.LogManager;
 
 /**
- * Handles the display of the quick help guide.
+ * The quick help guide display is handled.
  */
 public class HelpHandler implements InputHandler {
 

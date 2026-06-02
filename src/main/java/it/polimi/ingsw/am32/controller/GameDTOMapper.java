@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Utility class responsible for mapping model objects to data transfer objects.
+ * Model objects are mapped to data transfer objects.
  */
 public class GameDTOMapper {
 

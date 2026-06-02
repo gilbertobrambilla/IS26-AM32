@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Panel responsible for displaying the recent event history.
+ * This panel displays the recent event history.
  */
 public class LogPanel extends AbstractTuiPanel {
     private final List<String> messages;
@@ -14,7 +14,7 @@ public class LogPanel extends AbstractTuiPanel {
     /**
      * The log panel is instantiated.
      *
-     * @param maxMessages the maximum number of messages to retain.
+     * @param maxMessages the maximum number of messages to retain
      */
     public LogPanel(int maxMessages) {
         // list is initialized
@@ -26,7 +26,7 @@ public class LogPanel extends AbstractTuiPanel {
     /**
      * A new message is added to the log.
      *
-     * @param message the message to be displayed.
+     * @param message the message to be displayed
      */
     public void addMessage(String message) {
         // message is added

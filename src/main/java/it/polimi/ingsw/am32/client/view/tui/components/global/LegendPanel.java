@@ -6,7 +6,7 @@ import org.jline.terminal.Terminal;
 import java.util.Collection;
 
 /**
- * Panel responsible for displaying the dynamic list of available commands.
+ * The dynamic list of available commands is displayed by this panel.
  */
 public class LegendPanel extends AbstractTuiPanel {
     private Collection<InputHandler> commands;
@@ -14,7 +14,7 @@ public class LegendPanel extends AbstractTuiPanel {
     /**
      * The available commands are updated.
      *
-     * @param commands the collection of active input handlers.
+     * @param commands the collection of active input handlers
      */
     public void updateCommands(Collection<InputHandler> commands) {
         // commands collection is updated

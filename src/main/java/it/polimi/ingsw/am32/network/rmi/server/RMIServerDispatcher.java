@@ -14,7 +14,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Rmi server interface implemented.
+ * The rmi server interface is implemented.
  */
 public class RMIServerDispatcher extends UnicastRemoteObject implements RMIServer {
 
@@ -22,7 +22,7 @@ public class RMIServerDispatcher extends UnicastRemoteObject implements RMIServe
     private final ConcurrentHashMap<String, RemoteClientView> activeNodes;
 
     /**
-     * New rmi server implementation constructed.
+     * A new rmi server implementation is constructed.
      *
      * @param lobbyController the controller handling the lobby logic
      * @throws RemoteException if the remote object cannot be exported

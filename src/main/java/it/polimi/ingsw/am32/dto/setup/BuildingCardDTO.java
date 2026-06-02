@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.dto.setup;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Data transfer object representing a building card.
+ * A building card setup data transfer object is represented.
  */
 public class BuildingCardDTO {
     private String id;
@@ -15,22 +15,22 @@ public class BuildingCardDTO {
     private String assetPath;
 
     /**
-     * Default constructor.
+     * Jackson initializes a building card setup data transfer object.
      */
     public BuildingCardDTO() {
         // default initialization is performed by jackson
     }
 
     /**
-     * Constructor with all parameters.
+     * A building card setup data transfer object is initialized with full card data.
      *
-     * @param id The id of the building card.
-     * @param era The era of the building card.
-     * @param basePrestige The base prestige.
-     * @param cost The cost of the building card.
-     * @param effectCode The effect code.
-     * @param effectParams The effect parameters as a JSON node.
-     * @param assetPath The path to the card asset.
+     * @param id the building card id
+     * @param era the building card era
+     * @param basePrestige the base prestige
+     * @param cost the building card cost
+     * @param effectCode the effect code
+     * @param effectParams the effect parameters as a JSON node
+     * @param assetPath the card asset path
      */
     public BuildingCardDTO(String id, int era, int basePrestige, int cost, String effectCode, JsonNode effectParams, String assetPath) {
         this.id = id;
@@ -43,126 +43,126 @@ public class BuildingCardDTO {
     }
 
     /**
-     * Gets the id.
+     * The building card id is returned.
      *
-     * @return The id of the building card.
+     * @return the building card id
      */
     public String getId() {
         return this.id;
     }
 
     /**
-     * Sets the id.
+     * The building card id is set.
      *
-     * @param id The new id to set.
+     * @param id the building card id
      */
     public void setId(String id) {
         this.id = id;
     }
 
     /**
-     * Gets the era.
+     * The building card era is returned.
      *
-     * @return The era of the building card.
+     * @return the building card era
      */
     public int getEra() {
         return this.era;
     }
 
     /**
-     * Sets the era.
+     * The building card era is set.
      *
-     * @param era The new era to set.
+     * @param era the building card era
      */
     public void setEra(int era) {
         this.era = era;
     }
 
     /**
-     * Gets the base prestige.
+     * The base prestige is returned.
      *
-     * @return The base prestige.
+     * @return the base prestige
      */
     public int getBasePrestige() {
         return this.basePrestige;
     }
 
     /**
-     * Sets the base prestige.
+     * The base prestige is set.
      *
-     * @param basePrestige The new base prestige to set.
+     * @param basePrestige the base prestige
      */
     public void setBasePrestige(int basePrestige) {
         this.basePrestige = basePrestige;
     }
 
     /**
-     * Gets the cost.
+     * The building card cost is returned.
      *
-     * @return The cost of the building card.
+     * @return the building card cost
      */
     public int getCost() {
         return this.cost;
     }
 
     /**
-     * Sets the cost.
+     * The building card cost is set.
      *
-     * @param cost The new cost to set.
+     * @param cost the building card cost
      */
     public void setCost(int cost) {
         this.cost = cost;
     }
 
     /**
-     * Gets the effect code.
+     * The effect code is returned.
      *
-     * @return The effect code.
+     * @return the effect code
      */
     public String getEffectCode() {
         return this.effectCode;
     }
 
     /**
-     * Sets the effect code.
+     * The effect code is set.
      *
-     * @param effectCode The new effect code to set.
+     * @param effectCode the effect code
      */
     public void setEffectCode(String effectCode) {
         this.effectCode = effectCode;
     }
 
     /**
-     * Gets the effect parameters.
+     * The effect parameters are returned.
      *
-     * @return The effect parameters as a JSON node.
+     * @return the effect parameters as a JSON node
      */
     public JsonNode getEffectParams() {
         return this.effectParams;
     }
 
     /**
-     * Sets the effect parameters.
+     * The effect parameters are set.
      *
-     * @param effectParams The new effect parameters to set.
+     * @param effectParams the effect parameters as a JSON node
      */
     public void setEffectParams(JsonNode effectParams) {
         this.effectParams = effectParams;
     }
 
     /**
-     * Gets the asset path.
+     * The card asset path is returned.
      *
-     * @return The asset path.
+     * @return the card asset path
      */
     public String getAssetPath() {
         return this.assetPath;
     }
 
     /**
-     * Sets the asset path.
+     * The card asset path is set.
      *
-     * @param assetPath The new asset path to set.
+     * @param assetPath the card asset path
      */
     public void setAssetPath(String assetPath) {
         this.assetPath = assetPath;

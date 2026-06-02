@@ -11,7 +11,7 @@ public class PlayerStatsChangedDTO implements Serializable {
     private final int prestigeChange;
 
     /**
-     * A player statistics change data transfer object is initialized with delta and snapshot data.
+     * A player statistics change data transfer object is initialized with delta data.
      *
      * @param player the player nickname
      * @param foodChange the food delta

@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.controller.commands.game;
 import it.polimi.ingsw.am32.controller.GameController;
 
 /**
- * Command used to process the placement of a totem in the game.
+ * A command used to process the placement of a totem in the game is represented.
  */
 public class PlaceTotemCommand implements GameCommand {
     private final String tileId;

@@ -283,12 +283,12 @@ public class BoardViewController {
             }
         }
 
-        // Modificato in List<Node> per poter ospitare sia OfferView che il DeckView
+        // node list is used to host both offer views and the deck view
         List<Node> orderedViews = tiles.stream()
                 .map(t -> offerViewCache.get(t.getId()))
                 .collect(Collectors.toList());
 
-        // --- NUOVA FEATURE: AGGIUNTA DEL MAZZO ---
+        // --- deck view ---
         StackPane deckView = buildDeckView(state);
         if (deckView != null) {
             orderedViews.add(deckView);

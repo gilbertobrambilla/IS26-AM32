@@ -4,12 +4,12 @@ import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.controller.commands.lobby.LobbyCommand;
 
 /**
- * Interface representing a generic connection to the server.
+ * A generic connection to the server is represented.
  */
 public interface ServerConnection {
 
     /**
-     * Establishes the physical network connection to the server.
+     * The physical network connection to the server is established.
      */
     void connect();
 
@@ -21,16 +21,16 @@ public interface ServerConnection {
     void login(String nickname);
 
     /**
-     * Sends a lobby command to the server.
+     * A lobby command is sent to the server.
      *
-     * @param command The lobby command to be sent.
+     * @param command the lobby command to be sent
      */
     void sendLobbyCommand(LobbyCommand command);
 
     /**
-     * Sends a game command to the server.
+     * A game command is sent to the server.
      *
-     * @param command The game command to be sent.
+     * @param command the game command to be sent
      */
     void sendGameCommand(GameCommand command);
 }

@@ -76,9 +76,7 @@ public class SustenanceEvent extends EventCard {
             receipts.add(new PlayerStatsChangeReceipt(
                     player.getNickname(),
                     postFood - preFood,
-                    postPrestige - prePrestige,
-                    postFood,
-                    postPrestige
+                    postPrestige - prePrestige
             ));
         }
         return receipts;

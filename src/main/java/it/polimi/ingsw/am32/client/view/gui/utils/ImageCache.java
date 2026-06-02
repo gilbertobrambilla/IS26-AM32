@@ -8,15 +8,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Flyweight cache for JavaFX {@link Image} objects loaded from the classpath.
+ * A flyweight cache for JavaFX {@link Image} objects is represented.
  *
- * <p>Uses the <em>initialization-on-demand holder</em> idiom for thread-safe lazy
- * instantiation with zero synchronization overhead on the hot path.
- * Internally backed by a {@link ConcurrentHashMap}, so concurrent reads never block.
- * Paths that fail to load are tracked in a separate set to avoid redundant I/O on
- * subsequent calls.</p>
+ * <p>The <em>initialization-on-demand holder</em> idiom is used for thread-safe
+ * lazy instantiation. The cache is backed by a {@link ConcurrentHashMap}. Paths
+ * that fail to load are tracked in a separate set to avoid redundant I/O.</p>
  *
- * <p>All methods are safe to call from any thread, including the JavaFX Application Thread.</p>
+ * <p>All methods are safe to call from any thread.</p>
  */
 public final class ImageCache {
 
@@ -25,17 +23,17 @@ public final class ImageCache {
 
     private ImageCache() {}
 
-    /** Returns the singleton instance. Initialized lazily and exactly once by the JVM. */
+    /** The singleton instance is returned and initialized lazily by the jvm. */
     public static ImageCache getInstance() {
         return Holder.INSTANCE;
     }
 
     /**
-     * Returns the {@link Image} for the given classpath {@code path}, loading and caching
-     * it on first access.
+     * The {@link Image} for the given classpath {@code path} is returned.
+     * The image is loaded and cached on first access.
      *
      * <p>If the resource is missing or {@code path} is blank, {@code null} is returned and
-     * the path is registered so subsequent calls skip the I/O attempt.</p>
+     * the path is registered so later calls skip the I/O attempt.</p>
      *
      * @param path absolute classpath path (e.g. {@code /assets/images/card_back.png})
      * @return the loaded image, or {@code null} if unavailable
@@ -67,8 +65,7 @@ public final class ImageCache {
         }
 
         Image image = new Image(stream);
-        // putIfAbsent is safe under concurrent access: if another thread raced and won,
-        // we simply discard our copy and return the winner already in the map.
+        // cached winner is returned if concurrent access already stored an image
         cache.putIfAbsent(path, image);
         return cache.get(path);
     }

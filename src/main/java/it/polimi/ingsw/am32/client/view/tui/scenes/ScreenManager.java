@@ -16,7 +16,7 @@ public class ScreenManager {
     /**
      * The screen manager is instantiated with the given terminal.
      *
-     * @param terminal the underlying jline terminal.
+     * @param terminal the underlying jline terminal
      */
     public ScreenManager(Terminal terminal) {
         this.terminal = terminal;
@@ -27,7 +27,7 @@ public class ScreenManager {
     /**
      * The line reader is set for input restoration.
      *
-     * @param lineReader the jline line reader.
+     * @param lineReader the jline line reader
      */
     public void setLineReader(LineReader lineReader) {
         this.lineReader = lineReader;
@@ -36,7 +36,7 @@ public class ScreenManager {
     /**
      * The active scene is updated.
      *
-     * @param scene the new scene to be rendered.
+     * @param scene the new scene to be rendered
      */
     public void setActiveScene(Scene scene) {
         this.activeScene = scene;
@@ -45,7 +45,7 @@ public class ScreenManager {
     /**
      * The dynamic prompt string is stored and updated for the input area.
      *
-     * @param prompt the current prompt string.
+     * @param prompt the current prompt string
      */
     public void setPrompt(String prompt) {
         // dynamic prompt is updated
@@ -92,7 +92,7 @@ public class ScreenManager {
     /**
      * The terminal resize signal is handled.
      *
-     * @param signal the received signal.
+     * @param signal the received signal
      */
     private void handleResize(Terminal.Signal signal) {
         // screen is rendered again
@@ -102,7 +102,7 @@ public class ScreenManager {
     /**
      * The cursor is restored to the input prompt area.
      *
-     * @param terminalHeight the total height of the terminal.
+     * @param terminalHeight the total height of the terminal
      */
     private void restoreInputArea(int terminalHeight) {
         // cursor is moved to the bottom row using the jline writer

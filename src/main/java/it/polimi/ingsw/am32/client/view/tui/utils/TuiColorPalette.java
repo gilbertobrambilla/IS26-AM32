@@ -3,15 +3,15 @@ package it.polimi.ingsw.am32.client.view.tui.utils;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 
 /**
- * Utility class for managing ansi color codes for various game components.
+ * Ansi color codes for various game components are managed.
  */
 public class TuiColorPalette {
 
     /**
      * The color code is retrieved based on the character profession type.
      *
-     * @param type the character profession type.
-     * @return the ansi color string.
+     * @param type the character profession type
+     * @return the ansi color string
      */
     public static String getCharacterColor(String type) {
         // default color is returned if type is null
@@ -57,7 +57,7 @@ public class TuiColorPalette {
     /**
      * The color code for building cards is retrieved.
      *
-     * @return the ansi color string.
+     * @return the ansi color string
      */
     public static String getBuildingColor() {
         // light gray color is returned for buildings
@@ -67,7 +67,7 @@ public class TuiColorPalette {
     /**
      * The color code for event cards is retrieved.
      *
-     * @return the ansi color string.
+     * @return the ansi color string
      */
     public static String getEventColor() {
         // brown color is returned for events
@@ -77,7 +77,7 @@ public class TuiColorPalette {
     /**
      * The default reset color code is retrieved.
      *
-     * @return the ansi reset string.
+     * @return the ansi reset string
      */
     public static String getReset() {
         // terminal color reset sequence is returned
