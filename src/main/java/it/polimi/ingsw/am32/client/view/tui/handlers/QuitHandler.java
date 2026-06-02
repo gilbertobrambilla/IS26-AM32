@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.client.view.tui.handlers;
 import it.polimi.ingsw.am32.client.controller.ClientController;
 
 /**
- * Handles the application termination.
+ * The application termination is handled.
  */
 public class QuitHandler implements InputHandler {
 

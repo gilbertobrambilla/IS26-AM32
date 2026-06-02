@@ -5,7 +5,7 @@ import it.polimi.ingsw.am32.controller.GameController;
 import java.io.Serializable;
 
 /**
- * Interface representing a command executed in the game.
+ * A command executed in the game is represented.
  */
 public interface GameCommand extends Serializable {
 

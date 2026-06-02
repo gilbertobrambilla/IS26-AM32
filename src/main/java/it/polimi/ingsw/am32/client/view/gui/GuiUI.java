@@ -9,19 +9,18 @@ import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 import javafx.application.Platform;
 
 /**
- * JavaFX implementation of the UI interface.
- * It receives network events from the ClientController and safely routes them
- * to the JavaFX Application Thread using Platform.runLater(), delegating
- * the specific rendering logic to the current active ViewController.
+ * JavaFX implementation of the ui interface is represented.
+ * Network events are safely routed to the JavaFX application thread.
+ * Rendering logic is delegated to the current active view controller.
  */
 public class GuiUI implements UI {
 
     private final ClientController controller;
 
     /**
-     * Instantiates the GUI and links it to the main controller.
+     * The GUI is instantiated and linked to the main controller.
      *
-     * @param controller the main ClientController.
+     * @param controller the main ClientController
      */
     public GuiUI(ClientController controller) {
         this.controller = controller;

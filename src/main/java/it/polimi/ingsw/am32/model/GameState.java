@@ -9,7 +9,6 @@ import it.polimi.ingsw.am32.model.cards.visitors.EventCollectorVisitor;
 import it.polimi.ingsw.am32.model.cards.visitors.RowDistributionVisitor;
 import it.polimi.ingsw.am32.model.enums.GamePhase;
 import it.polimi.ingsw.am32.model.enums.GameErrorReason;
-import it.polimi.ingsw.am32.model.enums.StatChangeReason;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
 import it.polimi.ingsw.am32.model.receipts.*;
@@ -19,7 +18,7 @@ import it.polimi.ingsw.am32.model.tiles.TurnOrderTile;
 import java.util.*;
 
 /**
- * Represents the main state of the game.
+ * The main state of the game is represented.
  */
 public class GameState {
     private final int gameId;
@@ -39,7 +38,7 @@ public class GameState {
     private Player currentPlayer;
 
     /**
-     * Initializes the game state with the provided parameters.
+     * The game state is initialized with the provided parameters.
      *
      * @param gameId the identifier of the game
      * @param targetPlayers the expected number of players
@@ -81,7 +80,7 @@ public class GameState {
     }
 
     /**
-     * Initializes the game board and distributes initial resources.
+     * The game board is initialized and initial resources are distributed.
      */
     public void initGame() {
         if (this.players.size() != this.targetPlayers) {
@@ -154,7 +153,7 @@ public class GameState {
     }
 
     /**
-     * Validates if the specified player is the current player.
+     * The specified player is validated against the current turn.
      *
      * @param playerNickname the nickname of the player to validate
      * @throws InvalidGameActionException if it is not the player's turn
@@ -170,7 +169,7 @@ public class GameState {
     }
 
     /**
-     * Validates if the current phase matches one of the expected phases.
+     * The current phase is validated against the expected phases.
      *
      * @param expectedPhases the allowed phases for the action
      * @throws InvalidGameActionException if the current phase is not allowed
@@ -193,7 +192,7 @@ public class GameState {
     // core gameplay phases
 
     /**
-     * Places the player's totem on the selected offer tile.
+     * The player's totem is placed on the selected offer tile.
      *
      * @param playerNickname the nickname of the player
      * @param selectedOfferTileId the id of the selected offer tile
@@ -258,13 +257,13 @@ public class GameState {
     }
 
     /**
-     * Resolves the standard action phase for a player, processing card acquisitions,
+     * The standard action phase is resolved for a player, processing card acquisitions,
      * costs, passive effects, and totem repositioning.
      *
      * @param playerNickname the nickname of the player performing the action
      * @param chosenCharacterCardsIds the list of character card ids chosen by the player
      * @param chosenBuildingCardsIds the list of building card ids chosen by the player
-     * @return an action receipt containing the detailed breakdown of the action
+     * @return an action receipt containing the resulting statistics change and turn order position
      * @throws InvalidGameActionException if the action is invalid or the player cannot afford it
      */
     public ActionReceipt resolveAction(String playerNickname, List<String> chosenCharacterCardsIds, List<String> chosenBuildingCardsIds) {
@@ -407,44 +406,17 @@ public class GameState {
             );
         }
 
-        List<PlayerStatsChangeReceipt> statsChanges = new ArrayList<>();
+        int initialFood = player.getFood();
+        int initialPrestige = player.getPrestige();
 
         // offer tile food bonus is applied before any card payment
         int foodBonus = targetTile.getAction().getFoodBonus();
         if (foodBonus > 0) {
             player.addFood(foodBonus);
-            statsChanges.add(new PlayerStatsChangeReceipt(
-                    playerNickname,
-                    foodBonus,
-                    0,
-                    player.getFood(),
-                    player.getPrestige(),
-                    StatChangeReason.OFFER_FOOD_BONUS.toString()
-            ));
         }
-
-        // initial stats are recorded before payment
-        int prePaymentFood = player.getFood();
-        int prePaymentPrestige = player.getPrestige();
 
         // selected buildings are validated and paid for internally by the player
         player.payForBuildings(foundBuildings);
-
-        // payment cost is evaluated and recorded
-        if (player.getFood() != prePaymentFood || player.getPrestige() != prePaymentPrestige) {
-            statsChanges.add(new PlayerStatsChangeReceipt(
-                    playerNickname,
-                    player.getFood() - prePaymentFood,
-                    player.getPrestige() - prePaymentPrestige,
-                    player.getFood(),
-                    player.getPrestige(),
-                    StatChangeReason.ACTION_COST.toString()
-            ));
-        }
-
-        // stats are recorded before card assignment to track passive bonuses
-        int preAcquisitionFood = player.getFood();
-        int preAcquisitionPrestige = player.getPrestige();
 
         // transaction is executed and cards are removed from the board
         for (CharacterCard c : foundCharacters) {
@@ -459,34 +431,9 @@ public class GameState {
             player.acquireBuilding(b, this);
         }
 
-        // passive bonuses from acquisitions are evaluated and recorded
-        if (player.getFood() != preAcquisitionFood || player.getPrestige() != preAcquisitionPrestige) {
-            statsChanges.add(new PlayerStatsChangeReceipt(
-                    playerNickname,
-                    player.getFood() - preAcquisitionFood,
-                    player.getPrestige() - preAcquisitionPrestige,
-                    player.getFood(),
-                    player.getPrestige(),
-                    StatChangeReason.BUILDING_PASSIVE.toString()
-            ));
-        }
-
         // player is moved to the turn order tile
         targetTile.removePlayer();
-        TurnOrderPlacementReceipt placementInfo = this.turnOrderTile.placePlayer(player);
-
-        // placement bonus or malus is evaluated
-        PlayerStatsChangeReceipt placementStatsChange = null;
-        if (placementInfo.getFoodModifier() != 0 || placementInfo.getPrestigeModifier() != 0) {
-            placementStatsChange = new PlayerStatsChangeReceipt(
-                    playerNickname,
-                    placementInfo.getFoodModifier(),
-                    placementInfo.getPrestigeModifier(),
-                    player.getFood(),
-                    player.getPrestige(),
-                    StatChangeReason.TURN_ORDER_BONUS.toString()
-            );
-        }
+        int turnOrderPosition = this.turnOrderTile.placePlayer(player);
 
         // next player is determined by checking the offer track from left to right
         Player nextPlayer = null;
@@ -497,12 +444,9 @@ public class GameState {
             }
         }
 
-        String nextPlayerNickname = null;
-
         if (nextPlayer != null) {
             // the turn is passed to the next player on the offer track
             this.currentPlayer = nextPlayer;
-            nextPlayerNickname = nextPlayer.getNickname();
         } else {
             // resolve_actions phase is complete
             // building effects for the end of the action phase are triggered
@@ -514,29 +458,28 @@ public class GameState {
             if (this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
                 this.currentPhase = GamePhase.RESOLVE_EVENTS;
                 this.currentPlayer = null;
-            } else {
-                nextPlayerNickname = this.currentPlayer.getNickname();
             }
         }
 
-        // totem details are packed into the receipt
-        TotemReturnReceipt totemDetails = new TotemReturnReceipt(
-                playerNickname,
-                placementInfo.getSlotIndex(),
-                placementStatsChange,
-                nextPlayerNickname
-        );
+        PlayerStatsChangeReceipt statsChange = null;
+        if (player.getFood() != initialFood || player.getPrestige() != initialPrestige) {
+            statsChange = new PlayerStatsChangeReceipt(
+                    playerNickname,
+                    player.getFood() - initialFood,
+                    player.getPrestige() - initialPrestige
+            );
+        }
 
         // final receipt is generated and returned
-        return new ActionReceipt(statsChanges, totemDetails);
+        return new ActionReceipt(statsChange, turnOrderPosition);
     }
 
     /**
-     * Forfeits the player's action, moving their totem directly to the turn order tile
+     * The player's action is forfeited, moving their totem directly to the turn order tile
      * without acquiring any cards.
      *
      * @param playerNickname the nickname of the player forfeiting the action
-     * @return an action receipt containing only the totem repositioning details
+     * @return an action receipt containing the resulting statistics change and turn order position
      */
     public ActionReceipt forfeitAction(String playerNickname) {
         Objects.requireNonNull(playerNickname, "playerNickname cannot be null");
@@ -571,18 +514,15 @@ public class GameState {
 
         // player is removed from the board and moved to the turn order tile
         targetTile.removePlayer();
-        TurnOrderPlacementReceipt placementInfo = this.turnOrderTile.placePlayer(player);
+        int turnOrderPosition = this.turnOrderTile.placePlayer(player);
 
         // placement bonus or malus is evaluated
-        PlayerStatsChangeReceipt placementStatsChange = null;
+        PlayerStatsChangeReceipt statsChange = null;
         if (player.getFood() != prePlacementFood || player.getPrestige() != prePlacementPrestige) {
-            placementStatsChange = new PlayerStatsChangeReceipt(
+            statsChange = new PlayerStatsChangeReceipt(
                     playerNickname,
                     player.getFood() - prePlacementFood,
-                    player.getPrestige() - prePlacementPrestige,
-                    player.getFood(),
-                    player.getPrestige(),
-                    StatChangeReason.TURN_ORDER_BONUS.toString()
+                    player.getPrestige() - prePlacementPrestige
             );
         }
 
@@ -595,11 +535,8 @@ public class GameState {
             }
         }
 
-        String nextPlayerNickname = null;
-
         if (nextPlayer != null) {
             this.currentPlayer = nextPlayer;
-            nextPlayerNickname = nextPlayer.getNickname();
         } else {
             // building effects are triggered on round end
             for (Player p : this.players) {
@@ -610,25 +547,15 @@ public class GameState {
             if (this.currentPhase != GamePhase.EXTRA_ACQUISITION) {
                 this.currentPhase = GamePhase.RESOLVE_EVENTS;
                 this.currentPlayer = null;
-            } else {
-                nextPlayerNickname = this.currentPlayer.getNickname();
             }
         }
 
-        // totem details are packed into the receipt
-        TotemReturnReceipt totemDetails = new TotemReturnReceipt(
-                playerNickname,
-                placementInfo.getSlotIndex(),
-                placementStatsChange,
-                nextPlayerNickname
-        );
-
-        // final receipt is generated and returned with an empty stats list
-        return new ActionReceipt(new ArrayList<>(), totemDetails);
+        // final receipt is generated and returned
+        return new ActionReceipt(statsChange, turnOrderPosition);
     }
 
     /**
-     * Resolves the extra acquisition phase, allowing a player to purchase an additional
+     * The extra acquisition phase is resolved, allowing a player to purchase an additional
      * card from the upper row.
      *
      * @param playerNickname the nickname of the player performing the extra acquisition
@@ -643,7 +570,7 @@ public class GameState {
             this.currentPhase = GamePhase.RESOLVE_EVENTS;
             this.currentPlayer = null;
             // empty receipt is returned
-            return new ExtraAcquisitionReceipt(new ArrayList<>());
+            return new ExtraAcquisitionReceipt(null);
         }
 
         // player is validated
@@ -683,8 +610,6 @@ public class GameState {
             );
         }
 
-        List<PlayerStatsChangeReceipt> statsChanges = new ArrayList<>();
-
         // stats are recorded before acquisition
         int preAcquisitionFood = player.getFood();
         int preAcquisitionPrestige = player.getPrestige();
@@ -705,16 +630,13 @@ public class GameState {
             player.acquireBuilding(buildingCard, this);
         }
 
-        // acquisition cost and passives are evaluated and recorded
+        PlayerStatsChangeReceipt statsChange = null;
         if (player.getFood() != preAcquisitionFood || player.getPrestige() != preAcquisitionPrestige) {
-            statsChanges.add(new PlayerStatsChangeReceipt(
+            statsChange = new PlayerStatsChangeReceipt(
                     playerNickname,
                     player.getFood() - preAcquisitionFood,
-                    player.getPrestige() - preAcquisitionPrestige,
-                    player.getFood(),
-                    player.getPrestige(),
-                    StatChangeReason.EXTRA_ACQUISITION_COST.toString()
-            ));
+                    player.getPrestige() - preAcquisitionPrestige
+            );
         }
 
         // phase is advanced and current player is reset
@@ -722,11 +644,11 @@ public class GameState {
         this.currentPlayer = null;
 
         // receipt is generated and returned
-        return new ExtraAcquisitionReceipt(statsChanges);
+        return new ExtraAcquisitionReceipt(statsChange);
     }
 
     /**
-     * Resolves events in the lower tribe row sequentially and returns a list of resolution receipts.
+     * Events in the lower tribe row are resolved sequentially and resolution receipts are returned.
      *
      * @return a list of receipts detailing the resolution of each event
      * @throws IllegalStateException if the current phase is not resolve_events
@@ -758,8 +680,8 @@ public class GameState {
 
         // events are resolved sequentially and receipts are collected
         for (EventCard event : eventsToResolve) {
-            List<PlayerStatsChangeReceipt> statChanges = event.resolveEvent(this);
-            allReceipts.add(new EventResolutionReceipt(event.getId(), statChanges));
+            List<PlayerStatsChangeReceipt> statsChanges = event.resolveEvent(this);
+            allReceipts.add(new EventResolutionReceipt(event.getId(), statsChanges));
         }
 
         // game phase is updated to end round
@@ -770,7 +692,7 @@ public class GameState {
     }
 
     /**
-     * Ends the current round and prepares the game state for the next one.
+     * The current round is ended and the game state is prepared for the next one.
      */
     public void endRound() {
         // phase is validated
@@ -811,7 +733,7 @@ public class GameState {
     }
 
     /**
-     * Starts the specified next era.
+     * The specified next era is started.
      *
      * @param era the era to start
      */
@@ -841,7 +763,7 @@ public class GameState {
     // endgame evaluation
 
     /**
-     * Calculates the final results of the game.
+     * The final results of the game are calculated.
      *
      * @return the game result containing winners and scores
      */
@@ -868,14 +790,14 @@ public class GameState {
             finalScores.put(player, scoreData);
         }
 
-        // game result dto is created and returned
+        // game result is created and returned
         return new GameResult(winners, finalScores);
     }
 
     // player management
 
     /**
-     * Adds a player to the game.
+     * A player is added to the game.
      *
      * @param player the player to add
      */
@@ -886,7 +808,7 @@ public class GameState {
     }
 
     /**
-     * Removes a player from the game by nickname.
+     * A player is removed from the game by nickname.
      *
      * @param playerNickname the nickname of the player to remove
      */
@@ -904,7 +826,7 @@ public class GameState {
     // state observation (getters and setters)
 
     /**
-     * Gets the identifier of the game.
+     * The identifier of the game is returned.
      *
      * @return the game id
      */
@@ -913,7 +835,7 @@ public class GameState {
     }
 
     /**
-     * Gets the target number of players.
+     * The target number of players is returned.
      *
      * @return the target players
      */
@@ -922,7 +844,7 @@ public class GameState {
     }
 
     /**
-     * Gets the list of players currently in the game.
+     * The list of players currently in the game is returned.
      *
      * @return the list of players
      */
@@ -931,7 +853,7 @@ public class GameState {
     }
 
     /**
-     * Gets the list of offer tiles on the track.
+     * The list of offer tiles on the track is returned.
      *
      * @return the offer track
      */
@@ -940,7 +862,7 @@ public class GameState {
     }
 
     /**
-     * Gets the current turn order of players.
+     * The current turn order of players is returned.
      *
      * @return the turn order list
      */
@@ -949,7 +871,7 @@ public class GameState {
     }
 
     /**
-     * Gets the cards present in the upper tribe row.
+     * The cards present in the upper tribe row are returned.
      *
      * @return the upper tribe row cards
      */
@@ -958,7 +880,7 @@ public class GameState {
     }
 
     /**
-     * Gets the cards present in the lower tribe row.
+     * The cards present in the lower tribe row are returned.
      *
      * @return the lower tribe row cards
      */
@@ -967,7 +889,7 @@ public class GameState {
     }
 
     /**
-     * Gets the buildings present in the upper building row.
+     * The buildings present in the upper building row are returned.
      *
      * @return the upper building row cards
      */
@@ -976,7 +898,7 @@ public class GameState {
     }
 
     /**
-     * Gets the buildings present in the lower building row.
+     * The buildings present in the lower building row are returned.
      *
      * @return the lower building row cards
      */
@@ -985,7 +907,7 @@ public class GameState {
     }
 
     /**
-     * Gets the current size of the tribe deck.
+     * The current size of the tribe deck is returned.
      *
      * @return the tribe deck size
      */
@@ -994,7 +916,7 @@ public class GameState {
     }
 
     /**
-     * Gets the era of the first card in the tribe deck.
+     * The era of the first card in the tribe deck is returned.
      *
      * @return the first card era
      */
@@ -1006,7 +928,7 @@ public class GameState {
     }
 
     /**
-     * Returns the unique identifier of the turn order tile currently in use.
+     * The unique identifier of the turn order tile currently in use is returned.
      *
      * @return the string identifier of the tile
      */
@@ -1016,7 +938,7 @@ public class GameState {
     }
 
     /**
-     * Gets the current round number.
+     * The current round number is returned.
      *
      * @return the current round
      */
@@ -1025,7 +947,7 @@ public class GameState {
     }
 
     /**
-     * Gets the current era number.
+     * The current era number is returned.
      *
      * @return the current era
      */
@@ -1034,7 +956,7 @@ public class GameState {
     }
 
     /**
-     * Gets the current phase of the game.
+     * The current phase of the game is returned.
      *
      * @return the current game phase
      */
@@ -1043,7 +965,7 @@ public class GameState {
     }
 
     /**
-     * Sets the current phase of the game.
+     * The current phase of the game is set.
      *
      * @param currentPhase the new game phase
      */
@@ -1054,7 +976,7 @@ public class GameState {
     }
 
     /**
-     * Gets the player currently taking their turn.
+     * The player currently taking their turn is returned.
      *
      * @return the current player
      */
@@ -1063,7 +985,7 @@ public class GameState {
     }
 
     /**
-     * Sets the player currently taking their turn.
+     * The player currently taking their turn is set.
      *
      * @param currentPlayer the new current player
      */
@@ -1072,7 +994,7 @@ public class GameState {
     }
 
     /**
-     * Retrieves a player by their nickname.
+     * A player is retrieved by their nickname.
      *
      * @param nickname the player's nickname
      * @return the associated player

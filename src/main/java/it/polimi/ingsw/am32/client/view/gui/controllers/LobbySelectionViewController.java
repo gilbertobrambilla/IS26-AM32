@@ -13,8 +13,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 /**
- * Controller for the Lobby Selection view.
- * Manages game creation and joining available lobbies using a TabPane layout.
+ * The lobby selection view controller is represented.
+ * Game creation and lobby joining are managed through a tab pane layout.
  */
 public class LobbySelectionViewController implements ViewController {
 
@@ -28,14 +28,14 @@ public class LobbySelectionViewController implements ViewController {
     @FXML private Label errorLabelCreate;
 
     /**
-     * Dependency injection via constructor (handled by SceneManager).
+     * Dependency injection is handled through the constructor.
      */
     public LobbySelectionViewController(ClientController clientController) {
         this.clientController = clientController;
     }
 
     /**
-     * Set up the view components, including custom cell factory for the ListView.
+     * View components are set up with a custom cell factory.
      */
     @FXML
     public void initialize() {
@@ -63,7 +63,7 @@ public class LobbySelectionViewController implements ViewController {
     }
 
     /**
-     * Triggered by the "Create Game" button.
+     * The creation game action is triggered by the corresponding button.
      */
     @FXML
     private void handleCreateGame() {
@@ -75,7 +75,7 @@ public class LobbySelectionViewController implements ViewController {
     }
 
     /**
-     * Triggered by the "Join Selected Game" button.
+     * The join selected game action is triggered by the corresponding button.
      */
     @FXML
     private void handleJoinGame() {

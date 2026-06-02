@@ -21,17 +21,17 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Controller for the player dashboard strip shown at the bottom of the in-game view.
+ * The player dashboard strip controller is represented.
  *
- * <p>Displays the local player's food and prestige counters, and their hand of cards
- * grouped by category (character type or "Building") in stable left-to-right order.</p>
+ * <p>The local player's food, prestige, and cards are displayed. Cards are grouped
+ * by category in stable left-to-right order.</p>
  *
- * <p>This controller carries no client-side state and has no external dependencies;
- * all data is pushed to it by its parent {@link InGameViewController}.</p>
+ * <p>No client-side state is carried and no external dependencies are required.
+ * All data is pushed by the parent {@link InGameViewController}.</p>
  */
 public class PlayerDashboardViewController {
 
-    // --- Card layout constants ---
+    // --- card layout constants ---
     private static final double CASCADE_SPACING = -85.0;
     private static final double COLUMN_WIDTH    = 90.0;
     private static final double CARD_WIDTH      = 72.0;
@@ -43,7 +43,7 @@ public class PlayerDashboardViewController {
 
     @FXML private HBox myTotemContainer;
 
-    /** Cached CardView instances keyed by card id to avoid redundant asset loads. */
+    /** Card id keys cached card view instances to avoid redundant asset loads. */
     private final Map<String, CardView> myCardsCache = new HashMap<>();
 
     @FXML
@@ -51,7 +51,7 @@ public class PlayerDashboardViewController {
         clearDashboard();
     }
 
-    /** Resets all counters to zero and empties the card hand. */
+    /** All counters are reset to zero and the card hand is emptied. */
     public void clearDashboard() {
         myFoodLabel.setText("0");
         myPrestigeLabel.setText("0");
@@ -64,7 +64,7 @@ public class PlayerDashboardViewController {
     }
 
     /**
-     * Refreshes all dashboard values to reflect the local player's current state.
+     * All dashboard values are refreshed from the local player's current state.
      *
      * @param localPlayer the local player model; no-op if {@code null}
      */
@@ -74,7 +74,7 @@ public class PlayerDashboardViewController {
         myFoodLabel.setText(String.valueOf(localPlayer.getFood()));
         myPrestigeLabel.setText(String.valueOf(localPlayer.getPrestige()));
 
-        // Character cards are listed before building cards — preserve this order.
+        // character cards are listed before building cards to preserve order
         List<String> allMyCards = new ArrayList<>(localPlayer.getCharacterCards());
         allMyCards.addAll(localPlayer.getBuildingCards());
 
@@ -89,8 +89,7 @@ public class PlayerDashboardViewController {
             }
         }
 
-        // LinkedHashMap preserves insertion order so columns appear in the same
-        // left-to-right sequence on every render, rather than varying by HashMap bucket.
+        // linked hash map preserves stable left-to-right column order
         Map<String, List<CardView>> groupedCards = new LinkedHashMap<>();
         for (String cardId : allMyCards) {
             String category = resolveCardCategory(cardId);
@@ -119,11 +118,11 @@ public class PlayerDashboardViewController {
     }
 
     // -------------------------------------------------------------------------
-    // Private helpers
+    // private helpers
     // -------------------------------------------------------------------------
 
     /**
-     * Builds a cascading column of cards for a single category.
+     * A cascading column of cards is built for a single category.
      *
      * @param cards the card views to stack; must not be empty
      * @return a fixed-width VBox with negative spacing to produce the cascade effect

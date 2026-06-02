@@ -5,14 +5,14 @@ import it.polimi.ingsw.am32.dto.messages.game.events.*;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 
 /**
- * Dispatches incoming network messages to the appropriate controller methods.
+ * Incoming network messages are dispatched to the appropriate controller methods.
  */
 public class MessageDispatcher implements ClientMessageVisitor {
 
     private final ClientController controller;
 
     /**
-     * Instantiates the dispatcher.
+     * The dispatcher is instantiated.
      *
      * @param controller the client controller
      */

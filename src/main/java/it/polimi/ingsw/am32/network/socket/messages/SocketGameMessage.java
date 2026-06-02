@@ -4,14 +4,15 @@ import it.polimi.ingsw.am32.controller.commands.game.GameCommand;
 import it.polimi.ingsw.am32.network.socket.server.SocketClientProxy;
 
 /**
- * Message used to send a game command via socket.
+ * A message used to send a game command via socket is represented.
  */
 public class SocketGameMessage implements ClientToServerMessage {
 
     private final GameCommand command;
 
     /**
-     * New socket game message constructed.
+     * A new socket game message is constructed.
+     *
      * @param command the game command
      */
     public SocketGameMessage(GameCommand command) {

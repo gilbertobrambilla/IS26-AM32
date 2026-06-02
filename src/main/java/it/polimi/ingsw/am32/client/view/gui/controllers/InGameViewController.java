@@ -34,19 +34,19 @@ public class InGameViewController implements ViewController {
     @FXML private HBox toastContainer;
     @FXML private Label toastLabel;
 
-    // Opponent focus overlay nodes.
+    // opponent focus overlay nodes
     @FXML private StackPane opponentFocusOverlay;
     @FXML private Label focusNameLabel;
     @FXML private HBox focusCardsContainer;
 
     @FXML private BoardViewController boardController;
 
-    // --- HELPER CARD NODES ---
+    // --- helper card nodes ---
     @FXML private ImageView helperCardImageView;
     @FXML private StackPane helperCardOverlay;
     @FXML private ImageView largeHelperImageView;
 
-    // Nuove variabili per gestire il flip della carta helper:
+    // helper card flip state is tracked
     private Image helperImgFront;
     private Image helperImgBack;
     private boolean isHelperFront = true;
@@ -252,17 +252,23 @@ public class InGameViewController implements ViewController {
     @Override
     public void onRoundSummary(RoundEndedEvent event) {
         fullRender(clientController.getLightGameState());
-        showNotification("Round " + event.getRound() + " started.");
+        showNotification("Round " + event.getNewRound() + " started.");
     }
 
     @Override
     public void onTotemPlaced(TotemPlacedEvent event) {
         fullRender(clientController.getLightGameState());
+        if (event.isAutoPlayed()) {
+            showNotification("Totem placed by " + event.getPlayer() + " [action autoplayed].");
+        }
     }
 
     @Override
     public void onActionResolved(ActionResolvedEvent event) {
         fullRender(clientController.getLightGameState());
+        if (event.isAutoPlayed()) {
+            showNotification("Action resolved by " + event.getPlayer() + " [action autoplayed].");
+        }
     }
 
     @Override
@@ -273,15 +279,19 @@ public class InGameViewController implements ViewController {
     @Override
     public void onExtraAcquisition(ExtraAcquisitionResolvedEvent event) {
         fullRender(clientController.getLightGameState());
+        if (event.isAutoPlayed()) {
+            showNotification("Extra card acquired by " + event.getPlayer() + " [action autoplayed].");
+        }
     }
 
     @Override
     public void onError(GameErrorEvent event) {
+        String formattedError = event.getReason() + ": " + event.getErrorMessage();
         if (toastLabel != null && toastContainer != null) {
-            toastLabel.setText("⚠️ " + event.getErrorMessage().toUpperCase());
+            toastLabel.setText("⚠️ " + formattedError.toUpperCase());
             AnimationUtils.playToastAnimation(toastContainer);
         }
-        GuiLogger.error("[GUI] server rejected action: " + event.getErrorMessage());
+        GuiLogger.error("[GUI] server rejected action: " + formattedError);
     }
 
     @Override

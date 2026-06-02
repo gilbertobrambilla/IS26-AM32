@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Socket server that listens for incoming connections and manages active nodes.
+ * A socket server for incoming connections and active nodes is represented.
  */
 public class SocketServer extends Thread {
 
@@ -27,7 +27,7 @@ public class SocketServer extends Thread {
     private ServerSocket serverSocket;
 
     /**
-     * New socket server instance constructed.
+     * A new socket server instance is constructed.
      *
      * @param port the port to listen on
      * @param lobbyController the controller managing the lobby logic
@@ -62,7 +62,7 @@ public class SocketServer extends Thread {
         } catch (IOException e) {
             if (running.get()) {
                 // critical server error logged
-                LogManager.getInstance().log(LogLevel.ERROR, "[SYSTEM] Critical error: " + e.getMessage());
+                LogManager.getInstance().log(LogLevel.ERROR, "[SYSTEM] Critical socket server error.", e);
             } else {
                 // server shutdown logged
                 LogManager.getInstance().log(LogLevel.INFO, "[SYSTEM] Server shut down gracefully.");
@@ -84,8 +84,8 @@ public class SocketServer extends Thread {
             // thread pool shut down
             threadPool.shutdownNow();
         } catch (IOException e) {
-            // error printed
-            System.err.println("Error while closing server socket: " + e.getMessage());
+            // server socket closure failure is logged
+            LogManager.getInstance().log(LogLevel.WARNING, "[NETWORK] Server socket could not be closed.", e);
         }
     }
 }

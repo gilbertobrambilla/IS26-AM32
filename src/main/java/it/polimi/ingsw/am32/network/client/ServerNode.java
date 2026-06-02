@@ -3,17 +3,17 @@ package it.polimi.ingsw.am32.network.client;
 import it.polimi.ingsw.am32.network.ServerConnection;
 
 /**
- * Interface representing a node connected to the server.
+ * A node connected to the server is represented.
  */
 public interface ServerNode extends ServerConnection {
 
     /**
-     * Sends a ping to the server to check liveness.
+     * A ping is sent to the server to check liveness.
      */
     void sendPingToServer();
 
     /**
-     * Disconnects the node from the server.
+     * The node is disconnected from the server.
      */
     void disconnect();
 }

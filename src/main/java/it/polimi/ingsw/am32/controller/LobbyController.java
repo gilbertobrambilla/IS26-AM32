@@ -121,21 +121,6 @@ public class LobbyController implements GameLifecycleCallback, Runnable {
     }
 
     /**
-     * A new anonymous network connection is processed and registered.
-     *
-     * @param view the virtual view associated with the new connection
-     */
-    public void processConnection(VirtualView view) {
-        // task is enqueued
-        this.enqueueSystemTask(() -> {
-            // connection id is retrieved
-            String connectionID = view.getConnectionID();
-            // successful connection result is notified to the client
-            view.notifyConnectionResult(new ConnectionResultEvent(true, "connection established successfully", connectionID));
-        });
-    }
-
-    /**
      * A player login request is processed and entrance into the lobby is handled.
      *
      * @param nickname the requested nickname
@@ -157,7 +142,7 @@ public class LobbyController implements GameLifecycleCallback, Runnable {
                 if (game != null) {
                     if (game.isPlayerActive(nickname)) {
                         // rejection result is notified
-                        view.notifyLoginResult(new LoginResultEvent(false, "nickname already taken", false));
+                        view.notifyLoginResult(new LoginResultEvent(false, "nickname already taken"));
                         return;
                     }
                     // map is updated with new connection id
@@ -170,7 +155,7 @@ public class LobbyController implements GameLifecycleCallback, Runnable {
                         this.connectionIdToNickname.put(connectionID, nickname);
                     } else {
                         // rejection result is notified
-                        view.notifyLoginResult(new LoginResultEvent(false, "nickname already taken", false));
+                        view.notifyLoginResult(new LoginResultEvent(false, "nickname already taken"));
                         return;
                     }
                 }
@@ -181,7 +166,7 @@ public class LobbyController implements GameLifecycleCallback, Runnable {
                 game.enqueueSystemTask(() -> game.processReconnect(nickname, view));
             } else {
                 // successful login result is notified
-                view.notifyLoginResult(new LoginResultEvent(true, "login successful", false));
+                view.notifyLoginResult(new LoginResultEvent(true, "login successful"));
                 // available lobby list is broadcasted
                 view.notifyAvailableLobbies(buildAvailableLobbiesEvent());
             }

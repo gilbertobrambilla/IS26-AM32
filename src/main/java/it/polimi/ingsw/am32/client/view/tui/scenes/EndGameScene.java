@@ -6,7 +6,7 @@ import org.jline.terminal.Terminal;
 import java.util.List;
 
 /**
- * Scene responsible for rendering the final game results.
+ * This scene renders the final game results.
  */
 public class EndGameScene implements Scene {
     private List<String> winners;

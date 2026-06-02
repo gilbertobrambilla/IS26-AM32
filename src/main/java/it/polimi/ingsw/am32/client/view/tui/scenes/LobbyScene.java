@@ -8,7 +8,7 @@ import org.jline.terminal.Terminal;
 import java.util.List;
 
 /**
- * Scene responsible for rendering the lobby room layout.
+ * This scene renders the lobby room layout.
  */
 public class LobbyScene implements Scene {
     private final LogPanel logPanel;
@@ -18,8 +18,8 @@ public class LobbyScene implements Scene {
     /**
      * The lobby scene is instantiated.
      *
-     * @param logPanel the shared log panel instance.
-     * @param legendPanel the shared legend panel instance.
+     * @param logPanel the shared log panel instance
+     * @param legendPanel the shared legend panel instance
      */
     public LobbyScene(LogPanel logPanel, LegendPanel legendPanel) {
         this.logPanel = logPanel;
@@ -31,11 +31,11 @@ public class LobbyScene implements Scene {
     /**
      * The lobby data is passed to the internal panel.
      *
-     * @param gameId the identifier of the game.
-     * @param currentPlayersCount the current player count.
-     * @param targetPlayers the target player count.
-     * @param currentPlayers the list of connected player nicknames.
-     * @param myNickname the local player nickname.
+     * @param gameId the identifier of the game
+     * @param currentPlayersCount the current player count
+     * @param targetPlayers the target player count
+     * @param currentPlayers the list of connected player nicknames
+     * @param myNickname the local player nickname
      */
     public void setLobbyData(int gameId, int currentPlayersCount, int targetPlayers, List<String> currentPlayers, String myNickname) {
         // data is forwarded to the component

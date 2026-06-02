@@ -11,15 +11,14 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
- * Custom JavaFX component displaying a compact summary of an opponent's state
- * in the opponents sidebar.
+ * A compact JavaFX summary of an opponent's state is represented.
  *
- * <p>Shows the player's nickname, totem icon, food counter, and prestige counter.
- * The component fills the full width of its parent container.</p>
+ * <p>The player's nickname, totem icon, food counter, and prestige counter are
+ * shown. The component fills the full width of its parent container.</p>
  *
  * <p>The {@link TotemView} is rebuilt only when the player's {@link TotemColor}
- * changes (which in practice happens at most once, during game setup). Repeated
- * calls to {@link #updateValues(LightPlayer)} therefore allocate no new nodes.</p>
+ * changes. Repeated calls to {@link #updateValues(LightPlayer)} therefore
+ * allocate no new nodes.</p>
  *
  * <p>All visual styling is driven by CSS classes defined in {@code global.css}.
  * No inline {@code setStyle()} calls are used.</p>
@@ -33,12 +32,11 @@ public class OpponentView extends HBox {
     private final Label prestigeLabel = new Label();
     private final HBox  totemSlot     = new HBox();
 
-    /** Tracks the last rendered color to avoid rebuilding the TotemView unnecessarily. */
+    /** The last rendered color is tracked to avoid rebuilding the totem view unnecessarily. */
     private TotemColor lastTotemColor = null;
 
     /**
-     * Constructs an {@code OpponentView} and immediately populates it with the
-     * player's initial state.
+     * An opponent view is constructed and populated with the player's initial state.
      *
      * @param player the light model containing the opponent's data
      */
@@ -48,8 +46,8 @@ public class OpponentView extends HBox {
     }
 
     /**
-     * Refreshes all displayed values to reflect the latest player state.
-     * Only rebuilds the {@link TotemView} when the player's color has changed.
+     * All displayed values are refreshed from the latest player state.
+     * The totem view is rebuilt only when the player's color has changed.
      *
      * @param player the updated player model; no-op if {@code null}
      */
@@ -71,7 +69,7 @@ public class OpponentView extends HBox {
     }
 
     // -------------------------------------------------------------------------
-    // Layout
+    // layout
     // -------------------------------------------------------------------------
 
     private void initLayout() {
@@ -88,7 +86,7 @@ public class OpponentView extends HBox {
     }
 
     private VBox buildIdentityBox() {
-        // CSS class "opponent-name" (global.css) sets font-weight, size, and fill.
+        // opponent-name CSS class sets font weight, size, and fill
         nameLabel.getStyleClass().addAll("text-main", "opponent-name");
 
         totemSlot.setAlignment(Pos.CENTER_LEFT);
@@ -116,9 +114,9 @@ public class OpponentView extends HBox {
     }
 
     /**
-     * Builds a {@code caption : value} row for the stats panel.
+     * A {@code caption : value} row is built for the stats panel.
      *
-     * @param caption    static text (e.g. {@code "Food:"})
+     * @param caption static text (e.g. {@code "Food:"})
      * @param valueLabel the mutable label whose text is updated by {@link #updateValues}
      * @param colorClass CSS utility class applied to the value label (e.g. {@code "text-gold"})
      */
@@ -126,8 +124,8 @@ public class OpponentView extends HBox {
         Label captionLabel = new Label(caption);
         captionLabel.getStyleClass().add("text-dim");
 
-        // CSS class "stat-value" (global.css) sets font-weight: bold.
-        // The color class (text-main / text-gold) is applied separately.
+        // stat-value CSS class sets bold font weight
+        // color class is applied separately
         valueLabel.getStyleClass().addAll("stat-value", colorClass);
 
         HBox row = new HBox(6.0);

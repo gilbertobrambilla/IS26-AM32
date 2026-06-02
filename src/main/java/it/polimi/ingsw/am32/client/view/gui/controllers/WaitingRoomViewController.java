@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am32.client.view.gui.controllers;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.dto.messages.game.events.GameErrorEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyRoomUpdateEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.LobbyInfoDTO;
 import javafx.application.Platform;
@@ -9,8 +10,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 
 /**
- * Controller for the Waiting Room view.
- * Displays the current players inside the joined lobby room and waits for the game to start.
+ * The waiting room view controller is represented.
+ * Current players are displayed while the game start is awaited.
  */
 public class WaitingRoomViewController implements ViewController {
 
@@ -21,9 +22,9 @@ public class WaitingRoomViewController implements ViewController {
     @FXML private ListView<String> playersListView;
 
     /**
-     * Dependency injection via constructor (automatically handled by SceneManager's reflection mechanism).
+     * Dependency injection is handled through the constructor.
      *
-     * @param clientController The main client controller.
+     * @param clientController the main client controller
      */
     public WaitingRoomViewController(ClientController clientController) {
         this.clientController = clientController;
@@ -34,10 +35,10 @@ public class WaitingRoomViewController implements ViewController {
     }
 
     /**
-     * Polymorphic handling of the lobby room structural update.
-     * This method is triggered dynamically by GuiUI whenever a player joins or leaves the room.
+     * Lobby room structural updates are handled polymorphically.
+     * This method is triggered dynamically whenever a player joins or leaves the room.
      *
-     * @param event The event containing updated information about the lobby room state.
+     * @param event the event containing updated information about the lobby room state
      */
     @Override
     public void onLobbyRoomUpdate(LobbyRoomUpdateEvent event) {
@@ -46,12 +47,12 @@ public class WaitingRoomViewController implements ViewController {
         LobbyInfoDTO lobbyInfo = event.getLobbyInfo();
 
         Platform.runLater(() -> {
-            // Update the Top Header with the current Game ID
+            // top header is updated with the current game id
             if (lobbyTitleLabel != null) {
                 lobbyTitleLabel.setText(String.format("Lobby Room #%d", lobbyInfo.getGameId()));
             }
 
-            // Refresh the list of active players in the room
+            // active players list is refreshed
             if (playersListView != null) {
                 playersListView.getItems().clear();
                 if (lobbyInfo.getCurrentPlayers() != null) {
@@ -63,6 +64,15 @@ public class WaitingRoomViewController implements ViewController {
                 statusLabel.setText(String.format("Players: %d / %d. Waiting for match setup...",
                         lobbyInfo.getCurrentPlayersCount(),
                         lobbyInfo.getTargetPlayers()));
+            }
+        });
+    }
+
+    @Override
+    public void onError(GameErrorEvent event) {
+        Platform.runLater(() -> {
+            if (statusLabel != null) {
+                statusLabel.setText(event.getReason() + ": " + event.getErrorMessage());
             }
         });
     }

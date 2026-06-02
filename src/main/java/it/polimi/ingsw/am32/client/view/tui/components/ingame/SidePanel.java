@@ -15,14 +15,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Panel responsible for displaying player statistics and inventory.
+ * This panel displays Player statistics and inventory.
  */
 public class SidePanel extends AbstractTuiPanel {
     private LightGameState state;
     private String focusedPlayer;
 
     /**
-     * Side panel is instantiated.
+     * The side panel is instantiated.
      */
     public SidePanel() {
         // instance remains empty as formatter is now a singleton
@@ -41,7 +41,7 @@ public class SidePanel extends AbstractTuiPanel {
     /**
      * Panel focus is set to a specific player or cleared.
      *
-     * @param nickname the player nickname or null to return to compressed view
+     * @param nickname the player nickname or null to return to the compressed view
      */
     public void setFocus(String nickname) {
         // focus is updated
@@ -154,7 +154,7 @@ public class SidePanel extends AbstractTuiPanel {
         String resetCode = "\033[0m";
         String boldCode = "\033[1m";
 
-        // header info is drawn including identification suffix
+        // header info is drawn, including identification suffix
         moveCursor(terminal, startX + 2, startY + rowOffset++);
         terminal.writer().print(activeIndicator + boldCode + colorCode + player.getNickname() + youSuffix + resetCode + connectionTag);
 

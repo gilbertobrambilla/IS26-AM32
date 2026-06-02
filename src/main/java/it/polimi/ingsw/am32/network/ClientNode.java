@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.network;
 import it.polimi.ingsw.am32.dto.messages.MessageDTO;
 
 /**
- * Interface representing a generic client node in the network.
+ * A generic client node in the network is represented.
  */
 public interface ClientNode {
 
@@ -13,9 +13,9 @@ public interface ClientNode {
     void sendPingToClient();
 
     /**
-     * Sends a generic message to the client.
+     * A generic message is sent to the client.
      *
-     * @param message The message to be sent.
+     * @param message the message to be sent
      */
     void sendMessage(MessageDTO message);
 }
