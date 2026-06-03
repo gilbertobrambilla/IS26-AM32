@@ -9,7 +9,7 @@
       fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.TopBarViewController">
 
     <HBox alignment="CENTER" spacing="10.0">
-        <Label styleClass="subtitle-text" text="AGE:" />
+        <Label styleClass="subtitle-text" text="ERA:" />
         <Label fx:id="eraLabel" styleClass="top-bar-era-value" text="I" />
     </HBox>
     <HBox alignment="CENTER" spacing="10.0">
