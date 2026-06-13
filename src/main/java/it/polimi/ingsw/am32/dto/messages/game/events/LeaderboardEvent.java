@@ -7,7 +7,7 @@ import it.polimi.ingsw.am32.network.client.ClientMessageVisitor;
 import java.util.List;
 
 /**
- * Event dispatched to notify the updated global leaderboard.
+ * A leaderboard event is represented.
  */
 public class LeaderboardEvent implements MessageDTO {
     private final List<LeaderboardEntryDTO> globalLeaderboard;
@@ -15,21 +15,20 @@ public class LeaderboardEvent implements MessageDTO {
     private final boolean dbAvailable;
 
     /**
-     * A new leaderboard event is constructed.
+     * A leaderboard event is initialized with global ranking data.
      *
      * @param globalLeaderboard the list of global leaderboard entries
      * @param globalPosition the calculated global position of the player
      * @param dbAvailable the flag indicating if the database is available
      */
     public LeaderboardEvent(List<LeaderboardEntryDTO> globalLeaderboard, int globalPosition, boolean dbAvailable) {
-        // list is copied only if not null
         this.globalLeaderboard = globalLeaderboard != null ? List.copyOf(globalLeaderboard) : null;
         this.globalPosition = globalPosition;
         this.dbAvailable = dbAvailable;
     }
 
     /**
-     * The global leaderboard list is retrieved.
+     * The global leaderboard list is returned.
      *
      * @return the global leaderboard list
      */
@@ -38,7 +37,7 @@ public class LeaderboardEvent implements MessageDTO {
     }
 
     /**
-     * The global position is retrieved.
+     * The global position is returned.
      *
      * @return the player global position
      */
@@ -47,7 +46,7 @@ public class LeaderboardEvent implements MessageDTO {
     }
 
     /**
-     * The database availability flag is retrieved.
+     * The database availability flag is returned.
      *
      * @return true if the database is available, false otherwise
      */
@@ -56,13 +55,12 @@ public class LeaderboardEvent implements MessageDTO {
     }
 
     /**
-     * The visitor is accepted to process the message.
+     * The visitor is accepted to dispatch the event.
      *
      * @param visitor the client message visitor
      */
     @Override
     public void accept(ClientMessageVisitor visitor) {
-        // event is dispatched to the visitor
         visitor.visit(this);
     }
 }

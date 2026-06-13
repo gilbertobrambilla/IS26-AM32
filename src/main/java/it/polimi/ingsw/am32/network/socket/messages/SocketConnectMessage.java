@@ -3,12 +3,12 @@ package it.polimi.ingsw.am32.network.socket.messages;
 import it.polimi.ingsw.am32.network.socket.server.SocketClientProxy;
 
 /**
- * Message used to request a new socket connection setup.
+ * A message used to request a new socket connection setup is represented.
  */
 public class SocketConnectMessage implements ClientToServerMessage {
 
     /**
-     * New socket connect message constructed.
+     * A new socket connect message is constructed.
      */
     public SocketConnectMessage() {
     }

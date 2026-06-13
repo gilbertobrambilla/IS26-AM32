@@ -3,25 +3,25 @@ package it.polimi.ingsw.am32.model.receipts;
 import java.util.List;
 
 /**
- * Represents a receipt for the resolution of an event.
+ * A receipt for an event resolution is represented.
  */
 public class EventResolutionReceipt {
     private final String eventCardId;
-    private final List<PlayerStatsChangeReceipt> statChanges;
+    private final List<PlayerStatsChangeReceipt> statsChanges;
 
     /**
-     * Initializes the event resolution receipt with the event card id and statistics changes.
+     * An event resolution receipt is initialized with the event card id and statistics changes.
      *
      * @param eventCardId the id of the resolved event card
-     * @param statChanges the list of player statistics changes
+     * @param statsChanges the list of player statistics changes
      */
-    public EventResolutionReceipt(String eventCardId, List<PlayerStatsChangeReceipt> statChanges) {
+    public EventResolutionReceipt(String eventCardId, List<PlayerStatsChangeReceipt> statsChanges) {
         this.eventCardId = eventCardId;
-        this.statChanges = statChanges;
+        this.statsChanges = List.copyOf(statsChanges);
     }
 
     /**
-     * Gets the id of the resolved event card.
+     * The id of the resolved event card is returned.
      *
      * @return the event card id
      */
@@ -30,11 +30,11 @@ public class EventResolutionReceipt {
     }
 
     /**
-     * Gets the list of player statistics changes.
+     * The list of player statistics changes is returned.
      *
      * @return the list of statistics changes
      */
-    public List<PlayerStatsChangeReceipt> getStatChanges() {
-        return this.statChanges;
+    public List<PlayerStatsChangeReceipt> getStatsChanges() {
+        return this.statsChanges;
     }
 }

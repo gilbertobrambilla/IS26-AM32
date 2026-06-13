@@ -283,7 +283,7 @@ public class BoardViewController {
             }
         }
 
-
+        // node list is used to host both offer views and the deck view
         List<Node> orderedViews = tiles.stream()
                 .map(t -> offerViewCache.get(t.getId()))
                 .collect(Collectors.toList());

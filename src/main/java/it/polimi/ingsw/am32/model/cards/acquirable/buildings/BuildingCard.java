@@ -49,15 +49,6 @@ public class BuildingCard extends AcquirableCard {
     }
 
     /**
-     * Gets the cost of the building.
-     *
-     * @return the building cost
-     */
-    public int getCost() {
-        return this.cost;
-    }
-
-    /**
      * Gets the discounted cost based on a player's discount.
      *
      * @param playerDiscount the discount available to the player
@@ -65,15 +56,6 @@ public class BuildingCard extends AcquirableCard {
      */
     public int getDiscountedCost(int playerDiscount) {
         return Math.max(0, this.cost - playerDiscount);
-    }
-
-    /**
-     * Gets the effect associated with the building.
-     *
-     * @return the building effect
-     */
-    public BuildingCardEffect getEffect() {
-        return this.effect;
     }
 
     /**

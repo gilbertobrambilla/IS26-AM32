@@ -11,8 +11,8 @@ import javafx.stage.Stage;
 import java.io.InputStream;
 
 /**
- * the main entry point for the JavaFX graphical user interface.
- * it sets up the primary stage, initializes the SceneManager, and creates the UI bridge.
+ * The main entry point for the JavaFX graphical user interface is represented.
+ * The primary stage, scene manager, and ui bridge are initialized.
  */
 public class GuiApp extends Application {
 

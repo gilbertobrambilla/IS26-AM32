@@ -5,13 +5,13 @@ import it.polimi.ingsw.am32.dto.messages.game.models.GameResultDTO;
 import it.polimi.ingsw.am32.network.client.ClientMessageVisitor;
 
 /**
- * Event dispatched to notify the end of the game with local match results.
+ * A game-ended event with local match results is represented.
  */
 public class GameEndedEvent implements MessageDTO {
     private final GameResultDTO results;
 
     /**
-     * A new game-ended event is constructed.
+     * A game-ended event is initialized with match results.
      *
      * @param results the results of the match
      */
@@ -20,7 +20,7 @@ public class GameEndedEvent implements MessageDTO {
     }
 
     /**
-     * The match results are retrieved.
+     * The match results are returned.
      *
      * @return the game result object
      */
@@ -29,13 +29,12 @@ public class GameEndedEvent implements MessageDTO {
     }
 
     /**
-     * The visitor is accepted to process the message.
+     * The visitor is accepted to dispatch the event.
      *
      * @param visitor the client message visitor
      */
     @Override
     public void accept(ClientMessageVisitor visitor) {
-        // event is dispatched to the visitor
         visitor.visit(this);
     }
 }

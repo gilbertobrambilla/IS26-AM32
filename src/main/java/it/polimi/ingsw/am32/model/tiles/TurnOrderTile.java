@@ -3,14 +3,13 @@ package it.polimi.ingsw.am32.model.tiles;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.enums.GameErrorReason;
 import it.polimi.ingsw.am32.model.exceptions.InvalidGameActionException;
-import it.polimi.ingsw.am32.model.receipts.TurnOrderPlacementReceipt;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents the turn order tile in the game.
+ * The turn order tile in the game is represented.
  */
 public class TurnOrderTile extends Tile {
     private final List<Player> turnOrder;
@@ -18,7 +17,7 @@ public class TurnOrderTile extends Tile {
     private final List<Integer> prestigeModifiers;
 
     /**
-     * Initializes the turn order tile with modifiers.
+     * The turn order tile is initialized with modifiers.
      *
      * @param id the identifier of the tile
      * @param requiredPlayers the minimum number of players required
@@ -37,7 +36,7 @@ public class TurnOrderTile extends Tile {
     }
 
     /**
-     * Initializes the players' order during the setup phase.
+     * The players' order is initialized during the setup phase.
      *
      * @param playerList the initial list of players
      */
@@ -54,12 +53,12 @@ public class TurnOrderTile extends Tile {
     }
 
     /**
-     * Places a player on the turn order tile and applies modifiers.
+     * A player is placed on the turn order tile and modifiers are applied.
      *
      * @param player the player to place
-     * @return the placement receipt
+     * @return the position where the player was placed
      */
-    public TurnOrderPlacementReceipt placePlayer(Player player) {
+    public int placePlayer(Player player) {
         Objects.requireNonNull(player, "player cannot be null");
 
         if (isFull()) {
@@ -85,11 +84,11 @@ public class TurnOrderTile extends Tile {
         // player is notified of the placement to trigger relevant building effects
         player.onPlacedOnTurnOrderTile(gainedFood);
 
-        return new TurnOrderPlacementReceipt(index, foodMod, prestigeMod);
+        return index;
     }
 
     /**
-     * Removes a player from the turn order.
+     * A player is removed from the turn order.
      *
      * @param player the player to remove
      */
@@ -100,7 +99,7 @@ public class TurnOrderTile extends Tile {
     }
 
     /**
-     * Gets the current turn order of players.
+     * The current turn order of players is returned.
      *
      * @return the list of players in order
      */
@@ -109,7 +108,7 @@ public class TurnOrderTile extends Tile {
     }
 
     /**
-     * Checks if the turn order tile is filled.
+     * The turn order tile fullness is checked.
      *
      * @return true if the tile is full, false otherwise
      */

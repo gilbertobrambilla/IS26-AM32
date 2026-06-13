@@ -8,7 +8,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
- * Remote interface provided for the rmi server.
+ * A remote interface for the rmi server is provided.
  */
 public interface RMIServer extends Remote {
 

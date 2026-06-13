@@ -3,7 +3,6 @@ package it.polimi.ingsw.am32.model.cards.events;
 import it.polimi.ingsw.am32.model.GameState;
 import it.polimi.ingsw.am32.model.Player;
 import it.polimi.ingsw.am32.model.enums.EventType;
-import it.polimi.ingsw.am32.model.enums.StatChangeReason;
 import it.polimi.ingsw.am32.model.receipts.PlayerStatsChangeReceipt;
 
 import java.util.ArrayList;
@@ -11,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents the cave paintings event.
+ * The cave paintings event is represented.
  */
 public class CavePaintingsEvent extends EventCard {
     private final int prestigeBonus;
@@ -19,7 +18,7 @@ public class CavePaintingsEvent extends EventCard {
     private final int prestigePenalty;
 
     /**
-     * Initializes the cave paintings event with its specific parameters.
+     * The cave paintings event is initialized with its specific parameters.
      *
      * @param id the unique identifier of the event
      * @param era the era the event belongs to
@@ -47,7 +46,7 @@ public class CavePaintingsEvent extends EventCard {
     }
 
     /**
-     * Provides the event type.
+     * The event type is returned.
      *
      * @return the cave paintings event type
      */
@@ -57,7 +56,7 @@ public class CavePaintingsEvent extends EventCard {
     }
 
     /**
-     * Resolves the cave paintings event.
+     * The cave paintings event is resolved.
      *
      * @param gameState the current state of the game
      * @return a list of receipts detailing the changes in player statistics
@@ -83,10 +82,7 @@ public class CavePaintingsEvent extends EventCard {
             receipts.add(new PlayerStatsChangeReceipt(
                     player.getNickname(),
                     postFood - preFood,
-                    postPrestige - prePrestige,
-                    postFood,
-                    postPrestige,
-                    StatChangeReason.CAVE_PAINTINGS.toString()
+                    postPrestige - prePrestige
             ));
         }
         return receipts;

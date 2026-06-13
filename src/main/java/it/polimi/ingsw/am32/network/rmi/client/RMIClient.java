@@ -6,19 +6,19 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
- * Remote interface for the rmi client.
+ * A remote interface for the rmi client is represented.
  */
 public interface RMIClient extends Remote {
 
     /**
-     * Processes a ping received from the server.
+     * A ping received from the server is processed.
      *
      * @throws RemoteException if a network error occurs
      */
     void onPingReceivedFromServer() throws RemoteException;
 
     /**
-     * Receives a generic message from the server.
+     * A generic message from the server is received.
      *
      * @param message the message received
      * @throws RemoteException if a network error occurs

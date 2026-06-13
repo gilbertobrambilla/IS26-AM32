@@ -4,13 +4,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.polimi.ingsw.am32.dto.setup.*;
+import it.polimi.ingsw.am32.log.LogLevel;
+import it.polimi.ingsw.am32.log.LogManager;
 
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Utility class responsible for loading and parsing the assets json file.
+ * A utility for loading and parsing the assets json file is represented.
  */
 public class JsonAssetLoader {
     private static JsonAssetLoader instance;
@@ -18,7 +20,7 @@ public class JsonAssetLoader {
     private final JsonNode rootNode;
 
     /**
-     * Private constructor to enforce the singleton pattern.
+     * The asset loader is initialized from the bundled assets file.
      */
     private JsonAssetLoader() {
         // object mapper is initialized
@@ -48,14 +50,14 @@ public class JsonAssetLoader {
                     is.close();
                 } catch (Exception e) {
                     // exception during closure is caught and logged
-                    e.printStackTrace();
+                    LogManager.getInstance().log(LogLevel.WARNING, "[ASSETS] Asset stream could not be closed.", e);
                 }
             }
         }
     }
 
     /**
-     * Returns the singleton instance of the loader.
+     * The singleton asset loader is returned.
      *
      * @return the instance of JsonAssetLoader
      */
@@ -68,7 +70,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * Retrieves the list of building card dto.
+     * The list of building card dto is returned.
      *
      * @return a list of building card dto
      */
@@ -77,7 +79,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * Retrieves the list of character card dto.
+     * The list of character card dto is returned.
      *
      * @return a list of character card dto
      */
@@ -86,7 +88,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * Retrieves the list of event card dto.
+     * The list of event card dto is returned.
      *
      * @return a list of event card dto
      */
@@ -95,7 +97,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * Retrieves the list of offer tile dto.
+     * The list of offer tile dto is returned.
      *
      * @return a list of offer tile dto
      */
@@ -104,7 +106,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * Retrieves the list of turn order tile dto.
+     * The list of turn order tile dto is returned.
      *
      * @return a list of turn order tile dto
      */
@@ -113,7 +115,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * Retrieves the map of ui assets.
+     * The map of ui assets is returned.
      *
      * @return a map of ui asset paths
      */
@@ -122,7 +124,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * Retrieves the map of card backs.
+     * The map of card backs is returned.
      *
      * @return a map of card back paths
      */
@@ -131,7 +133,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * Extracts a list of dto from a specific json array node.
+     * A list of dto is extracted from a specific json array node.
      *
      * @param fieldName the name of the JSON array field
      * @param clazz the class of the dto
@@ -156,7 +158,7 @@ public class JsonAssetLoader {
     }
 
     /**
-     * Extracts a map of string key-value pairs from a specific json object node.
+     * A map of string key-value pairs is extracted from a specific json object node.
      *
      * @param fieldName the name of the JSON object field
      * @return a map of parsed string pairs

@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 /**
- * Virtual view implementation used as an adapter between the controller and the network.
+ * A virtual view adapter between the controller and the network are represented.
  */
 public class RemoteClientView implements VirtualView, NetworkNode {
 
@@ -44,7 +44,7 @@ public class RemoteClientView implements VirtualView, NetworkNode {
     private Future<?> messageConsumerTask;
 
     /**
-     * New virtual view implementation constructed.
+     * A new virtual view implementation is constructed.
      *
      * @param clientNode the client network node
      * @param connectionID the unique identifier for this connection
@@ -59,7 +59,7 @@ public class RemoteClientView implements VirtualView, NetworkNode {
     }
 
     /**
-     * New virtual view implementation created and started.
+     * A new virtual view implementation is created and started.
      *
      * @param clientNode the client network node
      * @param connectionID the unique identifier for this connection

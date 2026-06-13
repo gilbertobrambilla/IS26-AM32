@@ -3,14 +3,14 @@ package it.polimi.ingsw.am32.network.socket.messages;
 import it.polimi.ingsw.am32.network.socket.server.SocketClientProxy;
 
 /**
- * Message used to request a login via socket.
+ * A message used to request a login via socket is represented.
  */
 public class SocketLoginMessage implements ClientToServerMessage {
 
     private final String nickname;
 
     /**
-     * New socket login message constructed.
+     * A new socket login message is constructed.
      *
      * @param nickname the requested nickname
      */

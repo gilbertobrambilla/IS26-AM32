@@ -3,7 +3,7 @@ package it.polimi.ingsw.am32.controller;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 
 /**
- * Interface representing the lobby view.
+ * The lobby view is represented.
  */
 public interface LobbyView {
 

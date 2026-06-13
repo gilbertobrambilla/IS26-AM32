@@ -9,7 +9,7 @@ import javafx.scene.Node;
 import javafx.util.Duration;
 
 /**
- * Utility class providing reusable JavaFX micro-animations for UI feedback.
+ * Reusable JavaFX micro-animations for ui feedback are provided.
  *
  * <p>All methods are stateless and operate directly on the supplied {@link Node}.
  * This class is not instantiable.</p>
@@ -33,7 +33,7 @@ public final class AnimationUtils {
     private AnimationUtils() {}
 
     /**
-     * Plays a horizontal shake animation on {@code node} to signal an invalid action.
+     * A horizontal shake animation is played on {@code node} to signal an invalid action.
      *
      * @param node the target node; silently ignored if {@code null}
      */
@@ -49,8 +49,8 @@ public final class AnimationUtils {
     }
 
     /**
-     * Plays a fade-in → hold → fade-out sequence on {@code node},
-     * suitable for transient toast notifications.
+     * A fade-in, hold, and fade-out sequence is played on {@code node}.
+     * The sequence is suitable for transient toast notifications.
      *
      * <p>The node is made visible and fully transparent before the animation starts
      * and hidden again when the sequence completes.</p>
@@ -78,8 +78,8 @@ public final class AnimationUtils {
     }
 
     /**
-     * Starts an indefinite pulsing scale animation on {@code node}, cycling between
-     * its natural size and {@value #PULSE_SCALE_MAX}×. Intended for turn-order highlights.
+     * An indefinite pulsing scale animation is started on {@code node}.
+     * The animation is intended for turn-order highlights.
      *
      * <p>The returned {@link ScaleTransition} is already playing; call {@code stop()} on it
      * and reset scale to 1.0 to cancel.</p>
