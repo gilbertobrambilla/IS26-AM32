@@ -56,7 +56,6 @@ public class SceneManager {
 
                 Scene currentScene = primaryStage.getScene();
                 if (currentScene == null) {
-                    // base 1280x720 window is created as resizable
                     currentScene = new Scene(root, 1280, 720);
                     primaryStage.setScene(currentScene);
 

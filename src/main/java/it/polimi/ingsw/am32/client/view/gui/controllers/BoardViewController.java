@@ -288,7 +288,7 @@ public class BoardViewController {
                 .map(t -> offerViewCache.get(t.getId()))
                 .collect(Collectors.toList());
 
-        // --- deck view ---
+
         StackPane deckView = buildDeckView(state);
         if (deckView != null) {
             orderedViews.add(deckView);
