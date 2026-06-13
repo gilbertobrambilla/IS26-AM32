@@ -46,7 +46,6 @@ public class InGameViewController implements ViewController {
     @FXML private StackPane helperCardOverlay;
     @FXML private ImageView largeHelperImageView;
 
-    // Nuove variabili per gestire il flip della carta helper:
     private Image helperImgFront;
     private Image helperImgBack;
     private boolean isHelperFront = true;
