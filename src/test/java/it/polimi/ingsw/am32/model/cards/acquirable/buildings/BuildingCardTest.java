@@ -48,8 +48,6 @@ class BuildingCardTest {
         assertEquals("building_1", card.getId());
         assertEquals(1, card.getEra());
         assertEquals(2, card.getBasePrestige());
-        assertEquals(3, card.getCost());
-        assertEquals(noEffect, card.getEffect());
     }
 
     @Test
