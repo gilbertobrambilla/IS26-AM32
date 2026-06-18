@@ -6,6 +6,7 @@ module it.polimi.ingsw.am32 {
     requires java.rmi;
     requires org.jline.reader;
     requires org.jline.terminal;
+    requires java.desktop;
 
 
     exports it.polimi.ingsw.am32.model.enums;

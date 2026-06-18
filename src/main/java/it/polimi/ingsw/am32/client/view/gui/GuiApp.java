@@ -4,9 +4,13 @@ import it.polimi.ingsw.am32.client.assets.AssetManager;
 import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
 import javafx.application.Application;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * The main entry point for the JavaFX graphical user interface is represented.
@@ -38,6 +42,25 @@ public class GuiApp extends Application {
         SceneManager.initialize(primaryStage, null);
 
         primaryStage.setTitle("Mesos - Digital Edition");
+
+        primaryStage.getIcons().add(new Image(
+                Objects.requireNonNull(GuiApp.class.getResourceAsStream("/assets/images/ui_assets/app_icon.png"))
+        ));
+
+        try {
+            if (Taskbar.isTaskbarSupported()) {
+                Taskbar taskbar = Taskbar.getTaskbar();
+                if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+
+                    java.awt.Image awtImage = ImageIO.read(
+                            Objects.requireNonNull(GuiApp.class.getResourceAsStream("/assets/images/ui_assets/app_icon.png"))
+                    );
+                    taskbar.setIconImage(awtImage);
+                }
+            }
+        } catch (Exception e) {
+            GuiLogger.error("[GUI] Failed to set the system taskbar icon", e);
+        }
 
         primaryStage.setResizable(true);
         primaryStage.setFullScreen(false);
