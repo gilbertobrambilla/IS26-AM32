@@ -6,7 +6,6 @@ import it.polimi.ingsw.am32.dto.messages.lobby.events.*;
 public interface ViewController {
 
     default void onConnectionResult(ConnectionResultEvent event) {}
-    default void onDisconnection(String message) {}
     default void onLoginResult(LoginResultEvent event) {}
 
     default void onLobbyError(LobbyErrorEvent event) {}
