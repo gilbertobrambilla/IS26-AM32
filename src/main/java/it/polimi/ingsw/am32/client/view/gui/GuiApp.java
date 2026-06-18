@@ -44,7 +44,8 @@ public class GuiApp extends Application {
 
         primaryStage.setOnCloseRequest(event -> {
             GuiLogger.info("[GUI] Window close requested");
-            System.exit(0);
+            event.consume();
+            SceneManager.exitApplication();
         });
 
         SceneManager.switchScene(ViewPaths.CONNECTION);

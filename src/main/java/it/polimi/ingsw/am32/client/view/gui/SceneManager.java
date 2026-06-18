@@ -61,8 +61,7 @@ public class SceneManager {
 
                     currentScene.setOnKeyPressed(event -> {
                         if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
-                            Platform.exit();
-                            System.exit(0);
+                            exitApplication();
                         }
                     });
                 } else {
@@ -113,6 +112,23 @@ public class SceneManager {
             disconnectTask.run();
         } else {
             Platform.runLater(disconnectTask);
+        }
+    }
+
+    public static void exitApplication() {
+        Runnable exitTask = () -> {
+            if (clientController != null) {
+                clientController.shutdown();
+                clientController = null;
+            }
+            Platform.exit();
+            System.exit(0);
+        };
+
+        if (Platform.isFxApplicationThread()) {
+            exitTask.run();
+        } else {
+            Platform.runLater(exitTask);
         }
     }
 
