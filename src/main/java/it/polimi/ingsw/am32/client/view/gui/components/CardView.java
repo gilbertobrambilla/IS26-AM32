@@ -1,7 +1,6 @@
 package it.polimi.ingsw.am32.client.view.gui.components;
 
 import it.polimi.ingsw.am32.client.assets.AssetManager;
-import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.gui.utils.ImageCache;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;

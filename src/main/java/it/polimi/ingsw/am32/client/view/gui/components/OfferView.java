@@ -65,7 +65,7 @@ public class OfferView extends StackPane {
         String occupyingPlayer = tileData.getOccupyingPlayer();
 
         if (occupyingPlayer != null && !occupyingPlayer.isEmpty() && totemColor != null) {
-            TotemView totem = new TotemView(totemColor, occupyingPlayer);
+            TotemView totem = new TotemView(totemColor);
             totem.setMaxSize(40.0, 40.0);
             StackPane.setAlignment(totem, javafx.geometry.Pos.TOP_CENTER);
             StackPane.setMargin(totem, new javafx.geometry.Insets(5.0, 0, 0, 0));

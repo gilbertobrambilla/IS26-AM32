@@ -1,11 +1,9 @@
 package it.polimi.ingsw.am32.client.view.gui;
 
 import it.polimi.ingsw.am32.client.assets.AssetManager;
-import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.stage.Stage;
 
 import java.io.InputStream;
@@ -16,12 +14,7 @@ import java.io.InputStream;
  */
 public class GuiApp extends Application {
 
-    private static ClientController pendingController;
     private static String pendingServerAddress;
-
-    public static void setController(ClientController controller) {
-        pendingController = controller;
-    }
 
     public static void setServerAddress(String address) {
         pendingServerAddress = address;
@@ -61,10 +54,6 @@ public class GuiApp extends Application {
 
     @Override
     public void stop() {
-        GuiLogger.info("[GUI] Executing graceful shutdown");
-        if (pendingController != null) {
-            pendingController.shutdown();
-        }
-        GuiLogger.info("[GUI] All services stopped");
+        GuiLogger.info("[GUI] JavaFX application stopped");
     }
 }

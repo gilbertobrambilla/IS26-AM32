@@ -106,7 +106,7 @@ public class PlayerDashboardViewController {
         if (myTotemContainer != null) {
             myTotemContainer.getChildren().clear();
 
-            TotemView myTotem = new TotemView(localPlayer.getTotemColor(), null, false);
+            TotemView myTotem = new TotemView(localPlayer.getTotemColor(), false);
             myTotem.setMaxSize(30.0, 30.0);
             myTotem.setPrefSize(30.0, 30.0);
 

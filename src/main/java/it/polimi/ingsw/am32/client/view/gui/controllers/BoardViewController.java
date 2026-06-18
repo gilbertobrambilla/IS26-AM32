@@ -20,7 +20,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -233,7 +232,7 @@ public class BoardViewController {
                 emptySpace.setMaxSize(30.0, TURN_SLOT_SIZE);
                 slotsBox.getChildren().add(emptySpace);
             } else {
-                TotemView totem = new TotemView(player.getTotemColor(), nickname, true);
+                TotemView totem = new TotemView(player.getTotemColor(), true);
                 javafx.scene.control.Tooltip.install(totem, buildTooltip(nickname));
 
                 if (nickname.equals(activePlayer)) {
@@ -508,7 +507,7 @@ public class BoardViewController {
             if (requirements.totalCards() == 0) {
                 confirmActionButton.setText("Resolve Action");
             } else if (selectedUpper < requirements.upperCards() || selectedLower < requirements.lowerCards()) {
-                confirmActionButton.setText("Force Confirm (Resources Depleted)");
+                confirmActionButton.setText("Confirm Partial Selection");
             } else {
                 confirmActionButton.setText("Confirm Selection");
             }
@@ -530,13 +529,12 @@ public class BoardViewController {
         List<String> selUpper = selectedCardIds().stream().filter(id -> isUpperCard(id, state)).toList();
         List<String> selLower = selectedCardIds().stream().filter(id -> isLowerCard(id, state)).toList();
 
-        return state.isSelectionCompleteOrStuck(
+        return state.isMandatorySelectionComplete(
                 state.getMyNickname(),
                 requirements.upperCards(),
                 requirements.lowerCards(),
                 selUpper,
-                selLower,
-                selectedBuildingIds
+                selLower
         );
     }
 
