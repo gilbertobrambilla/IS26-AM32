@@ -65,14 +65,12 @@ public class ConnectionViewController implements ViewController {
 
             ClientController controller = new ClientController(vs);
             vs.setClientController(controller);
-            vs.startServerHeartbeat();
 
             return controller;
 
         }).thenAcceptAsync(controller -> {
             GuiLogger.info("[GUI] Connection initialized correctly");
-            GuiUI guiUI = new GuiUI(controller);
-            controller.setUI(guiUI);
+            new GuiUI(controller);
             SceneManager.setClientController(controller);
 
             controller.requestConnect();
