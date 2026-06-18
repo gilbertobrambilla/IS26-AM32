@@ -6,6 +6,7 @@ import it.polimi.ingsw.am32.dto.messages.lobby.events.LoginResultEvent;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
@@ -15,6 +16,7 @@ public class LoginViewController implements ViewController {
 
     @FXML private TextField usernameField;
     @FXML private Label errorLabel;
+    @FXML private Button loginButton;
 
     public LoginViewController(ClientController clientController) {
         this.clientController = clientController;
@@ -35,7 +37,7 @@ public class LoginViewController implements ViewController {
         }
 
         errorLabel.setVisible(false);
-        usernameField.setDisable(true);
+        setLoginDisabled(true);
 
         GuiLogger.info("[GUI] Requesting login for nickname: " + nickname);
 
@@ -45,9 +47,8 @@ public class LoginViewController implements ViewController {
     @Override
     public void onLoginResult(LoginResultEvent event) {
         Platform.runLater(() -> {
-            usernameField.setDisable(false);
-
             if (!event.isSuccess()) {
+                setLoginDisabled(false);
                 showError("Login failed: " + event.getMessage());
                 usernameField.requestFocus();
             }
@@ -57,5 +58,12 @@ public class LoginViewController implements ViewController {
     private void showError(String message) {
         errorLabel.setText(message);
         errorLabel.setVisible(true);
+    }
+
+    private void setLoginDisabled(boolean disabled) {
+        usernameField.setDisable(disabled);
+        if (loginButton != null) {
+            loginButton.setDisable(disabled);
+        }
     }
 }

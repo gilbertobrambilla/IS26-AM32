@@ -23,9 +23,12 @@ public class LobbySelectionViewController implements ViewController {
     @FXML private ListView<LobbyInfoDTO> lobbyListView;
     @FXML private Spinner<Integer> playerCountSpinner;
     @FXML private Button joinButton;
+    @FXML private Button createButton;
 
     @FXML private Label errorLabelJoin;
     @FXML private Label errorLabelCreate;
+
+    private boolean requestPending;
 
     /**
      * Dependency injection is handled through the constructor.
@@ -40,9 +43,9 @@ public class LobbySelectionViewController implements ViewController {
     @FXML
     public void initialize() {
         if (joinButton != null) {
-            joinButton.setDisable(true);
+            updateJoinButtonState();
             lobbyListView.getSelectionModel().selectedItemProperty().addListener(
-                    (observable, oldValue, newValue) -> joinButton.setDisable(newValue == null)
+                    (observable, oldValue, newValue) -> updateJoinButtonState()
             );
         }
 
@@ -67,9 +70,11 @@ public class LobbySelectionViewController implements ViewController {
      */
     @FXML
     private void handleCreateGame() {
+        if (requestPending) return;
         if (playerCountSpinner == null || playerCountSpinner.getValue() == null) return;
 
         hideErrors();
+        setRequestPending(true);
         int players = playerCountSpinner.getValue();
         clientController.requestCreateGame(players);
     }
@@ -79,6 +84,7 @@ public class LobbySelectionViewController implements ViewController {
      */
     @FXML
     private void handleJoinGame() {
+        if (requestPending) return;
         LobbyInfoDTO selectedLobby = lobbyListView.getSelectionModel().getSelectedItem();
 
         if (selectedLobby == null) {
@@ -87,6 +93,7 @@ public class LobbySelectionViewController implements ViewController {
         }
 
         hideErrors();
+        setRequestPending(true);
         clientController.requestJoinGame(selectedLobby.getGameId());
     }
 
@@ -96,6 +103,7 @@ public class LobbySelectionViewController implements ViewController {
         Platform.runLater(() -> {
             lobbyListView.getItems().clear();
             lobbyListView.getItems().addAll(event.getLobbies());
+            updateJoinButtonState();
         });
     }
 
@@ -108,6 +116,7 @@ public class LobbySelectionViewController implements ViewController {
     @Override
     public void onLobbyError(LobbyErrorEvent event) {
         Platform.runLater(() -> {
+            setRequestPending(false);
             showErrorJoin(event.getErrorMessage());
             showErrorCreate(event.getErrorMessage());
         });
@@ -131,5 +140,19 @@ public class LobbySelectionViewController implements ViewController {
     private void hideErrors() {
         if (errorLabelJoin != null) errorLabelJoin.setVisible(false);
         if (errorLabelCreate != null) errorLabelCreate.setVisible(false);
+    }
+
+    private void setRequestPending(boolean pending) {
+        requestPending = pending;
+        if (createButton != null) createButton.setDisable(pending);
+        if (playerCountSpinner != null) playerCountSpinner.setDisable(pending);
+        if (lobbyListView != null) lobbyListView.setDisable(pending);
+        updateJoinButtonState();
+    }
+
+    private void updateJoinButtonState() {
+        if (joinButton == null) return;
+        boolean noLobbySelected = lobbyListView == null || lobbyListView.getSelectionModel().getSelectedItem() == null;
+        joinButton.setDisable(requestPending || noLobbySelected);
     }
 }
