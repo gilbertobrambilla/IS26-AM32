@@ -30,7 +30,6 @@ public class Player implements Comparable<Player> {
 
     private boolean shamanicImmunity;
     private boolean doubleShamanicBonus;
-    private boolean isConnected;
 
     private final List<CharacterCard> characterList;
     private final List<BuildingCard> buildingList;
@@ -62,7 +61,6 @@ public class Player implements Comparable<Player> {
 
         this.shamanicImmunity = false;
         this.doubleShamanicBonus = false;
-        this.isConnected = true;
 
         this.characterList = new ArrayList<>();
         this.buildingList = new ArrayList<>();
@@ -145,15 +143,6 @@ public class Player implements Comparable<Player> {
      */
     public int getShamanStars() {
         return this.shamanStars;
-    }
-
-    /**
-     * Checks if the player is currently connected.
-     *
-     * @return true if connected, false otherwise
-     */
-    public boolean isConnected() {
-        return this.isConnected;
     }
 
     /**
@@ -241,15 +230,6 @@ public class Player implements Comparable<Player> {
             throw new IllegalArgumentException("amount cannot be negative");
         }
         this.prestige -= amount;
-    }
-
-    /**
-     * Sets the player's connection status.
-     *
-     * @param status the connection status
-     */
-    public void setConnected(boolean status) {
-        this.isConnected = status;
     }
 
     /**

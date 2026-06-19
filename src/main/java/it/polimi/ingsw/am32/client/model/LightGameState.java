@@ -208,23 +208,21 @@ public class LightGameState {
     }
 
     /**
-     * The player's current selection is checked against offer tile requirements.
-     * A stuck player with no remaining affordable cards is also accepted.
+     * The player's current selection is checked against mandatory character requirements.
+     * Character cards are mandatory up to the offer tile row limits, while building cards remain optional.
      *
      * @param nickname the nickname of the player performing the action
-     * @param reqUpper the number of cards required from the upper row
-     * @param reqLower the number of cards required from the lower row
+     * @param reqUpper the maximum number of cards allowed from the upper row
+     * @param reqLower the maximum number of cards allowed from the lower row
      * @param selUpper the list of card IDs currently selected from the upper row
      * @param selLower the list of card IDs currently selected from the lower row
-     * @param selBuildings the list of building card IDs currently selected across all rows
-     * @return true if the selection is complete or the player cannot afford anymore required cards
+     * @return true if all mandatory character cards are selected without exceeding row limits
      */
-    public boolean isSelectionCompleteOrStuck(
+    public boolean isMandatorySelectionComplete(
             String nickname, int reqUpper, int reqLower,
-            List<String> selUpper, List<String> selLower, List<String> selBuildings) {
+            List<String> selUpper, List<String> selLower) {
 
-        LightPlayer player = this.players.get(nickname);
-        if (player == null) return false;
+        if (!this.players.containsKey(nickname)) return false;
 
         int selectedUpper = selUpper.size();
         int selectedLower = selLower.size();

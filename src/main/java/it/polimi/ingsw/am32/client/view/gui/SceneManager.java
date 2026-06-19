@@ -81,8 +81,7 @@ public class SceneManager {
 
                     currentScene.setOnKeyPressed(event -> {
                         if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
-                            Platform.exit();
-                            System.exit(0);
+                            exitApplication();
                         }
                     });
                 } else {
@@ -141,11 +140,23 @@ public class SceneManager {
         }
     }
 
-    /**
-     * The controller used for future scene injections is replaced.
-     *
-     * @param controller the client controller to inject into views
-     */
+    public static void exitApplication() {
+        Runnable exitTask = () -> {
+            if (clientController != null) {
+                clientController.shutdown();
+                clientController = null;
+            }
+            Platform.exit();
+            System.exit(0);
+        };
+
+        if (Platform.isFxApplicationThread()) {
+            exitTask.run();
+        } else {
+            Platform.runLater(exitTask);
+        }
+    }
+
     public static void setClientController(ClientController controller) {
         clientController = controller;
     }

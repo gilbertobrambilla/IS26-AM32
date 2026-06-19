@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am32.client.view.gui.controllers;
 
-import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.dto.messages.game.events.GameErrorEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.events.LobbyRoomUpdateEvent;
 import it.polimi.ingsw.am32.dto.messages.lobby.models.LobbyInfoDTO;
@@ -15,24 +14,10 @@ import javafx.scene.control.ListView;
  */
 public class WaitingRoomViewController implements ViewController {
 
-    private final ClientController clientController;
-
     @FXML private Label lobbyTitleLabel;
     @FXML private Label statusLabel;
     @FXML private ListView<String> playersListView;
 
-    /**
-     * Dependency injection is handled through the constructor.
-     *
-     * @param clientController the main client controller
-     */
-    public WaitingRoomViewController(ClientController clientController) {
-        this.clientController = clientController;
-    }
-
-    /**
-     * Waiting room initialization is completed.
-     */
     @FXML
     public void initialize() {
     }

@@ -1,10 +1,8 @@
 package it.polimi.ingsw.am32.client.view.gui.components;
 
 import it.polimi.ingsw.am32.client.view.gui.utils.ImageCache;
-import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.model.enums.TotemColor;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
@@ -20,25 +18,12 @@ public class TotemView extends StackPane {
     private final ImageView imageView = new ImageView();
 
 
-    /**
-     * A full totem view is created.
-     *
-     * @param color the totem color
-     * @param nickname the player nickname
-     */
-    public TotemView(TotemColor color, String nickname) {
-        this(color, nickname, false);
+    public TotemView(TotemColor color) {
+        this(color, false);
     }
 
 
-    /**
-     * A totem view is created with optional top cropping.
-     *
-     * @param color the totem color
-     * @param nickname the player nickname
-     * @param cropTop true if only the upper sprite portion should be shown, false otherwise
-     */
-    public TotemView(TotemColor color, String nickname, boolean cropTop) {
+    public TotemView(TotemColor color, boolean cropTop) {
 
         setMinSize(0, 0);
 
@@ -122,18 +107,5 @@ public class TotemView extends StackPane {
             case WHITE -> Color.web("#eeeeee");
             case BLACK -> Color.web("#212121");
         };
-    }
-
-    /**
-     * A label containing nickname initials is built.
-     *
-     * @param nickname the player nickname
-     * @return the initial label
-     */
-    private static Label buildInitialsLabel(String nickname) {
-        String initials = nickname.length() <= 2 ? nickname.toUpperCase() : nickname.substring(0, 2).toUpperCase();
-        Label label = new Label(initials);
-        label.getStyleClass().add("totem-label");
-        return label;
     }
 }

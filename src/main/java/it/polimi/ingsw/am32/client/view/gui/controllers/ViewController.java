@@ -14,19 +14,6 @@ public interface ViewController {
      * @param event the connection result event
      */
     default void onConnectionResult(ConnectionResultEvent event) {}
-
-    /**
-     * Disconnection messages are handled.
-     *
-     * @param message the disconnection message
-     */
-    default void onDisconnection(String message) {}
-
-    /**
-     * Login results are handled.
-     *
-     * @param event the login result event
-     */
     default void onLoginResult(LoginResultEvent event) {}
 
     /**

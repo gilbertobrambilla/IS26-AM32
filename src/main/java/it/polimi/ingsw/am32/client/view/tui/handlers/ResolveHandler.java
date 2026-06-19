@@ -166,21 +166,20 @@ public class ResolveHandler implements InputHandler {
                 throw new IllegalArgumentException("your tile only provides food, no cards allowed");
             }
 
-            boolean isCompleteOrStuck = state.isSelectionCompleteOrStuck(
+            boolean isMandatorySelectionComplete = state.isMandatorySelectionComplete(
                     state.getMyNickname(),
                     allowedUpper,
                     allowedLower,
                     selUpper,
-                    selLower,
-                    buildings
+                    selLower
             );
 
-            if (!isCompleteOrStuck) {
-                throw new IllegalArgumentException("incomplete action: you must select the exact number of cards required, or there are still affordable cards you can pick");
+            if (!isMandatorySelectionComplete) {
+                throw new IllegalArgumentException("incomplete action: you must select all mandatory character cards allowed by your tile");
             }
 
             if (selUpper.size() < allowedUpper || selLower.size() < allowedLower) {
-                it.polimi.ingsw.am32.log.LogManager.getInstance().log(it.polimi.ingsw.am32.log.LogLevel.INFO, "[*] Forced confirmation: your resources are depleted or no affordable cards remain.");
+                it.polimi.ingsw.am32.log.LogManager.getInstance().log(it.polimi.ingsw.am32.log.LogLevel.INFO, "[*] Partial selection accepted: remaining card slots are optional.");
             }
 
             // standard action resolution is requested

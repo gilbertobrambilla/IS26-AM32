@@ -26,14 +26,13 @@ import java.util.Set;
  * <p>The local player's food, prestige, and cards are displayed. Cards are grouped
  * by category in stable left-to-right order.</p>
  *
- * <p>No client-side state is carried and no external dependencies are required.
- * All data is pushed by the parent {@link InGameViewController}.</p>
+ * <p>A small card-view cache is kept to avoid redundant image node creation.
+ * All rendered data is pushed by the parent {@link InGameViewController}.</p>
  */
 public class PlayerDashboardViewController {
 
     // card layout constants
     private static final double CASCADE_SPACING = -85.0;
-    private static final double COLUMN_WIDTH    = 90.0;
     private static final double CARD_WIDTH      = 72.0;
     private static final double CARD_HEIGHT     = 108.0;
 
@@ -111,7 +110,7 @@ public class PlayerDashboardViewController {
         if (myTotemContainer != null) {
             myTotemContainer.getChildren().clear();
 
-            TotemView myTotem = new TotemView(localPlayer.getTotemColor(), null, false);
+            TotemView myTotem = new TotemView(localPlayer.getTotemColor(), false);
             myTotem.setMaxSize(30.0, 30.0);
             myTotem.setPrefSize(30.0, 30.0);
 

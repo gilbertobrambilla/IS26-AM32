@@ -1,11 +1,11 @@
 package it.polimi.ingsw.am32.client.view.gui.controllers;
 
 import it.polimi.ingsw.am32.client.controller.ClientController;
+import it.polimi.ingsw.am32.client.view.gui.SceneManager;
 import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.dto.messages.game.events.GameEndedEvent;
 import it.polimi.ingsw.am32.dto.messages.game.events.LeaderboardEvent;
 import it.polimi.ingsw.am32.dto.messages.game.models.LeaderboardEntryDTO;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -224,11 +224,7 @@ public class EndGameViewController implements ViewController {
     @FXML
     public void handleExit() {
         GuiLogger.info("[GUI] Exiting from EndGameScene");
-        if (clientController != null) {
-            clientController.shutdown();
-        }
-        Platform.exit();
-        System.exit(0);
+        SceneManager.exitApplication();
     }
 
     /**

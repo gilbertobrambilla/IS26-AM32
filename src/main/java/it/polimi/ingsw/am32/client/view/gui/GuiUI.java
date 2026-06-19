@@ -15,16 +15,13 @@ import javafx.application.Platform;
  */
 public class GuiUI implements UI {
 
-    private final ClientController controller;
-
     /**
      * The GUI is instantiated and linked to the main controller.
      *
      * @param controller the main ClientController
      */
     public GuiUI(ClientController controller) {
-        this.controller = controller;
-        this.controller.setUI(this);
+        controller.setUI(this);
     }
 
     // connection phase
@@ -82,11 +79,8 @@ public class GuiUI implements UI {
      */
     @Override
     public void showQuitConfirmation() {
-        Platform.runLater(() -> {
-            GuiLogger.info("[GUI] Application closed by user");
-            Platform.exit();
-            System.exit(0);
-        });
+        GuiLogger.info("[GUI] Application closed by user");
+        SceneManager.exitApplication();
     }
 
     /**

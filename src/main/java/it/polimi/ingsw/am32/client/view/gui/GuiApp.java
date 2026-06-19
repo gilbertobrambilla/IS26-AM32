@@ -1,14 +1,16 @@
 package it.polimi.ingsw.am32.client.view.gui;
 
 import it.polimi.ingsw.am32.client.assets.AssetManager;
-import it.polimi.ingsw.am32.client.controller.ClientController;
 import it.polimi.ingsw.am32.client.view.gui.utils.GuiLogger;
 import it.polimi.ingsw.am32.client.view.utils.GameDictionary;
 import javafx.application.Application;
-import javafx.application.Platform;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * The main entry point for the JavaFX graphical user interface is represented.
@@ -16,23 +18,8 @@ import java.io.InputStream;
  */
 public class GuiApp extends Application {
 
-    private static ClientController pendingController;
     private static String pendingServerAddress;
 
-    /**
-     * The client controller to be used by the JavaFX application is stored.
-     *
-     * @param controller the client controller instance
-     */
-    public static void setController(ClientController controller) {
-        pendingController = controller;
-    }
-
-    /**
-     * The server address selected before the JavaFX launch is stored.
-     *
-     * @param address the selected server address
-     */
     public static void setServerAddress(String address) {
         pendingServerAddress = address;
     }
@@ -66,12 +53,32 @@ public class GuiApp extends Application {
 
         primaryStage.setTitle("Mesos - Digital Edition");
 
+        primaryStage.getIcons().add(new Image(
+                Objects.requireNonNull(GuiApp.class.getResourceAsStream("/assets/images/ui_assets/app_icon.png"))
+        ));
+
+        try {
+            if (Taskbar.isTaskbarSupported()) {
+                Taskbar taskbar = Taskbar.getTaskbar();
+                if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+
+                    java.awt.Image awtImage = ImageIO.read(
+                            Objects.requireNonNull(GuiApp.class.getResourceAsStream("/assets/images/ui_assets/app_icon.png"))
+                    );
+                    taskbar.setIconImage(awtImage);
+                }
+            }
+        } catch (Exception e) {
+            GuiLogger.error("[GUI] Failed to set the system taskbar icon", e);
+        }
+
         primaryStage.setResizable(true);
         primaryStage.setFullScreen(false);
 
         primaryStage.setOnCloseRequest(event -> {
             GuiLogger.info("[GUI] Window close requested");
-            System.exit(0);
+            event.consume();
+            SceneManager.exitApplication();
         });
 
         SceneManager.switchScene(ViewPaths.CONNECTION);
@@ -84,10 +91,6 @@ public class GuiApp extends Application {
      */
     @Override
     public void stop() {
-        GuiLogger.info("[GUI] Executing graceful shutdown");
-        if (pendingController != null) {
-            pendingController.shutdown();
-        }
-        GuiLogger.info("[GUI] All services stopped");
+        GuiLogger.info("[GUI] JavaFX application stopped");
     }
 }

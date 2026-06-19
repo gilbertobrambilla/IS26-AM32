@@ -63,7 +63,7 @@ public class OpponentView extends HBox {
             lastTotemColor = color;
             totemSlot.getChildren().clear();
             if (color != null) {
-                totemSlot.getChildren().add(new TotemView(color, player.getNickname()));
+                totemSlot.getChildren().add(new TotemView(color));
             }
         }
     }

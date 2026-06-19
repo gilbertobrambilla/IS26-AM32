@@ -6,10 +6,9 @@ module it.polimi.ingsw.am32 {
     requires java.rmi;
     requires org.jline.reader;
     requires org.jline.terminal;
+    requires java.desktop;
 
 
-    opens it.polimi.ingsw.am32 to javafx.fxml;
-    exports it.polimi.ingsw.am32;
     exports it.polimi.ingsw.am32.model.enums;
     opens it.polimi.ingsw.am32.model.enums to javafx.fxml;
     exports it.polimi.ingsw.am32.model;

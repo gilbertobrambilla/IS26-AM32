@@ -8,7 +8,7 @@
 
 <HBox alignment="CENTER_LEFT" prefHeight="190.0" minHeight="190.0" maxHeight="190.0"
       spacing="24.0" styleClass="mesos-panel"
-      xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.PlayerDashboardViewController">
 
     <padding>

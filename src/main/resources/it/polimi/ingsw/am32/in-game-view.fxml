@@ -10,7 +10,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import java.lang.String?>
 
-<StackPane xmlns="http://javafx.com/javafx/26"
+<StackPane xmlns="http://javafx.com/javafx/21.0.6"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.InGameViewController"
            maxWidth="Infinity" maxHeight="Infinity">
@@ -55,7 +55,8 @@
     </StackPane>
 
     <StackPane fx:id="helperCardOverlay" visible="false" styleClass="focus-overlay-backdrop" onMouseClicked="#handleCloseHelperZoom">
-        <ImageView fx:id="largeHelperImageView" fitHeight="650.0" preserveRatio="true" onMouseClicked="#handleFlipHelperCard" style="-fx-cursor: hand;" />    </StackPane>
+        <ImageView fx:id="largeHelperImageView" fitHeight="650.0" preserveRatio="true" onMouseClicked="#handleFlipHelperCard" style="-fx-cursor: hand;" />
+    </StackPane>
 
     <VBox fx:id="suspensionOverlay" alignment="CENTER" spacing="20.0" styleClass="suspension-overlay" visible="false">
         <Label fx:id="suspensionMessageLabel" styleClass="suspension-message" text="Game Suspended. Waiting for players to reconnect..." />

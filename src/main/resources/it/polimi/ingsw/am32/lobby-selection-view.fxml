@@ -12,7 +12,7 @@
 <?import java.lang.String?>
 
 <VBox alignment="TOP_CENTER" spacing="20.0"
-      xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.LobbySelectionViewController">
     <styleClass>
         <String fx:value="root" />
@@ -66,7 +66,7 @@
                         <Spinner fx:id="playerCountSpinner" editable="true" initialValue="3" max="5" min="2" prefWidth="150.0" />
                     </VBox>
                     <Label fx:id="errorLabelCreate" styleClass="error-text" visible="false" />
-                    <Button maxWidth="200.0" onAction="#handleCreateGame" styleClass="button-accent" text="CREATE GAME" />
+                    <Button fx:id="createButton" maxWidth="200.0" onAction="#handleCreateGame" styleClass="button-accent" text="CREATE GAME" />
                 </VBox>
             </Tab>
         </tabs>

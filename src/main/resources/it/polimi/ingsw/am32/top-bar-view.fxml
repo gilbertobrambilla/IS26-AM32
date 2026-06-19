@@ -5,7 +5,7 @@
 <HBox alignment="CENTER"
       prefHeight="60.0" minHeight="60.0" maxHeight="60.0"
       spacing="50.0" styleClass="top-bar"
-      xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.polimi.ingsw.am32.client.view.gui.controllers.TopBarViewController">
 
     <HBox alignment="CENTER" spacing="10.0">

@@ -431,6 +431,9 @@ public class InGameViewController implements ViewController {
         if (suspensionOverlay != null) {
             suspensionOverlay.setVisible(true);
         }
+        if (suspensionMessageLabel != null) {
+            suspensionMessageLabel.setText("Game Suspended. Waiting for players to reconnect...");
+        }
         showNotification("game suspended due to missing players.");
     }
 

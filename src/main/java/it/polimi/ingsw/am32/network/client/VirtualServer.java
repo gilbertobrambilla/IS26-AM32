@@ -39,6 +39,7 @@ public class VirtualServer implements ServerConnection {
     private final AtomicReference<ClientController> clientController = new AtomicReference<>();
     private final AtomicLong lastPingReceived = new AtomicLong(System.currentTimeMillis());
     private final AtomicBoolean isFirstPing = new AtomicBoolean(true);
+    private final AtomicBoolean heartbeatStarted = new AtomicBoolean(false);
 
     private ScheduledFuture<?> pingTask;
     private ScheduledFuture<?> timeoutTask;
@@ -104,6 +105,10 @@ public class VirtualServer implements ServerConnection {
      * The liveness routine for ping and timeout monitoring is started.
      */
     public void startServerHeartbeat() {
+        if (!heartbeatStarted.compareAndSet(false, true)) {
+            return;
+        }
+
         // ping task scheduled
         this.pingTask = sharedScheduler.scheduleAtFixedRate(() -> {
             if (isConnected.get()) {
@@ -194,6 +199,7 @@ public class VirtualServer implements ServerConnection {
             // timeout task canceled
             timeoutTask.cancel(true);
         }
+        heartbeatStarted.set(false);
     }
 
     /**
