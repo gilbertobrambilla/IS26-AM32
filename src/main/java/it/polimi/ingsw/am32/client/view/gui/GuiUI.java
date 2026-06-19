@@ -27,8 +27,13 @@ public class GuiUI implements UI {
         this.controller.setUI(this);
     }
 
-    // --- CONNECTION PHASE ---
+    // connection phase
 
+    /**
+     * Connection result is routed to the active scene.
+     *
+     * @param event the connection result event
+     */
     @Override
     public void showConnectionResult(ConnectionResultEvent event) {
         Platform.runLater(() -> {
@@ -43,6 +48,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Login result is routed to the active scene.
+     *
+     * @param event the login result event
+     */
     @Override
     public void showLoginResult(LoginResultEvent event) {
         Platform.runLater(() -> {
@@ -56,11 +66,20 @@ public class GuiUI implements UI {
             }
         });
     }
+
+    /**
+     * Fatal connection loss is displayed, and the connection scene is restored.
+     *
+     * @param message the disconnection reason
+     */
     @Override
     public void showConnectionLost(String message) {
         SceneManager.forceDisconnect(message);
     }
 
+    /**
+     * User-requested application termination is performed.
+     */
     @Override
     public void showQuitConfirmation() {
         Platform.runLater(() -> {
@@ -70,6 +89,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Available lobbies are routed to the active scene.
+     *
+     * @param event the available lobbies event
+     */
     @Override
     public void updateAvailableLobbies(AvailableLobbiesEvent event) {
         Platform.runLater(() -> {
@@ -80,6 +104,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Lobby room updates are routed to the active scene.
+     *
+     * @param event the lobby room update event
+     */
     @Override
     public void updateLobbyRoom(LobbyRoomUpdateEvent event) {
         Platform.runLater(() -> {
@@ -90,8 +119,13 @@ public class GuiUI implements UI {
         });
     }
 
-    // --- LOBBY PHASE ---
+    // lobby phase
 
+    /**
+     * Lobby errors are routed to the active scene.
+     *
+     * @param event the lobby error event
+     */
     @Override
     public void showLobbyError(LobbyErrorEvent event) {
         Platform.runLater(() -> {
@@ -100,8 +134,13 @@ public class GuiUI implements UI {
         });
     }
 
-    // --- GAME LIFECYCLE ---
+    // game lifecycle
 
+    /**
+     * Game start is shown by switching to the in-game scene.
+     *
+     * @param event the game started event
+     */
     @Override
     public void showGameStarted(GameStartedEvent event) {
         SceneManager.switchScene(ViewPaths.IN_GAME);
@@ -111,6 +150,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * A restored game state is shown by switching to the in-game scene.
+     *
+     * @param event the restored game state event
+     */
     @Override
     public void restoreGameState(GameStateEvent event) {
         SceneManager.switchScene(ViewPaths.IN_GAME);
@@ -120,6 +164,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Game phase updates are routed to the active scene.
+     *
+     * @param event the game phase changed event
+     */
     @Override
     public void updateGamePhase(GamePhaseChangedEvent event) {
         Platform.runLater(() -> {
@@ -128,6 +177,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Round summary updates are routed to the active scene.
+     *
+     * @param event the round-ended event
+     */
     @Override
     public void showRoundEnded(RoundEndedEvent event) {
         Platform.runLater(() -> {
@@ -136,6 +190,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Game results are shown by switching to the end-game scene.
+     *
+     * @param event the game ended event
+     */
     @Override
     public void showGameEnded(GameEndedEvent event) {
         Platform.runLater(() -> {
@@ -143,6 +202,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Leaderboard results are routed to the active scene.
+     *
+     * @param event the leaderboard event
+     */
     @Override
     public void showLeaderboard(LeaderboardEvent event) {
         Platform.runLater(() -> {
@@ -151,8 +215,13 @@ public class GuiUI implements UI {
         });
     }
 
-    // --- GAMEPLAY ACTIONS ---
+    // gameplay actions
 
+    /**
+     * Totem placement updates are routed to the active scene.
+     *
+     * @param event the totem placed event
+     */
     @Override
     public void showTotemPlaced(TotemPlacedEvent event) {
         Platform.runLater(() -> {
@@ -161,6 +230,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Action resolution updates are routed to the active scene.
+     *
+     * @param event the action resolved event
+     */
     @Override
     public void showActionResolved(ActionResolvedEvent event) {
         Platform.runLater(() -> {
@@ -169,6 +243,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Event resolution updates are routed to the active scene.
+     *
+     * @param event the event resolved event
+     */
     @Override
     public void showEventResolved(EventResolvedEvent event) {
         Platform.runLater(() -> {
@@ -177,6 +256,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Extra acquisition updates are routed to the active scene.
+     *
+     * @param event the extra acquisition resolved event
+     */
     @Override
     public void showExtraAcquisition(ExtraAcquisitionResolvedEvent event) {
         Platform.runLater(() -> {
@@ -185,6 +269,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Opponent focus requests are routed to the active scene.
+     *
+     * @param nickname the player nickname to focus on, or null to clear focus
+     */
     @Override
     public void showPlayerFocus(String nickname) {
         Platform.runLater(() -> {
@@ -193,8 +282,13 @@ public class GuiUI implements UI {
         });
     }
 
-    // --- RESILIENCE AND ERRORS ---
+    // resilience and errors
 
+    /**
+     * Game errors are routed to the active scene.
+     *
+     * @param event the game error event
+     */
     @Override
     public void showGameError(GameErrorEvent event) {
         Platform.runLater(() -> {
@@ -203,6 +297,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Player disconnection events are routed to the active scene.
+     *
+     * @param event the player disconnected event
+     */
     @Override
     public void showPlayerDisconnected(PlayerDisconnectedEvent event) {
         Platform.runLater(() -> {
@@ -211,6 +310,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Player reconnection events are routed to the active scene.
+     *
+     * @param event the player reconnected event
+     */
     @Override
     public void showPlayerReconnected(PlayerReconnectedEvent event) {
         Platform.runLater(() -> {
@@ -219,6 +323,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Game suspension events are routed to the active scene.
+     *
+     * @param event the game suspended event
+     */
     @Override
     public void showGameSuspended(GameSuspendedEvent event) {
         Platform.runLater(() -> {
@@ -227,6 +336,11 @@ public class GuiUI implements UI {
         });
     }
 
+    /**
+     * Game resume events are routed to the active scene.
+     *
+     * @param event the game resumed event
+     */
     @Override
     public void showGameResumed(GameResumedEvent event) {
         Platform.runLater(() -> {

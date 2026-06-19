@@ -19,18 +19,38 @@ public class GuiApp extends Application {
     private static ClientController pendingController;
     private static String pendingServerAddress;
 
+    /**
+     * The client controller to be used by the JavaFX application is stored.
+     *
+     * @param controller the client controller instance
+     */
     public static void setController(ClientController controller) {
         pendingController = controller;
     }
 
+    /**
+     * The server address selected before the JavaFX launch is stored.
+     *
+     * @param address the selected server address
+     */
     public static void setServerAddress(String address) {
         pendingServerAddress = address;
     }
 
+    /**
+     * The configured server address is returned.
+     *
+     * @return the configured address, or {@code "unknown"} if unavailable
+     */
     public static String getServerAddress() {
         return pendingServerAddress != null ? pendingServerAddress : "unknown";
     }
 
+    /**
+     * The JavaFX primary stage is initialized, and the first scene is displayed.
+     *
+     * @param primaryStage the primary JavaFX stage
+     */
     @Override
     public void start(Stage primaryStage) {
         GuiLogger.info("[SYSTEM] Loading game assets");
@@ -59,6 +79,9 @@ public class GuiApp extends Application {
         primaryStage.centerOnScreen();
     }
 
+    /**
+     * A graceful shutdown of GUI-owned services is performed.
+     */
     @Override
     public void stop() {
         GuiLogger.info("[GUI] Executing graceful shutdown");

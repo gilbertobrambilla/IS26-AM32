@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A utility for loading and parsing the assets json file is represented.
+ * A utility for loading and parsing the asset JSON file is represented.
  */
 public class JsonAssetLoader {
     private static JsonAssetLoader instance;
@@ -37,7 +37,7 @@ public class JsonAssetLoader {
                 throw new RuntimeException("/assets/assets.json file not found");
             }
 
-            // json file is parsed into a tree model
+            // JSON file is parsed into a tree model
             this.rootNode = objectMapper.readTree(is);
 
         } catch (Exception e) {
@@ -141,7 +141,7 @@ public class JsonAssetLoader {
      * @return a list of parsed dto
      */
     private <T> List<T> extractList(String fieldName, Class<T> clazz) {
-        // json node corresponding to the field is retrieved
+        // JSON node corresponding to the field is retrieved
         JsonNode arrayNode = rootNode.get(fieldName);
 
         // exception is thrown if node is missing or not an array
@@ -164,7 +164,7 @@ public class JsonAssetLoader {
      * @return a map of parsed string pairs
      */
     private Map<String, String> extractMap(String fieldName) {
-        // json node corresponding to the field is retrieved
+        // JSON node corresponding to the field is retrieved
         JsonNode objectNode = rootNode.get(fieldName);
 
         // exception is thrown if node is missing or not an object

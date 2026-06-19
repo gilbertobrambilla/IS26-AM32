@@ -34,6 +34,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * The central game board controller is represented.
+ */
 public class BoardViewController {
 
     private static final double TURN_TILE_HEIGHT    = 120.0;
@@ -55,15 +58,28 @@ public class BoardViewController {
 
     private ScaleTransition activePulse;
 
+    /**
+     * Dependency injection is handled through the constructor.
+     *
+     * @param clientController the main client controller
+     */
     public BoardViewController(ClientController clientController) {
         this.clientController = clientController;
     }
 
+    /**
+     * Board containers are initialized.
+     */
     @FXML
     public void initialize() {
         clearContainers();
     }
 
+    /**
+     * The board, offer track, and turn order are rebuilt from the light state.
+     *
+     * @param state the light game state to render
+     */
     public void wipeAndRebuild(LightGameState state) {
         if (state == null) return;
         renderBoardRows(state);
@@ -72,6 +88,9 @@ public class BoardViewController {
         updateConfirmButtonState(state);
     }
 
+    /**
+     * Board containers, caches, selections, and confirm controls are reset.
+     */
     public void clearContainers() {
         upperRowCardsContainer.getChildren().clear();
         lowerRowCardsContainer.getChildren().clear();
@@ -91,6 +110,11 @@ public class BoardViewController {
         }
     }
 
+    /**
+     * Pending card selections are cleared when the current phase does not allow them.
+     *
+     * @param currentPhase the current game phase
+     */
     public void resetPhaseSelection(GamePhase currentPhase) {
         if (currentPhase == GamePhase.RESOLVE_ACTIONS || currentPhase == GamePhase.EXTRA_ACQUISITION) return;
 
@@ -104,6 +128,11 @@ public class BoardViewController {
         availableCardViewCache.values().forEach(cv -> cv.setHighlight(false));
     }
 
+    /**
+     * Upper and lower board card rows are rendered.
+     *
+     * @param state the light game state to render
+     */
     private void renderBoardRows(LightGameState state) {
         List<String> upperIds = collectRowIds(state.getUpperTribeRow(), state.getUpperBuildingRow());
         List<String> lowerIds = collectRowIds(state.getLowerTribeRow(), state.getLowerBuildingRow());
@@ -130,6 +159,11 @@ public class BoardViewController {
         );
     }
 
+    /**
+     * The current turn order tile is rendered.
+     *
+     * @param state the light game state to render
+     */
     private void renderTurnOrder(LightGameState state) {
         LightTurnOrderTile turnOrderTile = state.getTurnOrderTile();
         if (turnOrderTile == null) return;
@@ -141,6 +175,13 @@ public class BoardViewController {
         turnOrderContainer.getChildren().setAll(compositeTile);
     }
 
+    /**
+     * A composite turn order tile with a background and slots is built.
+     *
+     * @param tile the light turn order tile model
+     * @param state the light game state
+     * @return the composite tile node
+     */
     private StackPane buildTurnOrderTile(LightTurnOrderTile tile, LightGameState state) {
         StackPane composite = new StackPane();
         composite.setAlignment(Pos.TOP_CENTER);
@@ -154,6 +195,12 @@ public class BoardViewController {
         return composite;
     }
 
+    /**
+     * The background image view for a turn order tile is built.
+     *
+     * @param tileId the turn order tile identifier
+     * @return the background image view, or null if unavailable
+     */
     private ImageView buildTurnOrderBackground(String tileId) {
         var dto = AssetManager.getInstance().getTurnOrderTile(tileId);
         if (dto == null || dto.getAssetPath() == null) return null;
@@ -167,6 +214,13 @@ public class BoardViewController {
         return view;
     }
 
+    /**
+     * The totem slots displayed over the turn order tile are built.
+     *
+     * @param tile the light turn order tile model
+     * @param state the light game state
+     * @return the slot container
+     */
     private VBox buildSlotsBox(LightTurnOrderTile tile, LightGameState state) {
         List<String> players   = tile.getPlayers();
         String activePlayer    = state.getCurrentPlayer();
@@ -258,6 +312,11 @@ public class BoardViewController {
         return slotsBox;
     }
 
+    /**
+     * Offer tiles and the deck preview are rendered.
+     *
+     * @param state the light game state to render
+     */
     private void renderOfferTiles(LightGameState state) {
         List<LightOfferTile> tiles = state.getOfferTrack();
         Set<String> currentTileIds = tiles.stream()
@@ -297,6 +356,12 @@ public class BoardViewController {
         offersContainer.getChildren().setAll(orderedViews);
     }
 
+    /**
+     * The tribe deck preview is built.
+     *
+     * @param state the light game state
+     * @return the deck preview node, or null if no deck is visible
+     */
     private StackPane buildDeckView(LightGameState state) {
         int deckSize = state.getTribeDeckSize();
         int topEra = state.getTribeDeckTopCardEra();
@@ -323,6 +388,11 @@ public class BoardViewController {
         return container;
     }
 
+    /**
+     * Card click selection is handled according to the current game phase.
+     *
+     * @param selectedCard the selected card view
+     */
     private void handleCardSelection(CardView selectedCard) {
         LightGameState state = clientController.getLightGameState();
 
@@ -344,6 +414,13 @@ public class BoardViewController {
         updateConfirmButtonState(state);
     }
 
+    /**
+     * Card selection during extra acquisition is handled.
+     *
+     * @param cardId the selected card identifier
+     * @param selectedCard the selected card view
+     * @param state the light game state
+     */
     private void handleCardSelectionForExtraAcquisition(String cardId, CardView selectedCard, LightGameState state) {
         if (selectedCharacterIds.contains(cardId) || selectedBuildingIds.contains(cardId)) {
             selectedCharacterIds.remove(cardId);
@@ -365,6 +442,13 @@ public class BoardViewController {
         }
     }
 
+    /**
+     * Card selection during action resolution is handled.
+     *
+     * @param cardId the selected card identifier
+     * @param selectedCard the selected card view
+     * @param state the light game state
+     */
     private void handleCardSelectionForResolveActions(String cardId, CardView selectedCard, LightGameState state) {
         OfferRequirements requirements = getCurrentOfferRequirements(state);
         if (requirements == null) {
@@ -396,6 +480,9 @@ public class BoardViewController {
         }
     }
 
+    /**
+     * The current selection is confirmed from the board button.
+     */
     @FXML
     private void handleConfirmAction() {
         LightGameState state = clientController.getLightGameState();
@@ -411,6 +498,9 @@ public class BoardViewController {
         }
     }
 
+    /**
+     * Extra acquisition selection is submitted.
+     */
     private void handleConfirmForExtraAcquisition() {
         String selectedCard = null;
         if (!selectedCharacterIds.isEmpty()) {
@@ -422,6 +512,11 @@ public class BoardViewController {
         clearSelectionsAndHideConfirmButton();
     }
 
+    /**
+     * Action resolution selections are validated and submitted.
+     *
+     * @param state the light game state
+     */
     private void handleConfirmForResolveActions(LightGameState state) {
         OfferRequirements requirements = getCurrentOfferRequirements(state);
         if (requirements == null || !isSelectionComplete(state, requirements)) {
@@ -436,6 +531,9 @@ public class BoardViewController {
         clearSelectionsAndHideConfirmButton();
     }
 
+    /**
+     * Card selections are cleared and the confirmation button is hidden.
+     */
     private void clearSelectionsAndHideConfirmButton() {
         selectedCharacterIds.clear();
         selectedBuildingIds.clear();
@@ -447,6 +545,11 @@ public class BoardViewController {
         availableCardViewCache.values().forEach(cv -> cv.setHighlight(false));
     }
 
+    /**
+     * Totem placement on an offer tile is requested.
+     *
+     * @param selectedTile the selected offer tile view
+     */
     private void handleTotemPlacement(OfferView selectedTile) {
         if (!isMyTurnAndPhase(clientController.getLightGameState(), GamePhase.PLACE_TOTEMS)) {
             AnimationUtils.shakeNode(selectedTile);
@@ -457,6 +560,13 @@ public class BoardViewController {
         clientController.requestPlaceTotem(selectedTile.getTileData().getId());
     }
 
+    /**
+     * Local turn ownership and phase compatibility are checked.
+     *
+     * @param state the light game state
+     * @param expectedPhases the accepted game phases
+     * @return true if the local player can act in one of the expected phases
+     */
     private boolean isMyTurnAndPhase(LightGameState state, GamePhase... expectedPhases) {
         if (state == null || state.getCurrentPlayer() == null) return false;
         if (!state.getMyNickname().equals(state.getCurrentPlayer())) return false;
@@ -466,6 +576,11 @@ public class BoardViewController {
         return false;
     }
 
+    /**
+     * Confirm button visibility, text, and disabled state are refreshed.
+     *
+     * @param state the light game state
+     */
     private void updateConfirmButtonState(LightGameState state) {
         if (confirmActionButton == null) return;
 
@@ -485,6 +600,9 @@ public class BoardViewController {
         }
     }
 
+    /**
+     * Confirm button state for extra acquisition is refreshed.
+     */
     private void updateButtonForExtraAcquisition() {
         confirmActionButton.setDisable(false);
         if (selectedCharacterIds.isEmpty() && selectedBuildingIds.isEmpty()) {
@@ -494,6 +612,11 @@ public class BoardViewController {
         }
     }
 
+    /**
+     * Confirm button state for action resolution is refreshed.
+     *
+     * @param state the light game state
+     */
     private void updateButtonForResolveActions(LightGameState state) {
         OfferRequirements requirements = getCurrentOfferRequirements(state);
         boolean complete = requirements != null && isSelectionComplete(state, requirements);
@@ -516,6 +639,14 @@ public class BoardViewController {
         }
     }
 
+    /**
+     * Whether the given card can be selected for the current offer is checked.
+     *
+     * @param cardId the selected card identifier
+     * @param state the light game state
+     * @param requirements the current offer requirements
+     * @return true if the card can be selected, false otherwise
+     */
     private boolean canSelectCard(String cardId, LightGameState state, OfferRequirements requirements) {
         if (isUpperCard(cardId, state)) {
             return countSelectedUpperCards(state) < requirements.upperCards();
@@ -526,6 +657,13 @@ public class BoardViewController {
         return false;
     }
 
+    /**
+     * Whether the current selection satisfies or exhausts the offer requirements is checked.
+     *
+     * @param state the light game state
+     * @param requirements the current offer requirements
+     * @return true if the selection can be submitted, false otherwise
+     */
     private boolean isSelectionComplete(LightGameState state, OfferRequirements requirements) {
         List<String> selUpper = selectedCardIds().stream().filter(id -> isUpperCard(id, state)).toList();
         List<String> selLower = selectedCardIds().stream().filter(id -> isLowerCard(id, state)).toList();
@@ -540,6 +678,12 @@ public class BoardViewController {
         );
     }
 
+    /**
+     * The offer requirements for the local player's occupied tile are resolved.
+     *
+     * @param state the light game state
+     * @return the current offer requirements, or null if unavailable
+     */
     private OfferRequirements getCurrentOfferRequirements(LightGameState state) {
         if (state == null) return null;
 
@@ -551,37 +695,81 @@ public class BoardViewController {
                 .orElse(null);
     }
 
+    /**
+     * Offer tile DTO values are converted to local requirements.
+     *
+     * @param tile the offer tile dto
+     * @return the local offer requirements, or null if unavailable
+     */
     private OfferRequirements toRequirements(OfferTileDTO tile) {
         if (tile == null) return null;
         return new OfferRequirements(tile.getDrawsFromUpperRow(), tile.getDrawsFromLowerRow());
     }
 
+    /**
+     * Selected cards belonging to the upper row are counted.
+     *
+     * @param state the light game state
+     * @return the number of selected upper-row cards
+     */
     private int countSelectedUpperCards(LightGameState state) {
         return (int) selectedCardIds().stream()
                 .filter(cardId -> isUpperCard(cardId, state))
                 .count();
     }
 
+    /**
+     * Selected cards belonging to the lower row are counted.
+     *
+     * @param state the light game state
+     * @return the number of selected lower-row cards
+     */
     private int countSelectedLowerCards(LightGameState state) {
         return (int) selectedCardIds().stream()
                 .filter(cardId -> isLowerCard(cardId, state))
                 .count();
     }
 
+    /**
+     * All selected card identifiers are collected.
+     *
+     * @return the selected card identifiers
+     */
     private List<String> selectedCardIds() {
         List<String> ids = new ArrayList<>(selectedCharacterIds);
         ids.addAll(selectedBuildingIds);
         return ids;
     }
 
+    /**
+     * Whether a card belongs to the upper row is checked.
+     *
+     * @param cardId the card identifier
+     * @param state the light game state
+     * @return true if the card belongs to the upper row, false otherwise
+     */
     private boolean isUpperCard(String cardId, LightGameState state) {
         return state.getUpperTribeRow().contains(cardId) || state.getUpperBuildingRow().contains(cardId);
     }
 
+    /**
+     * Whether a card belongs to the lower row is checked.
+     *
+     * @param cardId the card identifier
+     * @param state the light game state
+     * @return true if the card belongs to the lower row, false otherwise
+     */
     private boolean isLowerCard(String cardId, LightGameState state) {
         return state.getLowerTribeRow().contains(cardId) || state.getLowerBuildingRow().contains(cardId);
     }
 
+    /**
+     * Two row halves are combined while null values are tolerated.
+     *
+     * @param half1 the first row half
+     * @param half2 the second row half
+     * @return the combined card identifiers
+     */
     private static List<String> collectRowIds(List<String> half1, List<String> half2) {
         List<String> result = new ArrayList<>();
         if (half1 != null) result.addAll(half1);
@@ -589,12 +777,21 @@ public class BoardViewController {
         return result;
     }
 
+    /**
+     * A bold tooltip is built.
+     *
+     * @param text the tooltip text
+     * @return the tooltip instance
+     */
     private static Tooltip buildTooltip(String text) {
         Tooltip t = new Tooltip(text);
         t.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
         return t;
     }
 
+    /**
+     * The active turn-order pulse animation is stopped.
+     */
     private void stopActivePulse() {
         if (activePulse != null) {
             activePulse.stop();
@@ -602,7 +799,18 @@ public class BoardViewController {
         }
     }
 
+    /**
+     * Offer tile card draw requirements are represented.
+     *
+     * @param upperCards the number of required upper-row cards
+     * @param lowerCards the number of required lower-row cards
+     */
     private record OfferRequirements(int upperCards, int lowerCards) {
+        /**
+         * The total number of required cards is returned.
+         *
+         * @return the total required cards
+         */
         int totalCards() {
             return upperCards + lowerCards;
         }

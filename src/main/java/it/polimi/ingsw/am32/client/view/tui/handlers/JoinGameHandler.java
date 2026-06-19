@@ -7,6 +7,13 @@ import it.polimi.ingsw.am32.client.controller.ClientController;
  */
 public class JoinGameHandler implements InputHandler {
 
+    /**
+     * A join game command is executed.
+     *
+     * @param controller the client controller
+     * @param args the raw input tokens
+     * @throws IllegalArgumentException if the provided arguments are invalid
+     */
     @Override
     public void execute(ClientController controller, String[] args) throws IllegalArgumentException {
         // argument length is validated
@@ -25,12 +32,22 @@ public class JoinGameHandler implements InputHandler {
         }
     }
 
+    /**
+     * The command syntax is returned.
+     *
+     * @return the command syntax
+     */
     @Override
     public String getSyntax() {
         // syntax string is returned
         return "join <id>";
     }
 
+    /**
+     * The command description is returned.
+     *
+     * @return the command description
+     */
     @Override
     public String getDescription() {
         // description string is returned

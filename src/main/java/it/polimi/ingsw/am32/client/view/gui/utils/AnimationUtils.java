@@ -12,24 +12,27 @@ import javafx.util.Duration;
  * Reusable JavaFX micro-animations for ui feedback are provided.
  *
  * <p>All methods are stateless and operate directly on the supplied {@link Node}.
- * This class is not instantiable.</p>
+ * Instantiation is prevented.</p>
  */
 public final class AnimationUtils {
 
-    // --- shake ---
+    // shake
     private static final int    SHAKE_STEP_MS   = 50;
     private static final double SHAKE_OFFSET_PX = 8.0;
     private static final int    SHAKE_CYCLES    = 6;
 
-    // --- toast ---
+    // toast
     private static final int    TOAST_FADE_IN_MS      = 250;
     private static final double TOAST_HOLD_SECONDS    = 3.5;
     private static final int    TOAST_FADE_OUT_MS     = 300;
 
-    // --- pulse ---
+    // pulse
     private static final int    PULSE_PERIOD_MS = 800;
     private static final double PULSE_SCALE_MAX = 1.25;
 
+    /**
+     * Instantiation is prevented for the utility class.
+     */
     private AnimationUtils() {}
 
     /**

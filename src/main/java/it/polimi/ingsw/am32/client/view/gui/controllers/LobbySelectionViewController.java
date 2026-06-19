@@ -29,6 +29,8 @@ public class LobbySelectionViewController implements ViewController {
 
     /**
      * Dependency injection is handled through the constructor.
+     *
+     * @param clientController the main client controller
      */
     public LobbySelectionViewController(ClientController clientController) {
         this.clientController = clientController;
@@ -47,6 +49,12 @@ public class LobbySelectionViewController implements ViewController {
         }
 
         lobbyListView.setCellFactory(lv -> new ListCell<>() {
+            /**
+             * The lobby list cell text is refreshed.
+             *
+             * @param item the lobby info to display
+             * @param empty true if the cell is empty, false otherwise
+             */
             @Override
             protected void updateItem(LobbyInfoDTO item, boolean empty) {
                 super.updateItem(item, empty);
@@ -91,6 +99,11 @@ public class LobbySelectionViewController implements ViewController {
     }
 
 
+    /**
+     * Available lobby entries are refreshed.
+     *
+     * @param event the available lobbies event
+     */
     @Override
     public void onAvailableLobbies(AvailableLobbiesEvent event) {
         Platform.runLater(() -> {
@@ -99,12 +112,22 @@ public class LobbySelectionViewController implements ViewController {
         });
     }
 
+    /**
+     * A successful lobby room update is handled by switching to the waiting room.
+     *
+     * @param event the lobby room update event
+     */
     @Override
     public void onLobbyRoomUpdate(LobbyRoomUpdateEvent event) {
         GuiLogger.info("[GUI] Successfully entered a room. Transitioning to Waiting Room");
         SceneManager.switchScene(ViewPaths.WAITING_ROOM, nextCtrl -> nextCtrl.onLobbyRoomUpdate(event));
     }
 
+    /**
+     * Lobby errors are displayed in both lobby action areas.
+     *
+     * @param event the lobby error event
+     */
     @Override
     public void onLobbyError(LobbyErrorEvent event) {
         Platform.runLater(() -> {
@@ -114,6 +137,11 @@ public class LobbySelectionViewController implements ViewController {
     }
 
 
+    /**
+     * A join error message is displayed.
+     *
+     * @param message the error message
+     */
     private void showErrorJoin(String message) {
         if (errorLabelJoin != null) {
             errorLabelJoin.setText(message);
@@ -121,6 +149,11 @@ public class LobbySelectionViewController implements ViewController {
         }
     }
 
+    /**
+     * A create-game error message is displayed.
+     *
+     * @param message the error message
+     */
     private void showErrorCreate(String message) {
         if (errorLabelCreate != null) {
             errorLabelCreate.setText(message);
@@ -128,6 +161,9 @@ public class LobbySelectionViewController implements ViewController {
         }
     }
 
+    /**
+     * Lobby error labels are hidden.
+     */
     private void hideErrors() {
         if (errorLabelJoin != null) errorLabelJoin.setVisible(false);
         if (errorLabelCreate != null) errorLabelCreate.setVisible(false);

@@ -16,29 +16,53 @@ import javafx.scene.control.Label;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * The initial connection view controller is represented.
+ */
 public class ConnectionViewController implements ViewController {
 
     @FXML private Label errorLabel;
     @FXML private Button btnRmi;
     @FXML private Button btnSocket;
 
+    /**
+     * A connection view controller is instantiated.
+     */
     public ConnectionViewController() {
     }
 
+    /**
+     * Connection view initialization is completed.
+     */
     @FXML
     public void initialize() {
     }
 
+    /**
+     * RMI connection setup is requested from the view.
+     *
+     * @param event the triggering action event
+     */
     @FXML
     public void handleConnectRMI(ActionEvent event) {
         attemptConnection(true);
     }
 
+    /**
+     * Socket connection setup is requested from the view.
+     *
+     * @param event the triggering action event
+     */
     @FXML
     public void handleConnectSocket(ActionEvent event) {
         attemptConnection(false);
     }
 
+    /**
+     * A background connection attempt is started.
+     *
+     * @param isRMI true if RMI should be used, false for socket
+     */
     private void attemptConnection(boolean isRMI) {
         String ip = GuiApp.getServerAddress();
 
@@ -89,6 +113,11 @@ public class ConnectionViewController implements ViewController {
         });
     }
 
+    /**
+     * Server-side connection refusal is shown.
+     *
+     * @param event the connection result event
+     */
     @Override
     public void onConnectionResult(ConnectionResultEvent event) {
         Platform.runLater(() -> {
@@ -99,11 +128,21 @@ public class ConnectionViewController implements ViewController {
         });
     }
 
+    /**
+     * An error message is displayed in the connection form.
+     *
+     * @param message the error message
+     */
     private void showError(String message) {
         errorLabel.setText(message);
         errorLabel.setVisible(true);
     }
 
+    /**
+     * Connection buttons are enabled or disabled together.
+     *
+     * @param disabled true if buttons should be disabled, false otherwise
+     */
     private void setButtonsDisabled(boolean disabled) {
         btnRmi.setDisable(disabled);
         btnSocket.setDisable(disabled);

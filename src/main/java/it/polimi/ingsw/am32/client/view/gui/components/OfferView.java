@@ -16,6 +16,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
+/**
+ * A JavaFX offer tile component with optional occupying totem is represented.
+ */
 public class OfferView extends StackPane {
 
     private LightOfferTile tileData;
@@ -25,6 +28,12 @@ public class OfferView extends StackPane {
     private static final double HOVER_SCALE = 1.08;
     private static final int ANIMATION_DURATION_MS = 150;
 
+    /**
+     * An offer tile view is created from the light tile model.
+     *
+     * @param tileData the light offer tile model
+     * @param totemColor the occupying player's totem color, or null if free
+     */
     public OfferView(LightOfferTile tileData, TotemColor totemColor) {
         this.tileData = tileData;
         this.backgroundImageView = new ImageView();
@@ -36,6 +45,9 @@ public class OfferView extends StackPane {
         setupInteractionEffects();
     }
 
+    /**
+     * Base layout bindings and child nodes are initialized.
+     */
     private void initializeComponent() {
         setMinSize(0, 0);
         setMaxSize(Double.MAX_VALUE, 120.0);
@@ -51,6 +63,9 @@ public class OfferView extends StackPane {
         this.getChildren().addAll(backgroundImageView, totemOverlay);
     }
 
+    /**
+     * The tile background image is loaded from the asset cache.
+     */
     private void loadTileImage() {
         if (tileData == null) return;
         var dto = AssetManager.getInstance().getOfferTile(tileData.getId());
@@ -60,6 +75,11 @@ public class OfferView extends StackPane {
         }
     }
 
+    /**
+     * The visible totem state of the offer tile is refreshed.
+     *
+     * @param totemColor the occupying player's totem color, or null if free
+     */
     public void renderTotemState(TotemColor totemColor) {
         totemOverlay.getChildren().clear();
         String occupyingPlayer = tileData.getOccupyingPlayer();
@@ -81,6 +101,9 @@ public class OfferView extends StackPane {
         }
     }
 
+    /**
+     * Hover interaction effects are configured.
+     */
     private void setupInteractionEffects() {
         ScaleTransition scaleIn = new ScaleTransition(Duration.millis(ANIMATION_DURATION_MS), this);
         scaleIn.setToX(HOVER_SCALE); scaleIn.setToY(HOVER_SCALE);
@@ -95,10 +118,21 @@ public class OfferView extends StackPane {
         });
     }
 
+    /**
+     * The represented tile model and totem state are updated.
+     *
+     * @param newTile the updated light offer tile model
+     * @param totemColor the occupying player's totem color, or null if free
+     */
     public void updateTile(LightOfferTile newTile, TotemColor totemColor) {
         this.tileData = newTile;
         renderTotemState(totemColor);
     }
 
+    /**
+     * The light tile model represented by this view is returned.
+     *
+     * @return the light offer tile model
+     */
     public LightOfferTile getTileData() { return tileData; }
 }

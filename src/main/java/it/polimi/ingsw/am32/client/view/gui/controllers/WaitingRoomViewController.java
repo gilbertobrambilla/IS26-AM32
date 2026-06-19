@@ -30,6 +30,9 @@ public class WaitingRoomViewController implements ViewController {
         this.clientController = clientController;
     }
 
+    /**
+     * Waiting room initialization is completed.
+     */
     @FXML
     public void initialize() {
     }
@@ -68,6 +71,11 @@ public class WaitingRoomViewController implements ViewController {
         });
     }
 
+    /**
+     * Waiting room errors are displayed in the status label.
+     *
+     * @param event the game error event
+     */
     @Override
     public void onError(GameErrorEvent event) {
         Platform.runLater(() -> {
