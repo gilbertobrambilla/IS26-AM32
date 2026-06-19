@@ -9,6 +9,13 @@ import it.polimi.ingsw.am32.client.model.LightOfferTile;
  */
 public class PlaceHandler implements InputHandler {
 
+    /**
+     * A totem placement command is executed.
+     *
+     * @param controller the client controller
+     * @param args the raw input tokens
+     * @throws IllegalArgumentException if the provided arguments are invalid
+     */
     @Override
     public void execute(ClientController controller, String[] args) throws IllegalArgumentException {
         // argument length is validated
@@ -53,12 +60,22 @@ public class PlaceHandler implements InputHandler {
         controller.requestPlaceTotem(tileId);
     }
 
+    /**
+     * The command syntax is returned.
+     *
+     * @return the command syntax
+     */
     @Override
     public String getSyntax() {
         // syntax string is returned
         return "place <letter>";
     }
 
+    /**
+     * The command description is returned.
+     *
+     * @return the command description
+     */
     @Override
     public String getDescription() {
         // description string is returned

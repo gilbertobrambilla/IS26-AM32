@@ -14,16 +14,23 @@ import java.util.concurrent.ConcurrentMap;
  * lazy instantiation. The cache is backed by a {@link ConcurrentHashMap}. Paths
  * that fail to load are tracked in a separate set to avoid redundant I/O.</p>
  *
- * <p>All methods are safe to call from any thread.</p>
+ * <p>All methods can be safely called from any thread.</p>
  */
 public final class ImageCache {
 
     private final ConcurrentMap<String, Image> cache = new ConcurrentHashMap<>();
     private final Set<String> missingPaths = ConcurrentHashMap.newKeySet();
 
+    /**
+     * Instantiation is controlled by the singleton holder.
+     */
     private ImageCache() {}
 
-    /** The singleton instance is returned and initialized lazily by the jvm. */
+    /**
+     * The singleton instance is returned and initialized lazily by the jvm.
+     *
+     * @return the image cache instance
+     */
     public static ImageCache getInstance() {
         return Holder.INSTANCE;
     }
@@ -54,8 +61,14 @@ public final class ImageCache {
         return loadAndCache(path);
     }
 
-    // --- private helpers ---
+    // private helpers
 
+    /**
+     * An image is loaded from the classpath and stored in the cache.
+     *
+     * @param path the absolute classpath path
+     * @return the cached image, or null if unavailable
+     */
     private Image loadAndCache(String path) {
         InputStream stream = ImageCache.class.getResourceAsStream(path);
         if (stream == null) {
@@ -70,8 +83,11 @@ public final class ImageCache {
         return cache.get(path);
     }
 
-    // --- initialization-on-demand holder ---
+    // initialization-on-demand holder
 
+    /**
+     * Lazy singleton holder is represented.
+     */
     private static final class Holder {
         private static final ImageCache INSTANCE = new ImageCache();
     }

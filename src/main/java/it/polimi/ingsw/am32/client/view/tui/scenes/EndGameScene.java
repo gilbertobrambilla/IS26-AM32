@@ -6,7 +6,7 @@ import org.jline.terminal.Terminal;
 import java.util.List;
 
 /**
- * This scene renders the final game results.
+ * This scene renders final game results.
  */
 public class EndGameScene implements Scene {
     private List<String> winners;
@@ -39,6 +39,13 @@ public class EndGameScene implements Scene {
         this.isLeaderboardProcessed = true;
     }
 
+    /**
+     * The final results scene is drawn.
+     *
+     * @param terminal the terminal instance
+     * @param width the terminal width
+     * @param height the terminal height
+     */
     @Override
     public void draw(Terminal terminal, int width, int height) {
         // box boundaries and dynamic height are calculated

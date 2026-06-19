@@ -16,6 +16,13 @@ import java.util.List;
  */
 public class ResolveHandler implements InputHandler {
 
+    /**
+     * A resolve command is executed according to the current game phase.
+     *
+     * @param controller the client controller
+     * @param args the raw input tokens
+     * @throws IllegalArgumentException if the provided arguments are invalid
+     */
     @Override
     public void execute(ClientController controller, String[] args) throws IllegalArgumentException {
         LightGameState state = controller.getLightGameState();
@@ -185,11 +192,21 @@ public class ResolveHandler implements InputHandler {
         }
     }
 
+    /**
+     * The command syntax is returned.
+     *
+     * @return the command syntax
+     */
     @Override
     public String getSyntax() {
         return "resolve [-c|-b] <id>";
     }
 
+    /**
+     * The command description is returned.
+     *
+     * @return the command description
+     */
     @Override
     public String getDescription() {
         return "resolves your turn";

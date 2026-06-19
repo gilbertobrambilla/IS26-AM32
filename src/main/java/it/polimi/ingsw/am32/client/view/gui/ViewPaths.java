@@ -1,8 +1,7 @@
 package it.polimi.ingsw.am32.client.view.gui;
 
 /**
- * Enum representing the paths to the FXML files for each view in the application.
- * This centralizes the management of view paths and makes it easier to maintain and update them.
+ * FXML paths for all GUI views are centralized.
  */
 public enum ViewPaths {
     CONNECTION("/it/polimi/ingsw/am32/connection-view.fxml"),
@@ -14,10 +13,20 @@ public enum ViewPaths {
 
     private final String path;
 
+    /**
+     * A view path is stored.
+     *
+     * @param path the classpath path to the FXML file
+     */
     ViewPaths(String path) {
         this.path = path;
     }
 
+    /**
+     * The classpath path to the FXML file is returned.
+     *
+     * @return the fxml classpath path
+     */
     public String getPath() {
         return path;
     }

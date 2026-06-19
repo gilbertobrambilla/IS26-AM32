@@ -49,6 +49,15 @@ public class SidePanel extends AbstractTuiPanel {
     }
 
 
+    /**
+     * The player side panel is drawn.
+     *
+     * @param terminal the terminal instance
+     * @param startX the starting x coordinate
+     * @param startY the starting y coordinate
+     * @param width the panel width
+     * @param height the panel height
+     */
     @Override
     public void draw(Terminal terminal, int startX, int startY, int width, int height) {
         // bounding box is drawn

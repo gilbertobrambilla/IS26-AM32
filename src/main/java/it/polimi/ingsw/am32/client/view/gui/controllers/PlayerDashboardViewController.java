@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public class PlayerDashboardViewController {
 
-    // --- card layout constants ---
+    // card layout constants
     private static final double CASCADE_SPACING = -85.0;
     private static final double COLUMN_WIDTH    = 90.0;
     private static final double CARD_WIDTH      = 72.0;
@@ -46,12 +46,17 @@ public class PlayerDashboardViewController {
     /** Card id keys cached card view instances to avoid redundant asset loads. */
     private final Map<String, CardView> myCardsCache = new HashMap<>();
 
+    /**
+     * Dashboard contents are initialized.
+     */
     @FXML
     public void initialize() {
         clearDashboard();
     }
 
-    /** All counters are reset to zero and the card hand is emptied. */
+    /**
+     * All counters are reset to zero and the card hand is emptied.
+     */
     public void clearDashboard() {
         myFoodLabel.setText("0");
         myPrestigeLabel.setText("0");
@@ -117,9 +122,7 @@ public class PlayerDashboardViewController {
         }
     }
 
-    // -------------------------------------------------------------------------
     // private helpers
-    // -------------------------------------------------------------------------
 
     /**
      * A cascading column of cards is built for a single category.

@@ -59,6 +59,13 @@ public class MenuScene implements Scene {
         gamesPanel.updateData(lobbies);
     }
 
+    /**
+     * The main menu scene is drawn.
+     *
+     * @param terminal the terminal instance
+     * @param width the terminal width
+     * @param height the terminal height
+     */
     @Override
     public void draw(Terminal terminal, int width, int height) {
         // fixed layout bounds are defined
