@@ -5,6 +5,9 @@ import it.polimi.ingsw.am32.dto.messages.game.models.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * A lightweight client-side snapshot of the game state is represented.
+ */
 public class LightGameState {
     private final String myNickname;
     private int gameId;
@@ -273,73 +276,151 @@ public class LightGameState {
 
     // getters
 
+    /**
+     * The local player nickname is returned.
+     *
+     * @return the local player nickname
+     */
     public String getMyNickname() {
         return myNickname;
     }
 
+    /**
+     * The game identifier is returned.
+     *
+     * @return the game identifier
+     */
     public int getGameId() {
         return gameId;
     }
 
+    /**
+     * The current player nickname is returned.
+     *
+     * @return the current player nickname
+     */
     public String getCurrentPlayer() {
         return currentPlayer;
     }
 
+    /**
+     * The current game phase is returned.
+     *
+     * @return the current game phase
+     */
     public GamePhase getCurrentPhase() {
         return currentPhase;
     }
 
+    /**
+     * The current round number is returned.
+     *
+     * @return the current round number
+     */
     public int getCurrentRound() {
         return currentRound;
     }
 
+    /**
+     * The current era number is returned.
+     *
+     * @return the current era number
+     */
     public int getCurrentEra() {
         return currentEra;
     }
 
+    /**
+     * The current turn order tile is returned.
+     *
+     * @return the current turn order tile
+     */
     public LightTurnOrderTile getTurnOrderTile() {
         return turnOrderTile;
     }
 
+    /**
+     * The player map is returned as an unmodifiable view.
+     *
+     * @return the player map
+     */
     public Map<String, LightPlayer> getPlayers() {
         return Collections.unmodifiableMap(players);
     }
 
+    /**
+     * The offer track is returned as an unmodifiable list.
+     *
+     * @return the offer track
+     */
     public List<LightOfferTile> getOfferTrack() {
         if (offerTrack == null) return Collections.emptyList();
         return Collections.unmodifiableList(offerTrack);
     }
 
+    /**
+     * The upper tribe row is returned as an unmodifiable list.
+     *
+     * @return the upper tribe row
+     */
     public List<String> getUpperTribeRow() {
         if (upperTribeRow == null) return Collections.emptyList();
         return Collections.unmodifiableList(upperTribeRow);
     }
 
+    /**
+     * The lower tribe row is returned as an unmodifiable list.
+     *
+     * @return the lower tribe row
+     */
     public List<String> getLowerTribeRow() {
         if (lowerTribeRow == null) return Collections.emptyList();
         return Collections.unmodifiableList(lowerTribeRow);
     }
 
+    /**
+     * The upper building row is returned as an unmodifiable list.
+     *
+     * @return the upper building row
+     */
     public List<String> getUpperBuildingRow() {
         if (upperBuildingRow == null) return Collections.emptyList();
         return Collections.unmodifiableList(upperBuildingRow);
     }
 
+    /**
+     * The lower building row is returned as an unmodifiable list.
+     *
+     * @return the lower building row
+     */
     public List<String> getLowerBuildingRow() {
         if (lowerBuildingRow == null) return Collections.emptyList();
         return Collections.unmodifiableList(lowerBuildingRow);
     }
 
+    /**
+     * The tribe deck size is returned.
+     *
+     * @return the tribe deck size
+     */
     public int getTribeDeckSize() {
         return tribeDeckSize;
     }
 
+    /**
+     * The era of the top tribe deck card is returned.
+     *
+     * @return the top tribe deck card era
+     */
     public int getTribeDeckTopCardEra() {
         return tribeDeckTopCardEra;
     }
 
     /**
      * The state is updated when an action finishes and the totem returns.
+     *
+     * @param nickname the nickname of the player
+     * @param slotIndex the turn order slot index
      */
     public void returnTotem(String nickname, int slotIndex) {
         for (LightOfferTile tile : offerTrack) {
@@ -361,6 +442,18 @@ public class LightGameState {
         this.turnOrderTile = new LightTurnOrderTile(this.turnOrderTile.getTileId(), order);
     }
 
+    /**
+     * Round, era, visible rows, and tribe deck metadata are updated.
+     *
+     * @param newRound the new round number
+     * @param newEra the new era number
+     * @param upperTribe the upper tribe row card identifiers
+     * @param lowerTribe the lower tribe row card identifiers
+     * @param upperBuilding the upper building row card identifiers
+     * @param lowerBuilding the lower building row card identifiers
+     * @param tribeDeckSize the tribe deck size
+     * @param tribeDeckTopCardEra the era of the top tribe deck card
+     */
     public void updateRound(int newRound, int newEra, List<String> upperTribe, List<String> lowerTribe, List<String> upperBuilding, List<String> lowerBuilding, int tribeDeckSize, int tribeDeckTopCardEra) {
         this.currentRound = newRound;
         this.currentEra = newEra;

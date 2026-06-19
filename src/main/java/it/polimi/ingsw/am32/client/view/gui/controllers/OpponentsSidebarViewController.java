@@ -27,16 +27,26 @@ public class OpponentsSidebarViewController {
 
     private final Map<String, OpponentView> opponentViewsCache = new HashMap<>();
 
+    /**
+     * Dependency injection is handled through the constructor.
+     *
+     * @param clientController the main client controller
+     */
     public OpponentsSidebarViewController(ClientController clientController) {
         this.clientController = clientController;
     }
 
+    /**
+     * Sidebar contents are initialized.
+     */
     @FXML
     public void initialize() {
         clearSidebar();
     }
 
-    /** All opponent views are removed and the internal cache is reset. */
+    /**
+     * All opponent views are removed and the internal cache is reset.
+     */
     public void clearSidebar() {
         opponentsContainer.getChildren().clear();
         opponentViewsCache.clear();

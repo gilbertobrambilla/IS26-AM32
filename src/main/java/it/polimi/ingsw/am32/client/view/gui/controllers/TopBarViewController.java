@@ -16,6 +16,9 @@ public class TopBarViewController {
     @FXML private Label roundLabel;
     @FXML private Label phaseLabel;
 
+    /**
+     * Top bar initialization is completed.
+     */
     @FXML
     public void initialize() {
         // labels are already populated with placeholder text in the fxml

@@ -56,6 +56,11 @@ public class WaitingRoomViewController implements ViewController {
         });
     }
 
+    /**
+     * Waiting room errors are displayed in the status label.
+     *
+     * @param event the game error event
+     */
     @Override
     public void onError(GameErrorEvent event) {
         Platform.runLater(() -> {

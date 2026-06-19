@@ -60,6 +60,13 @@ public class InGameScene implements Scene {
         sidePanel.setFocus(nickname);
     }
 
+    /**
+     * The active game scene is drawn.
+     *
+     * @param terminal the terminal instance
+     * @param width the terminal width
+     * @param height the terminal height
+     */
     @Override
     public void draw(Terminal terminal, int width, int height) {
         // fixed layout bounds are defined

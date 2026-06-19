@@ -208,6 +208,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Available games list updates are processed.
+     *
+     * @param event the available lobbies event
+     */
     public void onAvailableGamesListUpdate(AvailableLobbiesEvent event) {
         runOnUIThread(() -> {
             // ui is updated
@@ -215,6 +220,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Lobby room update events are processed.
+     *
+     * @param event the lobby room update event
+     */
     public void onLobbyRoomUpdated(LobbyRoomUpdateEvent event) {
         runOnUIThread(() -> {
             // ui is updated
@@ -222,6 +232,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Game start events are processed.
+     *
+     * @param event the game started event
+     */
     public void onGameStarted(GameStartedEvent event) {
         runOnUIThread(() -> {
             // state is initialized
@@ -231,6 +246,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Full game state update events are processed.
+     *
+     * @param event the game state event
+     */
     public void onGameStateUpdate(GameStateEvent event) {
         runOnUIThread(() -> {
             // state is initialized
@@ -240,6 +260,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Game phase change events are processed.
+     *
+     * @param event the game phase changed event
+     */
     public void onGamePhaseChanged(GamePhaseChangedEvent event) {
         runOnUIThread(() -> {
             // state is updated
@@ -249,6 +274,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Round end events are processed.
+     *
+     * @param event the round-ended event
+     */
     public void onRoundEnded(RoundEndedEvent event) {
         runOnUIThread(() -> {
             List<String> upperTribe = event.getUpperTribeRow().stream().map(CardDTO::getId).collect(Collectors.toList());
@@ -272,6 +302,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Game end events are processed.
+     *
+     * @param event the game ended event
+     */
     public void onGameEnded(GameEndedEvent event) {
         runOnUIThread(() -> {
             // ui is updated
@@ -291,6 +326,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Totem placement events are processed.
+     *
+     * @param event the totem placed event
+     */
     public void onTotemPlaced(TotemPlacedEvent event) {
         runOnUIThread(() -> {
             // state is updated
@@ -323,6 +363,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Event card resolution events are processed.
+     *
+     * @param event the event resolved event
+     */
     public void onEventResolved(EventResolvedEvent event) {
         runOnUIThread(() -> {
             // state is updated
@@ -332,6 +377,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Extra acquisition resolution events are processed.
+     *
+     * @param event the extra acquisition resolved event
+     */
     public void onExtraAcquisitionResolved(ExtraAcquisitionResolvedEvent event) {
         runOnUIThread(() -> {
             // state is updated
@@ -346,6 +396,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Invalid action errors are processed.
+     *
+     * @param event the game error event
+     */
     public void onInvalidAction(GameErrorEvent event) {
         runOnUIThread(() -> {
             // ui is updated
@@ -353,6 +408,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Player disconnection events are processed.
+     *
+     * @param event the player disconnected event
+     */
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
         runOnUIThread(() -> {
             // state is updated
@@ -362,6 +422,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Player reconnection events are processed.
+     *
+     * @param event the player reconnected event
+     */
     public void onPlayerReconnected(PlayerReconnectedEvent event) {
         runOnUIThread(() -> {
             // state is updated
@@ -371,6 +436,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Game suspension events are processed.
+     *
+     * @param event the game suspended event
+     */
     public void onGameSuspended(GameSuspendedEvent event) {
         runOnUIThread(() -> {
             // ui is updated
@@ -378,6 +448,11 @@ public class ClientController {
         });
     }
 
+    /**
+     * Game resume events are processed.
+     *
+     * @param event the game resumed event
+     */
     public void onGameResumed(GameResumedEvent event) {
         runOnUIThread(() -> {
             // ui is updated

@@ -14,21 +14,41 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.function.Consumer;
 
+/**
+ * JavaFX scene loading and controller ownership are coordinated.
+ */
 public class SceneManager {
 
     private static Stage primaryStage;
     private static ClientController clientController;
     private static ViewController currentController;
 
+    /**
+     * The scene manager is initialized with the primary stage and controller.
+     *
+     * @param stage the primary JavaFX stage
+     * @param controller the client controller to inject into views
+     */
     public static void initialize(Stage stage, ClientController controller) {
         primaryStage = stage;
         clientController = controller;
     }
 
+    /**
+     * The selected scene is loaded and displayed.
+     *
+     * @param viewPath the view path to load
+     */
     public static void switchScene(ViewPaths viewPath) {
         switchScene(viewPath, null);
     }
 
+    /**
+     * The selected scene is loaded and displayed with a post-load callback.
+     *
+     * @param viewPath the view path to load
+     * @param onLoaded the callback invoked after controller loading, or null if unused
+     */
     public static void switchScene(ViewPaths viewPath, Consumer<ViewController> onLoaded) {
         if (primaryStage == null) {
             throw new IllegalStateException("SceneManager has not been initialized yet.");
@@ -94,6 +114,11 @@ public class SceneManager {
         }
     }
 
+    /**
+     * The active connection is closed, and the connection scene is restored.
+     *
+     * @param reason the disconnection reason to display
+     */
     public static void forceDisconnect(String reason) {
         Runnable disconnectTask = () -> {
             if (clientController != null) {
@@ -136,6 +161,11 @@ public class SceneManager {
         clientController = controller;
     }
 
+    /**
+     * The controller of the currently loaded scene is returned.
+     *
+     * @return the current view controller
+     */
     public static ViewController getCurrentController() {
         return currentController;
     }

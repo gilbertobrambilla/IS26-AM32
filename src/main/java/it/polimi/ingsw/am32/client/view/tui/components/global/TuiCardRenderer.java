@@ -4,7 +4,7 @@ import it.polimi.ingsw.am32.client.view.tui.utils.TuiColorPalette;
 import org.jline.terminal.Terminal;
 
 /**
- * Utility component for rendering formatted card rectangles and board tiles.
+ * Formatted card rectangles and board tiles are rendered.
  */
 public class TuiCardRenderer extends AbstractTuiPanel {
 
@@ -217,6 +217,15 @@ public class TuiCardRenderer extends AbstractTuiPanel {
         }
     }
 
+    /**
+     * Nothing is drawn by the reusable card renderer component.
+     *
+     * @param terminal the terminal instance
+     * @param startX the starting x coordinate
+     * @param startY the starting y coordinate
+     * @param width the component width
+     * @param height the component height
+     */
     @Override
     public void draw(Terminal terminal, int startX, int startY, int width, int height) {
         // default draw method is left blank

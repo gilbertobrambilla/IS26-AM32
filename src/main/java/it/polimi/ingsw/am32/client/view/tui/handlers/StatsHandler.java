@@ -7,6 +7,13 @@ import it.polimi.ingsw.am32.client.controller.ClientController;
  */
 public class StatsHandler implements InputHandler {
 
+    /**
+     * A player statistics focus command is executed.
+     *
+     * @param controller the client controller
+     * @param args the raw input tokens
+     * @throws IllegalArgumentException if the provided arguments are invalid
+     */
     @Override
     public void execute(ClientController controller, String[] args) throws IllegalArgumentException {
         // target nickname is determined
@@ -39,12 +46,22 @@ public class StatsHandler implements InputHandler {
         controller.requestPlayerFocus(targetNickname);
     }
 
+    /**
+     * The command syntax is returned.
+     *
+     * @return the command syntax
+     */
     @Override
     public String getSyntax() {
         // syntax string is returned
         return "stats [me|player]";
     }
 
+    /**
+     * The command description is returned.
+     *
+     * @return the command description
+     */
     @Override
     public String getDescription() {
         // description string is returned

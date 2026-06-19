@@ -21,6 +21,9 @@ import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * The end-game results and leaderboard view controller is represented.
+ */
 public class EndGameViewController implements ViewController {
 
     private static final String CURRENT_PLAYER_CLASS = "current-player-row";
@@ -50,10 +53,18 @@ public class EndGameViewController implements ViewController {
     @FXML private Label overflowLabel;
     @FXML private Label globalPositionLabel;
 
+    /**
+     * Dependency injection is handled through the constructor.
+     *
+     * @param clientController the main client controller
+     */
     public EndGameViewController(ClientController clientController) {
         this.clientController = clientController;
     }
 
+    /**
+     * Result tables, row factories, and initial visibility states are configured.
+     */
     @FXML
     public void initialize() {
         // setup local table columns
@@ -70,6 +81,12 @@ public class EndGameViewController implements ViewController {
         String myNickname = clientController != null ? clientController.getMyNickname() : null;
 
         localScoreTable.setRowFactory(tv -> new TableRow<>() {
+            /**
+             * The local score row style is refreshed.
+             *
+             * @param item the rendered local score row
+             * @param empty true if the row is empty, false otherwise
+             */
             @Override
             protected void updateItem(LocalScoreRow item, boolean empty) {
                 super.updateItem(item, empty);
@@ -81,6 +98,12 @@ public class EndGameViewController implements ViewController {
         });
 
         globalLeaderboardTable.setRowFactory(tv -> new TableRow<>() {
+            /**
+             * The global leaderboard row style is refreshed.
+             *
+             * @param item the rendered leaderboard row
+             * @param empty true if the row is empty, false otherwise
+             */
             @Override
             protected void updateItem(LeaderboardEntryDTO item, boolean empty) {
                 super.updateItem(item, empty);
@@ -112,6 +135,11 @@ public class EndGameViewController implements ViewController {
         dataBox.setManaged(false);
     }
 
+    /**
+     * Local match results are displayed.
+     *
+     * @param event the game ended event
+     */
     @Override
     public void onGameResults(GameEndedEvent event) {
         GuiLogger.info("[GUI] onGameResults received");
@@ -139,6 +167,11 @@ public class EndGameViewController implements ViewController {
         }
     }
 
+    /**
+     * Global leaderboard results are displayed.
+     *
+     * @param event the leaderboard event
+     */
     @Override
     public void onLeaderboard(LeaderboardEvent event) {
         GuiLogger.info("[GUI] onLeaderboard received. DB available: " + event.isDbAvailable());
@@ -185,6 +218,9 @@ public class EndGameViewController implements ViewController {
         }
     }
 
+    /**
+     * The application is closed from the end-game screen.
+     */
     @FXML
     public void handleExit() {
         GuiLogger.info("[GUI] Exiting from EndGameScene");
@@ -192,22 +228,38 @@ public class EndGameViewController implements ViewController {
     }
 
     /**
-     * POJO for displaying local score entries in the TableView.
-     * We use JavaFX properties for compatibility with the TableView's cell value factories.
+     * A local score table row is represented.
+     * JavaFX properties are used for compatibility with cell value factories.
      */
     public static class LocalScoreRow {
         private final SimpleStringProperty player;
         private final SimpleIntegerProperty score;
 
+        /**
+         * A local score row is created.
+         *
+         * @param player the player nickname
+         * @param score the final score
+         */
         public LocalScoreRow(String player, int score) {
             this.player = new SimpleStringProperty(player);
             this.score = new SimpleIntegerProperty(score);
         }
 
+        /**
+         * The player nickname is returned.
+         *
+         * @return the player nickname
+         */
         public String getPlayer() {
             return player.get();
         }
 
+        /**
+         * The final score is returned.
+         *
+         * @return the final score
+         */
         public int getScore() {
             return score.get();
         }

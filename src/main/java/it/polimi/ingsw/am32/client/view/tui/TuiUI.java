@@ -385,6 +385,12 @@ public class TuiUI implements UI, LogObserver {
         }
     }
 
+    /**
+     * New log messages are displayed in the active terminal context.
+     *
+     * @param level the log severity level
+     * @param message the log message
+     */
     @Override
     public void onNewLog(LogLevel level, String message) {
         // ansi color is applied based on severity

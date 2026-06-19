@@ -19,6 +19,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 
+/**
+ * The main in-game scene controller is represented.
+ */
 public class InGameViewController implements ViewController {
 
     private final ClientController clientController;
@@ -41,7 +44,7 @@ public class InGameViewController implements ViewController {
 
     @FXML private BoardViewController boardController;
 
-    // --- helper card nodes ---
+    // helper card nodes
     @FXML private ImageView helperCardImageView;
     @FXML private StackPane helperCardOverlay;
     @FXML private ImageView largeHelperImageView;
@@ -51,10 +54,18 @@ public class InGameViewController implements ViewController {
     private Image helperImgBack;
     private boolean isHelperFront = true;
 
+    /**
+     * Dependency injection is handled through the constructor.
+     *
+     * @param clientController the main client controller
+     */
     public InGameViewController(ClientController clientController) {
         this.clientController = clientController;
     }
 
+    /**
+     * In-game child controllers, overlays, and helper card assets are initialized.
+     */
     @FXML
     public void initialize() {
         clearAllContainers();
@@ -76,6 +87,11 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * All visible in-game areas are rendered from the current light state.
+     *
+     * @param state the light game state to render
+     */
     public void fullRender(LightGameState state) {
         if (state == null) return;
 
@@ -99,6 +115,9 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * All child containers and transient overlays are reset.
+     */
     private void clearAllContainers() {
         if (notificationLabel != null) notificationLabel.setVisible(false);
         if (toastContainer != null) toastContainer.setVisible(false);
@@ -110,6 +129,11 @@ public class InGameViewController implements ViewController {
         if (opponentsSidebarController != null) opponentsSidebarController.clearSidebar();
     }
 
+    /**
+     * A transient in-game notification is displayed.
+     *
+     * @param message the notification message
+     */
     public void showNotification(String message) {
         GuiLogger.info("[GUI] " + message);
 
@@ -123,8 +147,13 @@ public class InGameViewController implements ViewController {
         }
     }
 
-    // --- OPPONENT FOCUS OVERLAY ---
+    // opponent focus overlay
 
+    /**
+     * The opponent focus overlay is hidden.
+     *
+     * @param event the triggering mouse event
+     */
     @FXML
     public void handleCloseFocus(MouseEvent event) {
         if (opponentFocusOverlay != null) {
@@ -132,6 +161,11 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * The selected opponent's acquired cards are displayed.
+     *
+     * @param nickname the player nickname to focus on, or null to clear focus
+     */
     @Override
     public void onPlayerFocus(String nickname) {
         if (nickname == null || nickname.isBlank()) {
@@ -174,8 +208,13 @@ public class InGameViewController implements ViewController {
         }
     }
 
-    // --- HELPER CARD EVENT HANDLERS ---
+    // helper card event handlers
 
+    /**
+     * The helper card zoom overlay is opened.
+     *
+     * @param event the triggering mouse event
+     */
     @FXML
     public void handleOpenHelperZoom(MouseEvent event) {
         if (helperCardOverlay != null) {
@@ -188,6 +227,11 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * The helper card zoom overlay is closed.
+     *
+     * @param event the triggering mouse event
+     */
     @FXML
     public void handleCloseHelperZoom(MouseEvent event) {
         if (helperCardOverlay != null) {
@@ -195,6 +239,11 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * The large helper card image is flipped between front and back.
+     *
+     * @param event the triggering mouse event
+     */
     @FXML
     public void handleFlipHelperCard(MouseEvent event) {
 
@@ -219,18 +268,33 @@ public class InGameViewController implements ViewController {
         shrink.play();
     }
 
+    /**
+     * A mouse click is consumed to keep overlay clicks local.
+     *
+     * @param event the triggering mouse event
+     */
     @FXML
     public void consumeClick(MouseEvent event) {
         event.consume();
     }
 
-    // --- EVENT ROUTING ---
+    // event routing
 
+    /**
+     * The game start event is rendered.
+     *
+     * @param event the game started event
+     */
     @Override
     public void onGameStarted(GameStartedEvent event) {
         fullRender(clientController.getLightGameState());
     }
 
+    /**
+     * The restored game state is rendered and the suspension state is cleared.
+     *
+     * @param event the game state event
+     */
     @Override
     public void onGameStateRestored(GameStateEvent event) {
         if (suspensionOverlay != null) {
@@ -239,6 +303,11 @@ public class InGameViewController implements ViewController {
         fullRender(clientController.getLightGameState());
     }
 
+    /**
+     * The updated game phase is rendered.
+     *
+     * @param event the game phase changed event
+     */
     @Override
     public void onGamePhaseUpdated(GamePhaseChangedEvent event) {
         GuiLogger.info("[GUI] phase changed to: " + event.getPhase());
@@ -249,12 +318,22 @@ public class InGameViewController implements ViewController {
         fullRender(clientController.getLightGameState());
     }
 
+    /**
+     * The new round state is rendered.
+     *
+     * @param event the round-ended event
+     */
     @Override
     public void onRoundSummary(RoundEndedEvent event) {
         fullRender(clientController.getLightGameState());
         showNotification("Round " + event.getNewRound() + " started.");
     }
 
+    /**
+     * Totem placement updates are rendered.
+     *
+     * @param event the totem placed event
+     */
     @Override
     public void onTotemPlaced(TotemPlacedEvent event) {
         fullRender(clientController.getLightGameState());
@@ -263,6 +342,11 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * Action resolution updates are rendered.
+     *
+     * @param event the action resolved event
+     */
     @Override
     public void onActionResolved(ActionResolvedEvent event) {
         fullRender(clientController.getLightGameState());
@@ -271,11 +355,21 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * Event resolution updates are rendered.
+     *
+     * @param event the event resolved event
+     */
     @Override
     public void onEventResolved(EventResolvedEvent event) {
         fullRender(clientController.getLightGameState());
     }
 
+    /**
+     * Extra acquisition updates are rendered.
+     *
+     * @param event the extra acquisition resolved event
+     */
     @Override
     public void onExtraAcquisition(ExtraAcquisitionResolvedEvent event) {
         fullRender(clientController.getLightGameState());
@@ -284,6 +378,11 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * Game errors are displayed as toast messages.
+     *
+     * @param event the game error event
+     */
     @Override
     public void onError(GameErrorEvent event) {
         String formattedError = event.getReason() + ": " + event.getErrorMessage();
@@ -294,6 +393,11 @@ public class InGameViewController implements ViewController {
         GuiLogger.error("[GUI] server rejected action: " + formattedError);
     }
 
+    /**
+     * Player disconnection updates are displayed.
+     *
+     * @param event the player disconnected event
+     */
     @Override
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
         showNotification(event.getPlayer() + " disconnected.");
@@ -303,6 +407,11 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * Player reconnection updates are displayed.
+     *
+     * @param event the player reconnected event
+     */
     @Override
     public void onPlayerReconnected(PlayerReconnectedEvent event) {
         showNotification(event.getPlayer() + " reconnected.");
@@ -312,6 +421,11 @@ public class InGameViewController implements ViewController {
         }
     }
 
+    /**
+     * Game suspension state is displayed.
+     *
+     * @param event the game suspended event
+     */
     @Override
     public void onGameSuspended(GameSuspendedEvent event) {
         if (suspensionOverlay != null) {
@@ -323,6 +437,11 @@ public class InGameViewController implements ViewController {
         showNotification("game suspended due to missing players.");
     }
 
+    /**
+     * Game resumed state is displayed and the board is rendered.
+     *
+     * @param event the game resumed event
+     */
     @Override
     public void onGameResumed(GameResumedEvent event) {
         if (suspensionOverlay != null) {

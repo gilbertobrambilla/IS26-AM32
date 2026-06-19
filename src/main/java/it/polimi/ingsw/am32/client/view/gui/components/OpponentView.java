@@ -68,10 +68,11 @@ public class OpponentView extends HBox {
         }
     }
 
-    // -------------------------------------------------------------------------
     // layout
-    // -------------------------------------------------------------------------
 
+    /**
+     * Static layout and child nodes are initialized.
+     */
     private void initLayout() {
         setMinHeight(ROW_HEIGHT);
         setPrefHeight(ROW_HEIGHT);
@@ -85,6 +86,11 @@ public class OpponentView extends HBox {
         getChildren().addAll(buildIdentityBox(), buildSpacer(), buildStatsBox());
     }
 
+    /**
+     * The identity column containing the name and totem slot is built.
+     *
+     * @return the identity column
+     */
     private VBox buildIdentityBox() {
         // opponent-name CSS class sets font weight, size, and fill
         nameLabel.getStyleClass().addAll("text-main", "opponent-name");
@@ -97,12 +103,22 @@ public class OpponentView extends HBox {
         return box;
     }
 
+    /**
+     * A flexible spacer for the opponent row is built.
+     *
+     * @return the spacer region
+     */
     private static Region buildSpacer() {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         return spacer;
     }
 
+    /**
+     * The stat column containing food and prestige values is built.
+     *
+     * @return the stat column
+     */
     private VBox buildStatsBox() {
         HBox foodRow     = buildStatRow("Food:",     foodLabel,     "text-main");
         HBox prestigeRow = buildStatRow("Prestige:", prestigeLabel, "text-gold");
