@@ -37,7 +37,7 @@ Apart from the basic rules of the game, we successfully implemented a set of adv
 | Multiple Games                  |      ✅     |
 | Client Disconnection Resilience |      ✅     |
 | Database Leaderboard            |      ✅     |
-| Server Persistance              |      ❎     |
+| Server Persistence              |      ❎     |
 
 ## 📚 Documentation
 
@@ -125,10 +125,10 @@ The applications will prompt for the required network configuration. The client 
 
 Mesos is a board game developed and published by Cranio Creations Srl.
 
-All graphical content of this project associated with the official board game has been used solely for educational purposes.
+All graphical content of this project associated with the official board game have been used solely for educational purposes.
 
 Distribution, copying, or reproduction of these contents and images outside of this project is forbidden, as well as publishing these contents for other purposes.
 
-Commercial use of the aforementioned content is strictly forbidden. Enjoy the game!
+Commercial use of the aforementioned content is strictly forbidden.
 
 Enjoy the game!
