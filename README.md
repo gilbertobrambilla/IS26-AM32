@@ -7,12 +7,15 @@
     Mesos
     <br>
 </h1>
-<h4 align="center">Software Engineering Project for Politecnico di Milano 2025 - 2026</h4>
+<h4 align="center">Software Engineering Project at Politecnico di Milano, A.Y. 2025-2026</h4>
 <p align="center">
     <a href="https://github.com/gilbertobrambilla">Gilberto Brambilla</a> •
     <a href="https://github.com/alethegoat">Alessio Capra</a> •
     <a href="https://github.com/baccangabriele">Gabriele Baccan</a> •
     <a href="https://github.com/giuliablanchetti">Giulia Blanchetti</a>
+</p>
+<p align="center">
+    <strong>Final Grade: 30/30 cum laude</strong>
 </p>
 
 ## 🚀 About the project
@@ -25,7 +28,7 @@ The application is a distributed multi-user system featuring both graphical (GUI
 
 ## 📋 Implemented Features
 
-Apart from the basic rules of the game, we successfully implemented a set of advanced features:
+The project implements the following requirements and advanced features:
 
 | Feature                         | Implemented |
 |:--------------------------------|:-----------:|
@@ -44,11 +47,11 @@ Apart from the basic rules of the game, we successfully implemented a set of adv
 All project documentation can be found under the `/documentation` directory of this repository.
 
 ### UML
-Under the UML folder, you can find the Class Diagram of our project and the Sequence Diagrams detailing our network architecture. The class diagram contains all Model classes and relevant parts of the Controller, while the sequence diagrams describe specific usage situations.
+The UML folder contains the project class diagram and the sequence diagrams describing the network architecture. The class diagram includes all model classes and the relevant parts of the controller, while the sequence diagrams describe specific usage scenarios.
 
-### JavaDoc
+### Javadoc
 
-The most important classes and methods are fully documented. The JavaDoc provides deeper insights into the codebase and architectural choices.
+The most important classes and methods are fully documented. The Javadoc provides deeper insights into the codebase and architectural choices.
 
 ## 🧪 Test Cases
 
@@ -64,54 +67,54 @@ The most important classes and methods are fully documented. The JavaDoc provide
 
 Before starting the server, make sure MySQL is running and import the database schema:
 
-```bash  
+```bash
 mysql -u root -p < src/main/resources/mesos.sql
-```  
+```
 
 If needed, update the database credentials in:
 
-```text  
-src/main/resources/database.json  
-```  
+```text
+src/main/resources/database.json
+```
 
 ## 🛠️ Build
 
 From the project root, run:
 
-```bash  
+```bash
 ./mvnw clean package
-```  
+```
 
 On Windows:
 
-```bash  
+```bash
 mvnw.cmd clean package
-```  
+```
 
-The build generates two executable jars:
+The build generates two executable JARs:
 
-```text  
-target/server.jar  
-target/client.jar  
-```  
+```text
+target/server.jar
+target/client.jar
+```
 
-## 🎮 How To Run
+## 🎮 How to Run
 
 Start the server:
 
-```bash  
+```bash
 java -jar target/server.jar
-```  
+```
 
 Start one or more clients:
 
-```bash  
+```bash
 java -jar target/client.jar
 ```
 
 The applications will prompt for the required network configuration. The client allows choosing between TUI and GUI mode at startup.
 
-## 💻 Tools And Technologies
+## 💻 Tools and Technologies
 
 - IntelliJ IDEA Ultimate
 - Maven
@@ -125,10 +128,10 @@ The applications will prompt for the required network configuration. The client 
 
 Mesos is a board game developed and published by Cranio Creations Srl.
 
-All graphical content of this project associated with the official board game have been used solely for educational purposes.
+All graphical assets in this project related to the official board game have been used solely for educational purposes.
 
-Distribution, copying, or reproduction of these contents and images outside of this project is forbidden, as well as publishing these contents for other purposes.
+Distribution, copying, reproduction, publication, or use of this material outside this project is forbidden.
 
-Commercial use of the aforementioned content is strictly forbidden.
+Commercial use of this material is strictly forbidden.
 
 Enjoy the game!
